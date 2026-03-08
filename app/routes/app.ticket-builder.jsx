@@ -195,6 +195,9 @@ function makeId(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const DISNEY_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 function mergeTags(...tagLists) {
   const seen = new Set();
   const tags = [];
@@ -230,6 +233,139 @@ function tierRowsFromJsonText(text, fallback = []) {
 
 function tierRowsToJsonText(rows) {
   return JSON.stringify(tierMapFromRows(rows), null, 2);
+}
+
+function plusDays(date, days) {
+  const copy = new Date(date);
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+}
+
+function ymd(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function lowestDisneyPriceByAge(pricingRows, ageGroup) {
+  const rows = ensureArray(pricingRows);
+  let min = null;
+  rows.forEach((row) => {
+    if (String(row?.ageGroup || "").toLowerCase() !== String(ageGroup || "").toLowerCase()) return;
+    const value = Number.parseFloat(String(row?.subtotal || ""));
+    if (!Number.isFinite(value)) return;
+    if (min == null || value < min) min = value;
+  });
+  return min;
+}
+
+function disneyTiersFromDates(dates) {
+  const points = [];
+  ensureArray(dates).forEach((item) => {
+    const date = asString(item?.date);
+    if (!date) return;
+    const adult = lowestDisneyPriceByAge(item?.pricing, "adult");
+    const child = lowestDisneyPriceByAge(item?.pricing, "child");
+    if (adult == null && child == null) return;
+    points.push({ date, adult, child });
+  });
+
+  points.sort((a, b) => a.date.localeCompare(b.date));
+
+  const groups = [];
+  let current = null;
+  points.forEach((point) => {
+    const key = `${point.adult ?? ""}|${point.child ?? ""}`;
+    if (!current) {
+      current = { key, start: point.date, end: point.date, adult: point.adult, child: point.child };
+      return;
+    }
+    if (current.key === key) {
+      current.end = point.date;
+      return;
+    }
+    groups.push(current);
+    current = { key, start: point.date, end: point.date, adult: point.adult, child: point.child };
+  });
+  if (current) groups.push(current);
+
+  return groups.map((group, index) => ({
+    name: `Tier ${index + 1}`,
+    start: group.start,
+    end: group.end,
+    prices: { Adult: group.adult, Child: group.child },
+  }));
+}
+
+function displayAddOnLabel(addOnSlug) {
+  const slug = asString(addOnSlug);
+  if (!slug) return "";
+  return slug
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+async function fetchDisneyJson(url, headers = {}) {
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": DISNEY_UA,
+      Accept: "application/json",
+      ...headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Disney API failed (${response.status}) for ${url}`);
+  }
+
+  return response.json();
+}
+
+async function getDisneyClientToken() {
+  const tokenJson = await fetchDisneyJson(
+    "https://disneyworld.disney.go.com/profile-api/authentication/get-client-token/",
+  );
+  if (!tokenJson?.access_token) throw new Error("Disney token endpoint returned no access token.");
+  return String(tokenJson.access_token);
+}
+
+async function getDisneyPricingCalendar({ token, numDays, addOn }) {
+  const startDate = ymd(new Date());
+  const endDate = ymd(plusDays(new Date(), 120));
+  const params = new URLSearchParams({
+    storeId: "wdw",
+    discountGroup: "std-gst",
+    startDate,
+    endDate,
+    numDays: String(numDays),
+  });
+  if (addOn) params.set("addOn", addOn);
+
+  const url = `https://disneyworld.disney.go.com/api/lexicon-view-assembler-service/wdw/tickets/product-types/theme-parks/prices?${params.toString()}`;
+  const json = await fetchDisneyJson(url, { Authorization: `BEARER ${token}` });
+  const bucket = ensureArray(json?.pricingCalendar).find((item) => Number(item?.numDays) === Number(numDays));
+  return disneyTiersFromDates(bucket?.dates || []);
+}
+
+function toTierRows(tiers) {
+  return ensureArray(tiers).map((tier) => ({
+    id: makeId("tier"),
+    name: asString(tier.name),
+    start: asString(tier.start),
+    end: asString(tier.end),
+  }));
+}
+
+function toTierPrices(tiers) {
+  const byTier = {};
+  ensureArray(tiers).forEach((tier) => {
+    const name = asString(tier.name);
+    if (!name) return;
+    byTier[name] = {
+      Adult: tier?.prices?.Adult != null ? String(tier.prices.Adult) : "",
+      Child: tier?.prices?.Child != null ? String(tier.prices.Child) : "",
+    };
+  });
+  return byTier;
 }
 
 async function runGraphql(admin, query, variables) {
@@ -945,6 +1081,64 @@ export const action = async ({ request }) => {
   const form = await request.formData();
 
   try {
+    const actionType = asString(form.get("actionType")) || "save_ticket_setup";
+
+    if (actionType === "import_disney") {
+      const park = asString(form.get("park")) || "Walt Disney World";
+      const mainProductTitle = asString(form.get("mainProductTitle"));
+      const importNumDays = Number.parseInt(asString(form.get("importNumDays")) || "1", 10);
+      const numDays = Number.isFinite(importNumDays) && importNumDays > 0 ? importNumDays : 1;
+      const addOn = asString(form.get("importAddOn"));
+      const addOnLabel = displayAddOnLabel(addOn);
+
+      const token = await getDisneyClientToken();
+      const onTiers = await getDisneyPricingCalendar({ token, numDays, addOn });
+
+      if (!onTiers.length) {
+        throw new Error("Disney pricing returned no tiers for the selected inputs.");
+      }
+
+      const ageGroups = DEFAULT_AGES.map((age) => ({ ...age }));
+      const importConfig = {
+        park,
+        mainProductTitle: mainProductTitle || `${park} ${numDays} Day Tickets`,
+        ageGroups,
+        optionGroups: [],
+        tierMode: "global",
+        globalTiers: toTierRows(onTiers),
+        perComboTiers: {},
+        comboPrices: {
+          __default__: toTierPrices(onTiers),
+        },
+      };
+
+      if (addOnLabel) {
+        const offTiers = await getDisneyPricingCalendar({ token, numDays, addOn: "" });
+        importConfig.optionGroups = [{ id: makeId("opt"), name: "ticket_type", valuesText: addOnLabel }];
+        importConfig.tierMode = "per_combo";
+
+        const optionKeys = ["ticket_type"];
+        const offKey = comboKey([{ name: "ticket_type", value: null }], optionKeys);
+        const onKey = comboKey([{ name: "ticket_type", value: addOnLabel }], optionKeys);
+
+        importConfig.perComboTiers = {
+          [offKey]: toTierRows(offTiers),
+          [onKey]: toTierRows(onTiers),
+        };
+        importConfig.comboPrices = {
+          [offKey]: toTierPrices(offTiers),
+          [onKey]: toTierPrices(onTiers),
+        };
+        importConfig.globalTiers = [];
+      }
+
+      return {
+        ok: true,
+        actionType,
+        importConfig,
+      };
+    }
+
     const park = asString(form.get("park"));
     const mainProductTitle = asString(form.get("mainProductTitle"));
     const mainStatus = asString(form.get("mainStatus")) || "ACTIVE";
@@ -1145,10 +1339,12 @@ export const action = async ({ request }) => {
 
 export default function TicketBuilderPage() {
   const { configs } = useLoaderData();
-  const fetcher = useFetcher();
+  const saveFetcher = useFetcher();
+  const importFetcher = useFetcher();
   const shopify = useAppBridge();
 
-  const isLoading = ["loading", "submitting"].includes(fetcher.state) && fetcher.formMethod === "POST";
+  const isLoading = ["loading", "submitting"].includes(saveFetcher.state) && saveFetcher.formMethod === "POST";
+  const isImporting = ["loading", "submitting"].includes(importFetcher.state) && importFetcher.formMethod === "POST";
 
   const [park, setPark] = useState("");
   const [mainProductTitle, setMainProductTitle] = useState("");
@@ -1166,6 +1362,8 @@ export default function TicketBuilderPage() {
   const [comboPrices, setComboPrices] = useState({});
   const [selectedConfigKey, setSelectedConfigKey] = useState("new");
   const [editorMode, setEditorMode] = useState("menu");
+  const [importNumDays, setImportNumDays] = useState("2");
+  const [importAddOn, setImportAddOn] = useState("park-hopper");
 
   const resetBuilder = () => {
     setPark("");
@@ -1309,10 +1507,32 @@ export default function TicketBuilderPage() {
   }, [ageNames, combinations, effectiveGlobalTiers, effectivePerComboTiers, tierMode]);
 
   useEffect(() => {
-    if (!fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Ticket setup saved");
-    else shopify.toast.show(fetcher.data.error || "Ticket setup failed");
-  }, [fetcher.data, shopify]);
+    if (!saveFetcher.data) return;
+    if (saveFetcher.data.ok) shopify.toast.show("Ticket setup saved");
+    else shopify.toast.show(saveFetcher.data.error || "Ticket setup failed");
+  }, [saveFetcher.data, shopify]);
+
+  useEffect(() => {
+    if (!importFetcher.data) return;
+    if (!importFetcher.data.ok) {
+      shopify.toast.show(importFetcher.data.error || "Disney import failed");
+      return;
+    }
+    if (importFetcher.data.actionType !== "import_disney") return;
+    const imported = importFetcher.data.importConfig || {};
+    setPark((prev) => imported.park || prev);
+    setMainProductTitle((prev) => imported.mainProductTitle || prev);
+    setOptionGroups(imported.optionGroups || []);
+    setAgeGroups(imported.ageGroups?.length ? imported.ageGroups : DEFAULT_AGES);
+    setTierMode(imported.tierMode === "per_combo" ? "per_combo" : "global");
+    setTierInputMode("calendar");
+    setGlobalTiers(normalizeTierRows(imported.globalTiers || []));
+    setPerComboTiers(imported.perComboTiers || {});
+    setGlobalTiersJson(tierRowsToJsonText(imported.globalTiers || []));
+    setPerComboTiersJson({});
+    setComboPrices(imported.comboPrices || {});
+    shopify.toast.show("Disney prices imported");
+  }, [importFetcher.data, shopify]);
 
   const builderConfig = useMemo(
     () =>
@@ -1439,7 +1659,46 @@ export default function TicketBuilderPage() {
                 </button>
               </div>
 
-              <fetcher.Form method="POST" className="tb-wrap">
+              <importFetcher.Form method="POST" className="tb-card">
+                <input type="hidden" name="actionType" value="import_disney" />
+                <input type="hidden" name="park" value={park} />
+                <input type="hidden" name="mainProductTitle" value={mainProductTitle} />
+                <div className="tb-title">Import Disney Pricing</div>
+                <div className="tb-hint">Pull current Walt Disney World tier pricing and prefill options, tiers, and prices.</div>
+                <div className="tb-row">
+                  <label>
+                    <div className="tb-label">Days</div>
+                    <input
+                      className="tb-input"
+                      name="importNumDays"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={importNumDays}
+                      onChange={(e) => setImportNumDays(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    <div className="tb-label">Add-on</div>
+                    <select
+                      className="tb-select"
+                      name="importAddOn"
+                      value={importAddOn}
+                      onChange={(e) => setImportAddOn(e.target.value)}
+                    >
+                      <option value="park-hopper">Park Hopper</option>
+                      <option value="water-park-and-sports">Water Park and Sports</option>
+                      <option value="park-hopper-plus">Park Hopper Plus</option>
+                      <option value="">None</option>
+                    </select>
+                  </label>
+                  <button type="submit" className="tb-btn" disabled={isImporting}>
+                    {isImporting ? "Importing..." : "Import Disney Prices"}
+                  </button>
+                </div>
+              </importFetcher.Form>
+
+              <saveFetcher.Form method="POST" className="tb-wrap">
                 <div className="tb-card">
                   <div className="tb-grid-2">
                     <label>
@@ -1861,6 +2120,7 @@ export default function TicketBuilderPage() {
                   })}
                 </div>
 
+                <input type="hidden" name="actionType" value="save_ticket_setup" />
                 <input type="hidden" name="builderConfig" value={builderConfig} />
 
                 <div className="tb-sticky">
@@ -1868,21 +2128,21 @@ export default function TicketBuilderPage() {
                     {isLoading ? "Saving..." : "Create / Update Ticket Setup"}
                   </button>
                 </div>
-              </fetcher.Form>
+              </saveFetcher.Form>
             </s-section>
 
-            {fetcher.data && (
+            {saveFetcher.data && (
               <s-section heading="Result">
-                {fetcher.data.mainProduct?.id && (
+                {saveFetcher.data.mainProduct?.id && (
                   <div className="tb-row" style={{ marginBottom: 8 }}>
                     <strong>Main Product:</strong>
-                    <span>{fetcher.data.mainProduct.title}</span>
+                    <span>{saveFetcher.data.mainProduct.title}</span>
                     <button
                       type="button"
                       className="tb-btn"
                       onClick={() => {
                         shopify.intents.invoke?.("edit:shopify/Product", {
-                          value: fetcher.data.mainProduct.id,
+                          value: saveFetcher.data.mainProduct.id,
                         });
                       }}
                     >
@@ -1890,9 +2150,9 @@ export default function TicketBuilderPage() {
                     </button>
                   </div>
                 )}
-                {!!fetcher.data?.products?.length && (
+                {!!saveFetcher.data?.products?.length && (
                   <div className="tb-grid-2" style={{ marginBottom: 8 }}>
-                    {fetcher.data.products.map((product) => (
+                    {saveFetcher.data.products.map((product) => (
                       <div key={product.key} className="tb-product-card">
                         <div className="tb-title">{product.title}</div>
                         <div className="tb-hint">{product.handle}</div>
@@ -1920,7 +2180,7 @@ export default function TicketBuilderPage() {
                   </div>
                 )}
                 <pre className="tb-result">
-                  <code>{JSON.stringify(fetcher.data, null, 2)}</code>
+                  <code>{JSON.stringify(saveFetcher.data, null, 2)}</code>
                 </pre>
               </s-section>
             )}
