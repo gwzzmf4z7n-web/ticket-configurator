@@ -5,10 +5,9 @@ export const DISNEY_SYNC_PROFILES = [
     mainProductTitle: "Walt Disney World Tickets",
     mainStatus: "ACTIVE",
     maxDays: 10,
-    horizonDays: 365,
+    horizonDays: 120,
     windowDays: 120,
     removeExtraVariants: true,
     enabled: true,
   },
 ];
-

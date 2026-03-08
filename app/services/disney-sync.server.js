@@ -303,16 +303,23 @@ async function getDisneyPricingCalendarWindow({ token, numDays, addOn, startDate
 async function getDisneyPricingCalendarMerged({ token, numDays, addOn, startDate, endDate, windowDays }) {
   const windows = buildWindows(new Date(startDate), new Date(endDate), windowDays);
   const allDates = [];
+  let successCount = 0;
   for (const window of windows) {
-    const dates = await getDisneyPricingCalendarWindow({
-      token,
-      numDays,
-      addOn,
-      startDate: window.startDate,
-      endDate: window.endDate,
-    });
-    allDates.push(...dates);
+    try {
+      const dates = await getDisneyPricingCalendarWindow({
+        token,
+        numDays,
+        addOn,
+        startDate: window.startDate,
+        endDate: window.endDate,
+      });
+      allDates.push(...dates);
+      successCount += 1;
+    } catch {
+      // Keep partial data when Disney rejects a later window.
+    }
   }
+  if (!successCount) return [];
   return disneyTiersFromDates(mergeDateBuckets(allDates));
 }
 
@@ -975,4 +982,3 @@ export async function runDisneyProfileSync(admin, profile = {}) {
   const save = await saveTicketSetup(admin, config);
   return { configDebug: config.debug, save };
 }
-
