@@ -12,6 +12,17 @@ function acquireLock(ttlMs = 50 * 60 * 1000) {
   return true;
 }
 
+function getLockState() {
+  const now = Date.now();
+  const existing = global[LOCK_KEY];
+  if (!existing) return { locked: false, expiresAt: null, msRemaining: 0 };
+  return {
+    locked: existing.expiresAt > now,
+    expiresAt: new Date(existing.expiresAt).toISOString(),
+    msRemaining: Math.max(0, existing.expiresAt - now),
+  };
+}
+
 function releaseLock() {
   delete global[LOCK_KEY];
 }
@@ -42,6 +53,12 @@ function resolveRequestedProfiles(request) {
   return DISNEY_SYNC_PROFILES.filter((profile) => profile.enabled !== false && profile.key === profileParam);
 }
 
+function isForceRequested(request) {
+  const url = new URL(request.url);
+  const force = String(url.searchParams.get("force") || "").toLowerCase();
+  return force === "1" || force === "true" || force === "yes";
+}
+
 async function runSync(request) {
   try {
     if (!isAuthorized(request)) {
@@ -53,10 +70,20 @@ async function runSync(request) {
 
     const lockAcquired = acquireLock();
     if (!lockAcquired) {
+      if (isForceRequested(request)) {
+        releaseLock();
+        if (!acquireLock()) {
+          return new Response(JSON.stringify({ ok: false, error: "Sync lock could not be force-reset", lock: getLockState() }, null, 2), {
+            status: 409,
+            headers: { "content-type": "application/json" },
+          });
+        }
+      } else {
       return new Response(JSON.stringify({ ok: false, error: "Sync already running" }, null, 2), {
         status: 409,
         headers: { "content-type": "application/json" },
       });
+      }
     }
 
     try {
