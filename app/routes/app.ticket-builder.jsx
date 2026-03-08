@@ -1165,6 +1165,7 @@ export default function TicketBuilderPage() {
   const [perComboTiersJson, setPerComboTiersJson] = useState({});
   const [comboPrices, setComboPrices] = useState({});
   const [selectedConfigKey, setSelectedConfigKey] = useState("new");
+  const [editorMode, setEditorMode] = useState("menu");
 
   const resetBuilder = () => {
     setPark("");
@@ -1206,6 +1207,17 @@ export default function TicketBuilderPage() {
       setSelectedConfigKey("new");
     }
   }, [availableConfigs, selectedConfigKey]);
+
+  const getOptionGroupValues = (group) =>
+    String(group?.valuesText || "")
+      .split("\n")
+      .map((v) => String(v));
+
+  const setOptionGroupValues = (groupIndex, values) => {
+    const next = [...optionGroups];
+    next[groupIndex] = { ...next[groupIndex], valuesText: ensureArray(values).map((v) => String(v || "")).join("\n") };
+    setOptionGroups(next);
+  };
 
   const cleanGroups = useMemo(() => cleanOptionGroups(optionGroups), [optionGroups]);
   const optionKeys = useMemo(() => cleanGroups.map((group) => group.name), [cleanGroups]);
@@ -1320,14 +1332,8 @@ export default function TicketBuilderPage() {
     <s-page heading="Ticket Builder">
       <style>{`
         .tb-wrap { display: grid; gap: 16px; }
-        .tb-shell { display: grid; gap: 14px; grid-template-columns: 290px minmax(0, 1fr); align-items: start; }
-        .tb-menu { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; padding: 10px; display: grid; gap: 8px; position: sticky; top: 12px; }
-        .tb-menu-head { display: flex; justify-content: space-between; align-items: center; }
-        .tb-menu-list { display: grid; gap: 6px; max-height: calc(100vh - 220px); overflow: auto; padding-right: 2px; }
-        .tb-menu-item { border: 1px solid #dbe4ef; border-radius: 10px; padding: 9px; background: #f8fafc; display: grid; gap: 4px; cursor: pointer; text-align: left; }
-        .tb-menu-item.is-active { border-color: #111827; background: #eef2ff; }
-        .tb-menu-item-title { font-size: 13px; font-weight: 800; color: #111827; }
-        .tb-menu-item-sub { font-size: 11px; color: #64748b; }
+        .tb-menu-grid { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }
+        .tb-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         .tb-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }
         .tb-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #fff; display: grid; gap: 10px; }
         .tb-title { font-size: 14px; font-weight: 800; color: #111827; }
@@ -1345,527 +1351,581 @@ export default function TicketBuilderPage() {
         .tb-price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
         .tb-result { margin: 0; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; max-height: 260px; overflow: auto; }
         .tb-product-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; background: #fff; display: grid; gap: 8px; }
+        .tb-value-row { display: grid; grid-template-columns: minmax(180px, 1fr) auto; gap: 8px; align-items: center; }
         @media (max-width: 980px) {
-          .tb-shell { grid-template-columns: 1fr; }
-          .tb-menu { position: static; }
+          .tb-menu-grid { grid-template-columns: 1fr; }
           .tb-grid-2 { grid-template-columns: 1fr; }
+          .tb-value-row { grid-template-columns: 1fr; }
         }
       `}</style>
 
-      <div className="tb-shell">
-        <aside className="tb-menu">
-          <div className="tb-menu-head">
-            <div className="tb-title">Products</div>
-            <button
-              type="button"
-              className="tb-btn"
-              onClick={() => {
-                setSelectedConfigKey("new");
-                resetBuilder();
-              }}
-            >
-              Add New
-            </button>
-          </div>
-          <div className="tb-menu-list">
-            {availableConfigs.map((config) => (
-              <button
-                key={config.id}
-                type="button"
-                className={`tb-menu-item ${selectedConfigKey === config.id ? "is-active" : ""}`}
-                onClick={() => {
-                  setSelectedConfigKey(config.id);
-                  loadExisting(config);
-                }}
-              >
-                <div className="tb-menu-item-title">{config.mainProduct?.title || config.label || "Untitled"}</div>
-                <div className="tb-menu-item-sub">{config.park || "-"}</div>
-                <div className="tb-menu-item-sub">Combos: {config.childProducts?.length || 0}</div>
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`tb-menu-item ${selectedConfigKey === "new" ? "is-active" : ""}`}
-              onClick={() => {
-                setSelectedConfigKey("new");
-                resetBuilder();
-              }}
-            >
-              <div className="tb-menu-item-title">+ Add New Product</div>
-              <div className="tb-menu-item-sub">Create a fresh setup</div>
-            </button>
-          </div>
-        </aside>
-
-        <div className="tb-wrap">
-          <s-section heading={selectedConfigKey === "new" ? "Add Product" : "Edit Product"}>
-            <fetcher.Form method="POST" className="tb-wrap">
-            <div className="tb-card">
-              <div className="tb-grid-2">
-                <label>
-                  <div className="tb-label">Park</div>
-                  <input className="tb-input" name="park" value={park} onChange={(e) => setPark(e.target.value)} required />
-                </label>
-                <label>
-                  <div className="tb-label">Main Product Name</div>
-                  <input
-                    className="tb-input"
-                    name="mainProductTitle"
-                    value={mainProductTitle}
-                    onChange={(e) => setMainProductTitle(e.target.value)}
-                    required
-                  />
-                  <div className="tb-hint">Main handle auto-generated: {slugify(mainProductTitle) || "-"}</div>
-                </label>
-              </div>
-              <div className="tb-row">
-                <label>
-                  <div className="tb-label">Main Product Status</div>
-                  <select className="tb-select" name="mainStatus" value={mainStatus} onChange={(e) => setMainStatus(e.target.value)}>
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="DRAFT">DRAFT</option>
-                    <option value="ARCHIVED">ARCHIVED</option>
-                  </select>
-                </label>
-                <label className="tb-row" style={{ marginTop: 20 }}>
-                  <input
-                    type="checkbox"
-                    name="removeExtraVariants"
-                    checked={removeExtraVariants}
-                    onChange={(e) => setRemoveExtraVariants(e.target.checked)}
-                  />
-                  <span className="tb-label">Remove variants not in current setup</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="tb-card">
-              <div className="tb-title">Option Groups</div>
-              <div className="tb-hint">Single-value groups are treated as toggle options and generate OFF + ON combo products.</div>
-              {optionGroups.map((group, idx) => (
-                <div key={group.id} className="tb-grid-2">
-                  <label>
-                    <div className="tb-label">Option Name</div>
-                    <input
-                      className="tb-input"
-                      value={group.name}
-                      onChange={(e) => {
-                        const next = [...optionGroups];
-                        next[idx] = { ...group, name: e.target.value };
-                        setOptionGroups(next);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    <div className="tb-label">Values (one per line)</div>
-                    <textarea
-                      className="tb-textarea"
-                      value={group.valuesText}
-                      onChange={(e) => {
-                        const next = [...optionGroups];
-                        next[idx] = { ...group, valuesText: e.target.value };
-                        setOptionGroups(next);
-                      }}
-                    />
-                  </label>
-                  <div>
+      <div className="tb-wrap">
+        {editorMode === "menu" ? (
+          <s-section heading="Products">
+            <div className="tb-menu-grid">
+              {availableConfigs.map((config) => (
+                <div key={config.id} className="tb-product-card">
+                  <div className="tb-row" style={{ justifyContent: "space-between" }}>
+                    <div className="tb-title">{config.mainProduct?.title || config.label || "Untitled"}</div>
+                    <span className="tb-pill">{config.park || "-"}</span>
+                  </div>
+                  <div className="tb-hint">Config handle: {config.configHandle}</div>
+                  <div className="tb-hint">Main handle: {config.mainProduct?.handle || "-"}</div>
+                  <div className="tb-hint">Combo products: {config.childProducts?.length || 0}</div>
+                  <div className="tb-row">
                     <button
                       type="button"
-                      className="tb-btn tb-btn-danger"
-                      onClick={() => setOptionGroups(optionGroups.filter((opt) => opt.id !== group.id))}
+                      className="tb-btn"
+                      onClick={() => {
+                        setSelectedConfigKey(config.id);
+                        loadExisting(config);
+                        setEditorMode("edit");
+                      }}
                     >
-                      Remove group
+                      Edit product
                     </button>
-                  </div>
-                </div>
-              ))}
-              <div>
-                <button
-                  type="button"
-                  className="tb-btn"
-                  onClick={() => setOptionGroups([...optionGroups, { id: makeId("opt"), name: "", valuesText: "" }])}
-                >
-                  Add option group
-                </button>
-              </div>
-            </div>
-
-            <div className="tb-card">
-              <div className="tb-title">Age Groups</div>
-              {ageGroups.map((age, idx) => (
-                <div key={age.id} className="tb-row">
-                  <label>
-                    <div className="tb-label">Name</div>
-                    <input
-                      className="tb-input"
-                      value={age.name}
-                      onChange={(e) => {
-                        const next = [...ageGroups];
-                        next[idx] = { ...age, name: e.target.value };
-                        setAgeGroups(next);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    <div className="tb-label">Min</div>
-                    <input
-                      className="tb-input"
-                      value={age.min}
-                      onChange={(e) => {
-                        const next = [...ageGroups];
-                        next[idx] = { ...age, min: e.target.value };
-                        setAgeGroups(next);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    <div className="tb-label">Max</div>
-                    <input
-                      className="tb-input"
-                      value={age.max}
-                      onChange={(e) => {
-                        const next = [...ageGroups];
-                        next[idx] = { ...age, max: e.target.value };
-                        setAgeGroups(next);
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="tb-btn tb-btn-danger"
-                    onClick={() => setAgeGroups(ageGroups.filter((g) => g.id !== age.id))}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-              <div>
-                <button
-                  type="button"
-                  className="tb-btn"
-                  onClick={() => setAgeGroups([...ageGroups, { id: makeId("age"), name: "", min: "", max: "" }])}
-                >
-                  Add age group
-                </button>
-              </div>
-            </div>
-
-            <div className="tb-card">
-              <div className="tb-title">Tier Setup</div>
-              <div className="tb-row">
-                <label className="tb-row">
-                  <input type="radio" checked={tierMode === "global"} onChange={() => setTierMode("global")} />
-                  <span className="tb-label">Same tiers for all combos</span>
-                </label>
-                <label className="tb-row">
-                  <input type="radio" checked={tierMode === "per_combo"} onChange={() => setTierMode("per_combo")} />
-                  <span className="tb-label">Different tiers per combo</span>
-                </label>
-              </div>
-              <div className="tb-row">
-                <label className="tb-row">
-                  <input type="radio" checked={tierInputMode === "calendar"} onChange={() => setTierInputMode("calendar")} />
-                  <span className="tb-label">Edit with calendar dates</span>
-                </label>
-                <label className="tb-row">
-                  <input type="radio" checked={tierInputMode === "json"} onChange={() => setTierInputMode("json")} />
-                  <span className="tb-label">Edit as JSON</span>
-                </label>
-              </div>
-
-              {tierMode === "global" && (
-                <div className="tb-card" style={{ padding: 10 }}>
-                  {tierInputMode === "calendar" ? (
-                    <>
-                      {globalTiers.map((tier, idx) => (
-                        <div key={tier.id} className="tb-row">
-                          <label>
-                            <div className="tb-label">Tier</div>
-                            <input
-                              className="tb-input"
-                              value={tier.name}
-                              onChange={(e) => {
-                                const next = [...globalTiers];
-                                next[idx] = { ...tier, name: e.target.value };
-                                setGlobalTiers(next);
-                              }}
-                            />
-                          </label>
-                          <label>
-                            <div className="tb-label">Start</div>
-                            <input
-                              className="tb-input"
-                              type="date"
-                              value={tier.start}
-                              onChange={(e) => {
-                                const next = [...globalTiers];
-                                next[idx] = { ...tier, start: e.target.value };
-                                setGlobalTiers(next);
-                              }}
-                            />
-                          </label>
-                          <label>
-                            <div className="tb-label">End</div>
-                            <input
-                              className="tb-input"
-                              type="date"
-                              value={tier.end}
-                              onChange={(e) => {
-                                const next = [...globalTiers];
-                                next[idx] = { ...tier, end: e.target.value };
-                                setGlobalTiers(next);
-                              }}
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="tb-btn tb-btn-danger"
-                            onClick={() => setGlobalTiers(globalTiers.filter((item) => item.id !== tier.id))}
-                          >
-                            Remove tier
-                          </button>
-                        </div>
-                      ))}
+                    {config.mainProduct?.id && (
                       <button
                         type="button"
                         className="tb-btn"
-                        onClick={() => setGlobalTiers([...globalTiers, { id: makeId("tier"), name: "", start: "", end: "" }])}
+                        onClick={() => {
+                          shopify.intents.invoke?.("edit:shopify/Product", {
+                            value: config.mainProduct.id,
+                          });
+                        }}
                       >
-                        Add tier
+                        Open in Shopify
                       </button>
-                    </>
-                  ) : (
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="tb-row">
+              <button
+                type="button"
+                className="tb-btn tb-btn-primary"
+                onClick={() => {
+                  setSelectedConfigKey("new");
+                  resetBuilder();
+                  setEditorMode("edit");
+                }}
+              >
+                Add New Product
+              </button>
+            </div>
+          </s-section>
+        ) : (
+          <>
+            <s-section heading={selectedConfigKey === "new" ? "Add Product" : "Edit Product"}>
+              <div className="tb-editor-head">
+                <div className="tb-row">
+                  <button type="button" className="tb-btn" onClick={() => setEditorMode("menu")}>
+                    Back to Products
+                  </button>
+                  <span className="tb-hint">
+                    {selectedConfigKey === "new" ? "Creating a new product setup" : "Editing existing setup"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="tb-btn"
+                  onClick={() => {
+                    setSelectedConfigKey("new");
+                    resetBuilder();
+                  }}
+                >
+                  Add New Product
+                </button>
+              </div>
+
+              <fetcher.Form method="POST" className="tb-wrap">
+                <div className="tb-card">
+                  <div className="tb-grid-2">
                     <label>
-                      <div className="tb-label">Tiers JSON</div>
-                      <textarea
-                        className="tb-textarea"
-                        value={globalTiersJson}
-                        onChange={(e) => setGlobalTiersJson(e.target.value)}
-                        placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
-                      />
+                      <div className="tb-label">Park</div>
+                      <input className="tb-input" name="park" value={park} onChange={(e) => setPark(e.target.value)} required />
                     </label>
+                    <label>
+                      <div className="tb-label">Main Product Name</div>
+                      <input
+                        className="tb-input"
+                        name="mainProductTitle"
+                        value={mainProductTitle}
+                        onChange={(e) => setMainProductTitle(e.target.value)}
+                        required
+                      />
+                      <div className="tb-hint">Main handle auto-generated: {slugify(mainProductTitle) || "-"}</div>
+                    </label>
+                  </div>
+                  <div className="tb-row">
+                    <label>
+                      <div className="tb-label">Main Product Status</div>
+                      <select className="tb-select" name="mainStatus" value={mainStatus} onChange={(e) => setMainStatus(e.target.value)}>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="DRAFT">DRAFT</option>
+                        <option value="ARCHIVED">ARCHIVED</option>
+                      </select>
+                    </label>
+                    <label className="tb-row" style={{ marginTop: 20 }}>
+                      <input
+                        type="checkbox"
+                        name="removeExtraVariants"
+                        checked={removeExtraVariants}
+                        onChange={(e) => setRemoveExtraVariants(e.target.checked)}
+                      />
+                      <span className="tb-label">Remove variants not in current setup</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="tb-card">
+                  <div className="tb-title">Option Groups</div>
+                  <div className="tb-hint">Single-value groups are treated as toggle options and generate OFF + ON combo products.</div>
+                  {optionGroups.map((group, idx) => {
+                    const groupValues = getOptionGroupValues(group);
+                    return (
+                      <div key={group.id} className="tb-card" style={{ padding: 10 }}>
+                        <label>
+                          <div className="tb-label">Option Name</div>
+                          <input
+                            className="tb-input"
+                            value={group.name}
+                            onChange={(e) => {
+                              const next = [...optionGroups];
+                              next[idx] = { ...group, name: e.target.value };
+                              setOptionGroups(next);
+                            }}
+                          />
+                        </label>
+                        <div className="tb-label">Values</div>
+                        {groupValues.map((value, valueIdx) => (
+                          <div key={`${group.id}-value-${valueIdx}`} className="tb-value-row">
+                            <input
+                              className="tb-input"
+                              value={value}
+                              onChange={(e) => {
+                                const nextValues = [...groupValues];
+                                nextValues[valueIdx] = e.target.value;
+                                setOptionGroupValues(idx, nextValues);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="tb-btn tb-btn-danger"
+                              onClick={() => setOptionGroupValues(idx, groupValues.filter((_, i) => i !== valueIdx))}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                        <div className="tb-row">
+                          <button
+                            type="button"
+                            className="tb-btn"
+                            onClick={() => setOptionGroupValues(idx, [...groupValues, ""])}
+                          >
+                            Add value
+                          </button>
+                          <button
+                            type="button"
+                            className="tb-btn tb-btn-danger"
+                            onClick={() => setOptionGroups(optionGroups.filter((opt) => opt.id !== group.id))}
+                          >
+                            Remove group
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div>
+                    <button
+                      type="button"
+                      className="tb-btn"
+                      onClick={() => setOptionGroups([...optionGroups, { id: makeId("opt"), name: "", valuesText: "" }])}
+                    >
+                      Add option group
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tb-card">
+                  <div className="tb-title">Age Groups</div>
+                  {ageGroups.map((age, idx) => (
+                    <div key={age.id} className="tb-row">
+                      <label>
+                        <div className="tb-label">Name</div>
+                        <input
+                          className="tb-input"
+                          value={age.name}
+                          onChange={(e) => {
+                            const next = [...ageGroups];
+                            next[idx] = { ...age, name: e.target.value };
+                            setAgeGroups(next);
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <div className="tb-label">Min</div>
+                        <input
+                          className="tb-input"
+                          value={age.min}
+                          onChange={(e) => {
+                            const next = [...ageGroups];
+                            next[idx] = { ...age, min: e.target.value };
+                            setAgeGroups(next);
+                          }}
+                        />
+                      </label>
+                      <label>
+                        <div className="tb-label">Max</div>
+                        <input
+                          className="tb-input"
+                          value={age.max}
+                          onChange={(e) => {
+                            const next = [...ageGroups];
+                            next[idx] = { ...age, max: e.target.value };
+                            setAgeGroups(next);
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="tb-btn tb-btn-danger"
+                        onClick={() => setAgeGroups(ageGroups.filter((g) => g.id !== age.id))}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <div>
+                    <button
+                      type="button"
+                      className="tb-btn"
+                      onClick={() => setAgeGroups([...ageGroups, { id: makeId("age"), name: "", min: "", max: "" }])}
+                    >
+                      Add age group
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tb-card">
+                  <div className="tb-title">Tier Setup</div>
+                  <div className="tb-row">
+                    <label className="tb-row">
+                      <input type="radio" checked={tierMode === "global"} onChange={() => setTierMode("global")} />
+                      <span className="tb-label">Same tiers for all combos</span>
+                    </label>
+                    <label className="tb-row">
+                      <input type="radio" checked={tierMode === "per_combo"} onChange={() => setTierMode("per_combo")} />
+                      <span className="tb-label">Different tiers per combo</span>
+                    </label>
+                  </div>
+                  <div className="tb-row">
+                    <label className="tb-row">
+                      <input type="radio" checked={tierInputMode === "calendar"} onChange={() => setTierInputMode("calendar")} />
+                      <span className="tb-label">Edit with calendar dates</span>
+                    </label>
+                    <label className="tb-row">
+                      <input type="radio" checked={tierInputMode === "json"} onChange={() => setTierInputMode("json")} />
+                      <span className="tb-label">Edit as JSON</span>
+                    </label>
+                  </div>
+
+                  {tierMode === "global" && (
+                    <div className="tb-card" style={{ padding: 10 }}>
+                      {tierInputMode === "calendar" ? (
+                        <>
+                          {globalTiers.map((tier, idx) => (
+                            <div key={tier.id} className="tb-row">
+                              <label>
+                                <div className="tb-label">Tier</div>
+                                <input
+                                  className="tb-input"
+                                  value={tier.name}
+                                  onChange={(e) => {
+                                    const next = [...globalTiers];
+                                    next[idx] = { ...tier, name: e.target.value };
+                                    setGlobalTiers(next);
+                                  }}
+                                />
+                              </label>
+                              <label>
+                                <div className="tb-label">Start</div>
+                                <input
+                                  className="tb-input"
+                                  type="date"
+                                  value={tier.start}
+                                  onChange={(e) => {
+                                    const next = [...globalTiers];
+                                    next[idx] = { ...tier, start: e.target.value };
+                                    setGlobalTiers(next);
+                                  }}
+                                />
+                              </label>
+                              <label>
+                                <div className="tb-label">End</div>
+                                <input
+                                  className="tb-input"
+                                  type="date"
+                                  value={tier.end}
+                                  onChange={(e) => {
+                                    const next = [...globalTiers];
+                                    next[idx] = { ...tier, end: e.target.value };
+                                    setGlobalTiers(next);
+                                  }}
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                className="tb-btn tb-btn-danger"
+                                onClick={() => setGlobalTiers(globalTiers.filter((item) => item.id !== tier.id))}
+                              >
+                                Remove tier
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            className="tb-btn"
+                            onClick={() => setGlobalTiers([...globalTiers, { id: makeId("tier"), name: "", start: "", end: "" }])}
+                          >
+                            Add tier
+                          </button>
+                        </>
+                      ) : (
+                        <label>
+                          <div className="tb-label">Tiers JSON</div>
+                          <textarea
+                            className="tb-textarea"
+                            value={globalTiersJson}
+                            onChange={(e) => setGlobalTiersJson(e.target.value)}
+                            placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
+                          />
+                        </label>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            <div className="tb-card">
-              <div className="tb-title">Combinations and Prices</div>
-              <div className="tb-hint">Main product is standalone. Every combo below is generated as an UNLISTED product (fallback: DRAFT) and mapped via ticket_matrix.</div>
-              {combinations.map((combo) => {
-                const tiers = tierMode === "per_combo" ? ensureArray(effectivePerComboTiers[combo.id]) : effectiveGlobalTiers;
-                const tierNames = tiers.map((tier) => asString(tier.name)).filter(Boolean);
-                const noTier = tierNames.length === 0;
+                <div className="tb-card">
+                  <div className="tb-title">Combinations and Prices</div>
+                  <div className="tb-hint">Main product is standalone. Every combo below is generated as an UNLISTED product (fallback: DRAFT) and mapped via ticket_matrix.</div>
+                  {combinations.map((combo) => {
+                    const tiers = tierMode === "per_combo" ? ensureArray(effectivePerComboTiers[combo.id]) : effectiveGlobalTiers;
+                    const tierNames = tiers.map((tier) => asString(tier.name)).filter(Boolean);
+                    const noTier = tierNames.length === 0;
 
-                return (
-                  <div key={combo.id} className="tb-combo">
-                    <div className="tb-row" style={{ justifyContent: "space-between" }}>
-                      <strong>{combo.title}</strong>
-                      <span className="tb-pill">Unlisted combo</span>
-                    </div>
-                    <div className="tb-hint">Handle: {`${slugify(mainProductTitle)}-${combo.slug}`}</div>
+                    return (
+                      <div key={combo.id} className="tb-combo">
+                        <div className="tb-row" style={{ justifyContent: "space-between" }}>
+                          <strong>{combo.title}</strong>
+                          <span className="tb-pill">Unlisted combo</span>
+                        </div>
+                        <div className="tb-hint">Handle: {`${slugify(mainProductTitle)}-${combo.slug}`}</div>
 
-                    {tierMode === "per_combo" && (
-                      <div className="tb-card" style={{ padding: 10 }}>
-                        <div className="tb-label">Tiers for this combo</div>
-                        {tierInputMode === "calendar" ? (
-                          <>
-                            {ensureArray(perComboTiers[combo.id]).map((tier, idx) => (
-                              <div key={tier.id || idx} className="tb-row">
-                                <input
-                                  className="tb-input"
-                                  placeholder="Tier name"
-                                  value={tier.name || ""}
-                                  onChange={(e) => {
-                                    const list = ensureArray(perComboTiers[combo.id]);
-                                    const next = [...list];
-                                    next[idx] = { ...tier, name: e.target.value };
-                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                                  }}
-                                />
-                                <input
-                                  className="tb-input"
-                                  type="date"
-                                  value={tier.start || ""}
-                                  onChange={(e) => {
-                                    const list = ensureArray(perComboTiers[combo.id]);
-                                    const next = [...list];
-                                    next[idx] = { ...tier, start: e.target.value };
-                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                                  }}
-                                />
-                                <input
-                                  className="tb-input"
-                                  type="date"
-                                  value={tier.end || ""}
-                                  onChange={(e) => {
-                                    const list = ensureArray(perComboTiers[combo.id]);
-                                    const next = [...list];
-                                    next[idx] = { ...tier, end: e.target.value };
-                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                                  }}
-                                />
+                        {tierMode === "per_combo" && (
+                          <div className="tb-card" style={{ padding: 10 }}>
+                            <div className="tb-label">Tiers for this combo</div>
+                            {tierInputMode === "calendar" ? (
+                              <>
+                                {ensureArray(perComboTiers[combo.id]).map((tier, idx) => (
+                                  <div key={tier.id || idx} className="tb-row">
+                                    <input
+                                      className="tb-input"
+                                      placeholder="Tier name"
+                                      value={tier.name || ""}
+                                      onChange={(e) => {
+                                        const list = ensureArray(perComboTiers[combo.id]);
+                                        const next = [...list];
+                                        next[idx] = { ...tier, name: e.target.value };
+                                        setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                      }}
+                                    />
+                                    <input
+                                      className="tb-input"
+                                      type="date"
+                                      value={tier.start || ""}
+                                      onChange={(e) => {
+                                        const list = ensureArray(perComboTiers[combo.id]);
+                                        const next = [...list];
+                                        next[idx] = { ...tier, start: e.target.value };
+                                        setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                      }}
+                                    />
+                                    <input
+                                      className="tb-input"
+                                      type="date"
+                                      value={tier.end || ""}
+                                      onChange={(e) => {
+                                        const list = ensureArray(perComboTiers[combo.id]);
+                                        const next = [...list];
+                                        next[idx] = { ...tier, end: e.target.value };
+                                        setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="tb-btn tb-btn-danger"
+                                      onClick={() => {
+                                        const list = ensureArray(perComboTiers[combo.id]);
+                                        setPerComboTiers({
+                                          ...perComboTiers,
+                                          [combo.id]: list.filter((_, i) => i !== idx),
+                                        });
+                                      }}
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                ))}
                                 <button
                                   type="button"
-                                  className="tb-btn tb-btn-danger"
+                                  className="tb-btn"
                                   onClick={() => {
                                     const list = ensureArray(perComboTiers[combo.id]);
                                     setPerComboTiers({
                                       ...perComboTiers,
-                                      [combo.id]: list.filter((_, i) => i !== idx),
+                                      [combo.id]: [...list, { id: makeId("tier"), name: "", start: "", end: "" }],
                                     });
                                   }}
                                 >
-                                  Remove
+                                  Add tier for combo
                                 </button>
-                              </div>
-                            ))}
-                            <button
-                              type="button"
-                              className="tb-btn"
-                              onClick={() => {
-                                const list = ensureArray(perComboTiers[combo.id]);
-                                setPerComboTiers({
-                                  ...perComboTiers,
-                                  [combo.id]: [...list, { id: makeId("tier"), name: "", start: "", end: "" }],
-                                });
-                              }}
-                            >
-                              Add tier for combo
-                            </button>
-                          </>
-                        ) : (
-                          <label>
-                            <div className="tb-label">Combo Tiers JSON</div>
-                            <textarea
-                              className="tb-textarea"
-                              value={perComboTiersJson[combo.id] || tierRowsToJsonText(ensureArray(perComboTiers[combo.id]))}
-                              onChange={(e) => {
-                                setPerComboTiersJson({
-                                  ...perComboTiersJson,
-                                  [combo.id]: e.target.value,
-                                });
-                              }}
-                              placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
-                            />
-                          </label>
+                              </>
+                            ) : (
+                              <label>
+                                <div className="tb-label">Combo Tiers JSON</div>
+                                <textarea
+                                  className="tb-textarea"
+                                  value={perComboTiersJson[combo.id] || tierRowsToJsonText(ensureArray(perComboTiers[combo.id]))}
+                                  onChange={(e) => {
+                                    setPerComboTiersJson({
+                                      ...perComboTiersJson,
+                                      [combo.id]: e.target.value,
+                                    });
+                                  }}
+                                  placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
+                                />
+                              </label>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    )}
 
-                    {noTier ? (
-                      <div className="tb-price-grid">
-                        {ageNames.map((ageName) => (
-                          <label key={ageName}>
-                            <div className="tb-label">{ageName}</div>
-                            <input
-                              className="tb-input"
-                              value={comboPrices?.[combo.id]?.default?.[ageName] || ""}
-                              onChange={(e) => {
-                                const next = { ...comboPrices };
-                                if (!next[combo.id]) next[combo.id] = {};
-                                if (!next[combo.id].default) next[combo.id].default = {};
-                                next[combo.id].default[ageName] = e.target.value;
-                                setComboPrices(next);
-                              }}
-                            />
-                          </label>
-                        ))}
-                      </div>
-                    ) : (
-                      tierNames.map((tierName) => (
-                        <div key={tierName} className="tb-card" style={{ padding: 10 }}>
-                          <div className="tb-label">{tierName}</div>
+                        {noTier ? (
                           <div className="tb-price-grid">
                             {ageNames.map((ageName) => (
-                              <label key={`${tierName}-${ageName}`}>
+                              <label key={ageName}>
                                 <div className="tb-label">{ageName}</div>
                                 <input
                                   className="tb-input"
-                                  value={comboPrices?.[combo.id]?.[tierName]?.[ageName] || ""}
+                                  value={comboPrices?.[combo.id]?.default?.[ageName] || ""}
                                   onChange={(e) => {
                                     const next = { ...comboPrices };
                                     if (!next[combo.id]) next[combo.id] = {};
-                                    if (!next[combo.id][tierName]) next[combo.id][tierName] = {};
-                                    next[combo.id][tierName][ageName] = e.target.value;
+                                    if (!next[combo.id].default) next[combo.id].default = {};
+                                    next[combo.id].default[ageName] = e.target.value;
                                     setComboPrices(next);
                                   }}
                                 />
                               </label>
                             ))}
                           </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                        ) : (
+                          tierNames.map((tierName) => (
+                            <div key={tierName} className="tb-card" style={{ padding: 10 }}>
+                              <div className="tb-label">{tierName}</div>
+                              <div className="tb-price-grid">
+                                {ageNames.map((ageName) => (
+                                  <label key={`${tierName}-${ageName}`}>
+                                    <div className="tb-label">{ageName}</div>
+                                    <input
+                                      className="tb-input"
+                                      value={comboPrices?.[combo.id]?.[tierName]?.[ageName] || ""}
+                                      onChange={(e) => {
+                                        const next = { ...comboPrices };
+                                        if (!next[combo.id]) next[combo.id] = {};
+                                        if (!next[combo.id][tierName]) next[combo.id][tierName] = {};
+                                        next[combo.id][tierName][ageName] = e.target.value;
+                                        setComboPrices(next);
+                                      }}
+                                    />
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-            <input type="hidden" name="builderConfig" value={builderConfig} />
+                <input type="hidden" name="builderConfig" value={builderConfig} />
 
-            <div className="tb-sticky">
-              <button type="submit" className="tb-btn-primary" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Create / Update Ticket Setup"}
-              </button>
-            </div>
-          </fetcher.Form>
-          </s-section>
-
-          {fetcher.data && (
-            <s-section heading="Result">
-              {fetcher.data.mainProduct?.id && (
-                <div className="tb-row" style={{ marginBottom: 8 }}>
-                  <strong>Main Product:</strong>
-                  <span>{fetcher.data.mainProduct.title}</span>
-                  <button
-                    type="button"
-                    className="tb-btn"
-                    onClick={() => {
-                      shopify.intents.invoke?.("edit:shopify/Product", {
-                        value: fetcher.data.mainProduct.id,
-                      });
-                    }}
-                  >
-                    Edit main product
+                <div className="tb-sticky">
+                  <button type="submit" className="tb-btn-primary" disabled={isLoading}>
+                    {isLoading ? "Saving..." : "Create / Update Ticket Setup"}
                   </button>
                 </div>
-              )}
-              {!!fetcher.data?.products?.length && (
-                <div className="tb-grid-2" style={{ marginBottom: 8 }}>
-                  {fetcher.data.products.map((product) => (
-                    <div key={product.key} className="tb-product-card">
-                      <div className="tb-title">{product.title}</div>
-                      <div className="tb-hint">{product.handle}</div>
-                      <div className="tb-hint">Status: {product.status}</div>
-                      {!!product.userErrors?.length && (
-                        <div className="tb-hint" style={{ color: "#b91c1c" }}>
-                          {product.userErrors.map((error) => error.message).join(" | ")}
-                        </div>
-                      )}
-                      {product.productId && (
-                        <button
-                          type="button"
-                          className="tb-btn"
-                          onClick={() => {
-                            shopify.intents.invoke?.("edit:shopify/Product", {
-                              value: product.productId,
-                            });
-                          }}
-                        >
-                          Edit combo product
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <pre className="tb-result">
-                <code>{JSON.stringify(fetcher.data, null, 2)}</code>
-              </pre>
+              </fetcher.Form>
             </s-section>
-          )}
-        </div>
+
+            {fetcher.data && (
+              <s-section heading="Result">
+                {fetcher.data.mainProduct?.id && (
+                  <div className="tb-row" style={{ marginBottom: 8 }}>
+                    <strong>Main Product:</strong>
+                    <span>{fetcher.data.mainProduct.title}</span>
+                    <button
+                      type="button"
+                      className="tb-btn"
+                      onClick={() => {
+                        shopify.intents.invoke?.("edit:shopify/Product", {
+                          value: fetcher.data.mainProduct.id,
+                        });
+                      }}
+                    >
+                      Edit main product
+                    </button>
+                  </div>
+                )}
+                {!!fetcher.data?.products?.length && (
+                  <div className="tb-grid-2" style={{ marginBottom: 8 }}>
+                    {fetcher.data.products.map((product) => (
+                      <div key={product.key} className="tb-product-card">
+                        <div className="tb-title">{product.title}</div>
+                        <div className="tb-hint">{product.handle}</div>
+                        <div className="tb-hint">Status: {product.status}</div>
+                        {!!product.userErrors?.length && (
+                          <div className="tb-hint" style={{ color: "#b91c1c" }}>
+                            {product.userErrors.map((error) => error.message).join(" | ")}
+                          </div>
+                        )}
+                        {product.productId && (
+                          <button
+                            type="button"
+                            className="tb-btn"
+                            onClick={() => {
+                              shopify.intents.invoke?.("edit:shopify/Product", {
+                                value: product.productId,
+                              });
+                            }}
+                          >
+                            Edit combo product
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <pre className="tb-result">
+                  <code>{JSON.stringify(fetcher.data, null, 2)}</code>
+                </pre>
+              </s-section>
+            )}
+          </>
+        )}
       </div>
     </s-page>
   );
