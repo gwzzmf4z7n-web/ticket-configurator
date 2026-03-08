@@ -9,6 +9,7 @@
     "deploy": "shopify app deploy",
     "config:use": "shopify app config use",
     "env": "shopify app env",
+    "scrape:disney": "node scripts/scrape-disney-prices.mjs",
     "start": "react-router-serve ./build/server/index.js",
     "docker-start": "npm run setup && npm run start",
     "setup": "prisma generate && prisma migrate deploy",
