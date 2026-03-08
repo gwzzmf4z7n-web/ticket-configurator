@@ -14,11 +14,6 @@ const DEFAULT_GLOBAL_TIERS = [
   { id: "tier-2", name: "Tier 2", start: "2026-02-16", end: "2026-05-15" },
 ];
 
-const DEFAULT_OPTION_GROUPS = [
-  { id: "ticket_type", name: "ticket_type", valuesText: "1 Day\n2 Day" },
-  { id: "ticket_kind", name: "ticket_kind", valuesText: "1 Park Per Day\nPark Hopper" },
-];
-
 function slugify(value) {
   return String(value || "")
     .trim()
@@ -59,13 +54,15 @@ function cleanOptionGroups(rawGroups) {
 }
 
 function cartesianOptions(optionGroups) {
-  if (!optionGroups.length) return [];
+  if (!optionGroups.length) return [[]];
   const walk = (index, acc, out) => {
     if (index >= optionGroups.length) {
       out.push(acc);
       return;
     }
-    optionGroups[index].values.forEach((value) => {
+    const values = ensureArray(optionGroups[index].values);
+    const expandedValues = values.length === 1 ? [null, values[0]] : values;
+    expandedValues.forEach((value) => {
       walk(index + 1, [...acc, { name: optionGroups[index].name, value }], out);
     });
   };
@@ -78,6 +75,7 @@ function comboKey(optionPairs, orderedKeys) {
   const keyOrder = ensureArray(orderedKeys).length
     ? orderedKeys
     : ensureArray(optionPairs).map((pair) => pair.name);
+  if (!keyOrder.length) return "__default__";
   const byName = {};
   ensureArray(optionPairs).forEach((pair) => {
     byName[pair.name] = pair.value;
@@ -86,16 +84,24 @@ function comboKey(optionPairs, orderedKeys) {
 }
 
 function comboSlug(optionPairs) {
-  return ensureArray(optionPairs)
-    .map((pair) => `${slugify(pair.name)}-${slugify(pair.value)}`)
+  const slug = ensureArray(optionPairs)
+    .map((pair) => {
+      const nameSlug = slugify(pair.name);
+      const value = pair?.value;
+      if (value == null || String(value).trim() === "") return `${nameSlug}-off`;
+      return `${nameSlug}-${slugify(value)}`;
+    })
     .filter(Boolean)
     .join("-");
+  return slug || "default";
 }
 
 function optionObjectFromPairs(pairs) {
   const out = {};
   ensureArray(pairs).forEach((pair) => {
-    if (pair?.name) out[pair.name] = pair.value;
+    if (!pair?.name) return;
+    if (pair.value == null || String(pair.value).trim() === "") return;
+    out[pair.name] = pair.value;
   });
   return out;
 }
@@ -177,8 +183,61 @@ function defaultCalendarTemplate(optionGroups) {
   return `Choose the Start Date of Your ${keys || "Ticket"} Ticket`;
 }
 
+function comboDisplayTitle(optionPairs) {
+  const title = ensureArray(optionPairs)
+    .map((pair) => {
+      const optionName = String(pair?.name || "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      if (pair?.value == null || String(pair.value).trim() === "") {
+        return optionName ? `No ${optionName}` : "Off";
+      }
+      return pair.value;
+    })
+    .filter(Boolean)
+    .join(" / ");
+  return title || "Default";
+}
+
 function makeId(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function mergeTags(...tagLists) {
+  const seen = new Set();
+  const tags = [];
+  tagLists.forEach((list) => {
+    ensureArray(list).forEach((tag) => {
+      const clean = asString(tag);
+      if (!clean) return;
+      const key = clean.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      tags.push(clean);
+    });
+  });
+  return tags;
+}
+
+function normalizeTierRows(rows) {
+  return ensureArray(rows)
+    .map((tier) => ({
+      id: tier?.id || makeId("tier"),
+      name: asString(tier?.name),
+      start: asString(tier?.start),
+      end: asString(tier?.end),
+    }))
+    .filter((tier) => tier.name || tier.start || tier.end);
+}
+
+function tierRowsFromJsonText(text, fallback = []) {
+  const parsed = safeJsonParse(text, null);
+  if (!parsed || typeof parsed !== "object") return fallback;
+  return tierRowsFromMap(parsed);
+}
+
+function tierRowsToJsonText(rows) {
+  return JSON.stringify(tierMapFromRows(rows), null, 2);
 }
 
 async function runGraphql(admin, query, variables) {
@@ -201,6 +260,7 @@ async function getProductByHandle(admin, handle) {
             title
             handle
             status
+            tags
             templateSuffix
             variants(first: 250) {
               nodes {
@@ -609,7 +669,16 @@ async function upsertMetaobject(admin, type, handle, fields) {
     },
   );
 
-  return data.metaobjectUpsert;
+  const result = data.metaobjectUpsert;
+  const warnings = [];
+
+  if (result.metaobject?.id) {
+    const activeResult = await setMetaobjectActive(admin, result.metaobject.id);
+    if (activeResult.warning) warnings.push(activeResult.warning);
+    result.userErrors = [...(result.userErrors || []), ...(activeResult.userErrors || [])];
+  }
+
+  return { ...result, warnings };
 }
 
 async function upsertProduct(admin, config) {
@@ -617,12 +686,16 @@ async function upsertProduct(admin, config) {
   let action = "updated";
   let product;
   let userErrors = [];
+  const requestedTags = mergeTags(config.tags || []);
+  const existingTags = mergeTags(existing?.tags || []);
+  const mergedTags = mergeTags(existingTags, requestedTags);
 
   if (!existing) {
     const created = await createProduct(admin, {
       title: config.title,
       handle: config.handle,
       status: config.status,
+      tags: requestedTags,
       templateSuffix: "ticket-configurator",
     });
     product = created.product;
@@ -633,6 +706,7 @@ async function upsertProduct(admin, config) {
       id: existing.id,
       title: config.title,
       status: config.status,
+      tags: mergedTags,
       templateSuffix: "ticket-configurator",
     });
     product = updated.product;
@@ -644,6 +718,75 @@ async function upsertProduct(admin, config) {
   }
 
   return { action, product, userErrors };
+}
+
+function hasStatusError(userErrors, statusValue) {
+  const needle = String(statusValue || "").toLowerCase();
+  return ensureArray(userErrors).some((error) => {
+    const msg = String(error?.message || "").toLowerCase();
+    const field = ensureArray(error?.field).join(".").toLowerCase();
+    return (msg.includes("status") || field.includes("status")) && (msg.includes(needle) || msg.includes("invalid") || msg.includes("not"));
+  });
+}
+
+function statusLikelyUnsupported(error, statusValue) {
+  const message = String(error?.message || "").toLowerCase();
+  const needle = String(statusValue || "").toLowerCase();
+  return message.includes(needle) && (message.includes("enum") || message.includes("invalid") || message.includes("expected"));
+}
+
+async function upsertProductWithStatusFallback(admin, config, preferredStatus, fallbackStatus) {
+  try {
+    const primary = await upsertProduct(admin, { ...config, status: preferredStatus });
+    if (preferredStatus !== fallbackStatus && hasStatusError(primary.userErrors, preferredStatus)) {
+      const fallback = await upsertProduct(admin, { ...config, status: fallbackStatus });
+      return { ...fallback, usedStatus: fallbackStatus, statusFallback: true };
+    }
+    return { ...primary, usedStatus: preferredStatus, statusFallback: false };
+  } catch (error) {
+    if (preferredStatus !== fallbackStatus && statusLikelyUnsupported(error, preferredStatus)) {
+      const fallback = await upsertProduct(admin, { ...config, status: fallbackStatus });
+      return { ...fallback, usedStatus: fallbackStatus, statusFallback: true };
+    }
+    throw error;
+  }
+}
+
+async function setMetaobjectActive(admin, id) {
+  try {
+    const data = await runGraphql(
+      admin,
+      `#graphql
+        mutation setMetaobjectActive($id: ID!, $metaobject: MetaobjectUpdateInput!) {
+          metaobjectUpdate(id: $id, metaobject: $metaobject) {
+            userErrors {
+              field
+              message
+            }
+          }
+        }`,
+      {
+        id,
+        metaobject: {
+          capabilities: {
+            publishable: {
+              status: "ACTIVE",
+            },
+          },
+        },
+      },
+    );
+
+    return { userErrors: data.metaobjectUpdate?.userErrors || [], warning: null };
+  } catch (error) {
+    return {
+      userErrors: [],
+      warning: {
+        field: ["metaobject", "capabilities", "publishable"],
+        message: `Could not set ACTIVE publishable status: ${error.message}`,
+      },
+    };
+  }
 }
 
 function loadConfigFromMetaobjects(productCreators, tierCreators, ticketMatrix) {
@@ -713,7 +856,7 @@ function loadConfigFromMetaobjects(productCreators, tierCreators, ticketMatrix) 
         });
         return {
           key,
-          title: pairs.map((pair) => pair.value).join(" / "),
+          title: comboDisplayTitle(pairs),
           id: matrixMatch?.product?.reference?.id || null,
           handle: matrixMatch?.product?.reference?.handle || null,
         };
@@ -726,10 +869,10 @@ function loadConfigFromMetaobjects(productCreators, tierCreators, ticketMatrix) 
       configHandle: creator.handle,
       mainProduct,
       label: asString(creator.label?.value),
-      optionGroups: optionGroups.length ? optionGroups : DEFAULT_OPTION_GROUPS,
+      optionGroups,
       ageGroups: ageRowsFromObject(ageObject),
       tierMode: sameTierForAll ? "global" : "per_combo",
-      globalTiers: globalTierRows.length ? globalTierRows : DEFAULT_GLOBAL_TIERS,
+      globalTiers: globalTierRows,
       perComboTiers,
       comboPrices: {},
       childProducts,
@@ -827,7 +970,6 @@ export const action = async ({ request }) => {
 
     if (!park) throw new Error("Park is required.");
     if (!mainProductTitle) throw new Error("Main product name is required.");
-    if (!optionGroups.length) throw new Error("Add at least one option group with values.");
     if (!ages.length) throw new Error("Add at least one age group.");
 
     const combinations = cartesianOptions(optionGroups);
@@ -840,6 +982,7 @@ export const action = async ({ request }) => {
       title: mainProductTitle,
       handle: mainHandle,
       status: mainStatus,
+      tags: [park],
     });
 
     if (!mainProductResult.product?.id) {
@@ -854,7 +997,7 @@ export const action = async ({ request }) => {
     for (const pairs of combinations) {
       const key = comboKey(pairs, optionKeys);
       const childHandle = `${mainHandle}-${comboSlug(pairs)}`;
-      const childTitle = `${mainProductTitle} - ${pairs.map((pair) => pair.value).join(" - ")}`;
+      const childTitle = `${mainProductTitle} - ${comboDisplayTitle(pairs).replaceAll(" / ", " - ")}`;
       const tiers = tierMode === "per_combo" ? ensureArray(perComboTiers[key]) : globalTiers;
       const variants = buildVariantSpecs({
         ages,
@@ -862,11 +1005,16 @@ export const action = async ({ request }) => {
         pricesByTier: comboPrices[key] || {},
       });
 
-      const productResult = await upsertProduct(admin, {
-        title: childTitle,
-        handle: childHandle,
-        status: "DRAFT",
-      });
+      const productResult = await upsertProductWithStatusFallback(
+        admin,
+        {
+          title: childTitle,
+          handle: childHandle,
+          tags: [park],
+        },
+        "UNLISTED",
+        "DRAFT",
+      );
 
       let variantSync = { userErrors: [], warnings: [] };
       if (productResult.product) {
@@ -882,8 +1030,9 @@ export const action = async ({ request }) => {
         key,
         title: childTitle,
         handle: childHandle,
-        status: "DRAFT",
+        status: productResult.usedStatus,
         action: productResult.action,
+        statusFallback: productResult.statusFallback,
         productId: productResult.product?.id || null,
         userErrors: [...(productResult.userErrors || []), ...(variantSync.userErrors || [])],
         warnings: [...(variantSync.warnings || [])],
@@ -941,6 +1090,7 @@ export const action = async ({ request }) => {
         handle: `${parkSlug}-${comboHandleSlug}-tiers`,
         id: tierResult.metaobject?.id || null,
         userErrors: tierResult.userErrors || [],
+        warnings: tierResult.warnings || [],
       });
 
       const productId = comboToProduct.get(key);
@@ -961,6 +1111,7 @@ export const action = async ({ request }) => {
           id: matrixResult.metaobject?.id || null,
           productId,
           userErrors: matrixResult.userErrors || [],
+          warnings: matrixResult.warnings || [],
         });
       }
     }
@@ -986,6 +1137,7 @@ export const action = async ({ request }) => {
           handle: productCreatorHandle,
           id: productCreatorResult.metaobject?.id || null,
           userErrors: productCreatorResult.userErrors || [],
+          warnings: productCreatorResult.warnings || [],
         },
         tierCreators: tierCreatorResults,
         ticketMatrix: matrixResults,
@@ -1006,28 +1158,35 @@ export default function TicketBuilderPage() {
 
   const isLoading = ["loading", "submitting"].includes(fetcher.state) && fetcher.formMethod === "POST";
 
-  const [park, setPark] = useState("Disneyland");
-  const [mainProductTitle, setMainProductTitle] = useState("Disneyland 1 Day Tickets");
+  const [park, setPark] = useState("");
+  const [mainProductTitle, setMainProductTitle] = useState("");
   const [mainStatus, setMainStatus] = useState("ACTIVE");
   const [removeExtraVariants, setRemoveExtraVariants] = useState(true);
 
-  const [optionGroups, setOptionGroups] = useState(DEFAULT_OPTION_GROUPS);
+  const [optionGroups, setOptionGroups] = useState([]);
   const [ageGroups, setAgeGroups] = useState(DEFAULT_AGES);
   const [tierMode, setTierMode] = useState("global");
   const [globalTiers, setGlobalTiers] = useState(DEFAULT_GLOBAL_TIERS);
   const [perComboTiers, setPerComboTiers] = useState({});
+  const [tierInputMode, setTierInputMode] = useState("calendar");
+  const [globalTiersJson, setGlobalTiersJson] = useState(tierRowsToJsonText(DEFAULT_GLOBAL_TIERS));
+  const [perComboTiersJson, setPerComboTiersJson] = useState({});
   const [comboPrices, setComboPrices] = useState({});
+  const [selectedConfigKey, setSelectedConfigKey] = useState("new");
 
   const resetBuilder = () => {
-    setPark("Disneyland");
-    setMainProductTitle("Disneyland 1 Day Tickets");
+    setPark("");
+    setMainProductTitle("");
     setMainStatus("ACTIVE");
     setRemoveExtraVariants(true);
-    setOptionGroups(DEFAULT_OPTION_GROUPS);
+    setOptionGroups([]);
     setAgeGroups(DEFAULT_AGES);
     setTierMode("global");
     setGlobalTiers(DEFAULT_GLOBAL_TIERS);
     setPerComboTiers({});
+    setTierInputMode("calendar");
+    setGlobalTiersJson(tierRowsToJsonText(DEFAULT_GLOBAL_TIERS));
+    setPerComboTiersJson({});
     setComboPrices({});
   };
 
@@ -1036,13 +1195,25 @@ export default function TicketBuilderPage() {
     setMainProductTitle(config.mainProduct?.title || config.label || "");
     setMainStatus(config.mainProduct?.status || "ACTIVE");
     setRemoveExtraVariants(true);
-    setOptionGroups(config.optionGroups?.length ? config.optionGroups : DEFAULT_OPTION_GROUPS);
+    setOptionGroups(config.optionGroups || []);
     setAgeGroups(config.ageGroups?.length ? config.ageGroups : DEFAULT_AGES);
     setTierMode(config.tierMode || "global");
-    setGlobalTiers(config.globalTiers?.length ? config.globalTiers : DEFAULT_GLOBAL_TIERS);
+    setGlobalTiers(normalizeTierRows(config.globalTiers || []));
     setPerComboTiers(config.perComboTiers || {});
+    setTierInputMode(config.tierInputMode === "json" ? "json" : "calendar");
+    setGlobalTiersJson(tierRowsToJsonText(config.globalTiers || []));
+    setPerComboTiersJson({});
     setComboPrices({});
   };
+
+  const availableConfigs = useMemo(() => ensureArray(configs), [configs]);
+
+  useEffect(() => {
+    if (selectedConfigKey === "new") return;
+    if (!availableConfigs.find((config) => config.id === selectedConfigKey)) {
+      setSelectedConfigKey("new");
+    }
+  }, [availableConfigs, selectedConfigKey]);
 
   const cleanGroups = useMemo(() => cleanOptionGroups(optionGroups), [optionGroups]);
   const optionKeys = useMemo(() => cleanGroups.map((group) => group.name), [cleanGroups]);
@@ -1052,10 +1223,41 @@ export default function TicketBuilderPage() {
     return combos.map((pairs) => ({
       id: comboKey(pairs, optionKeys),
       pairs,
-      title: pairs.map((pair) => pair.value).join(" / "),
+      title: comboDisplayTitle(pairs),
       slug: comboSlug(pairs),
     }));
   }, [cleanGroups, optionKeys]);
+
+  const effectiveGlobalTiers = useMemo(() => {
+    if (tierInputMode !== "json") return globalTiers;
+    return tierRowsFromJsonText(globalTiersJson, []);
+  }, [globalTiers, globalTiersJson, tierInputMode]);
+
+  const effectivePerComboTiers = useMemo(() => {
+    if (tierInputMode !== "json") return perComboTiers;
+    const next = {};
+    combinations.forEach((combo) => {
+      next[combo.id] = tierRowsFromJsonText(perComboTiersJson[combo.id], []);
+    });
+    return next;
+  }, [combinations, perComboTiers, perComboTiersJson, tierInputMode]);
+
+  useEffect(() => {
+    if (tierInputMode !== "json") return;
+    setGlobalTiersJson(tierRowsToJsonText(globalTiers));
+    setPerComboTiersJson((prev) => {
+      const next = { ...prev };
+      combinations.forEach((combo) => {
+        if (!next[combo.id]) {
+          next[combo.id] = tierRowsToJsonText(ensureArray(perComboTiers[combo.id]));
+        }
+      });
+      Object.keys(next).forEach((comboId) => {
+        if (!combinations.find((combo) => combo.id === comboId)) delete next[comboId];
+      });
+      return next;
+    });
+  }, [tierInputMode, globalTiers, perComboTiers, combinations]);
 
   const ageNames = useMemo(
     () => ageGroups.map((age) => asString(age.name)).filter(Boolean),
@@ -1068,7 +1270,7 @@ export default function TicketBuilderPage() {
 
       combinations.forEach((combo) => {
         if (!next[combo.id]) next[combo.id] = {};
-        const tierRows = tierMode === "per_combo" ? ensureArray(perComboTiers[combo.id]) : globalTiers;
+        const tierRows = tierMode === "per_combo" ? ensureArray(effectivePerComboTiers[combo.id]) : effectiveGlobalTiers;
         const tierNames = tierRows.map((tier) => asString(tier.name)).filter(Boolean);
 
         if (!tierNames.length) {
@@ -1100,7 +1302,7 @@ export default function TicketBuilderPage() {
 
       return next;
     });
-  }, [ageNames, combinations, globalTiers, perComboTiers, tierMode]);
+  }, [ageNames, combinations, effectiveGlobalTiers, effectivePerComboTiers, tierMode]);
 
   useEffect(() => {
     if (!fetcher.data) return;
@@ -1114,17 +1316,26 @@ export default function TicketBuilderPage() {
         optionGroups,
         ageGroups,
         tierMode,
-        globalTiers,
-        perComboTiers,
+        tierInputMode,
+        globalTiers: effectiveGlobalTiers,
+        perComboTiers: effectivePerComboTiers,
         comboPrices,
       }),
-    [ageGroups, comboPrices, globalTiers, optionGroups, perComboTiers, tierMode],
+    [ageGroups, comboPrices, effectiveGlobalTiers, effectivePerComboTiers, optionGroups, tierInputMode, tierMode],
   );
 
   return (
     <s-page heading="Ticket Builder">
       <style>{`
         .tb-wrap { display: grid; gap: 16px; }
+        .tb-shell { display: grid; gap: 14px; grid-template-columns: 290px minmax(0, 1fr); align-items: start; }
+        .tb-menu { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; padding: 10px; display: grid; gap: 8px; position: sticky; top: 12px; }
+        .tb-menu-head { display: flex; justify-content: space-between; align-items: center; }
+        .tb-menu-list { display: grid; gap: 6px; max-height: calc(100vh - 220px); overflow: auto; padding-right: 2px; }
+        .tb-menu-item { border: 1px solid #dbe4ef; border-radius: 10px; padding: 9px; background: #f8fafc; display: grid; gap: 4px; cursor: pointer; text-align: left; }
+        .tb-menu-item.is-active { border-color: #111827; background: #eef2ff; }
+        .tb-menu-item-title { font-size: 13px; font-weight: 800; color: #111827; }
+        .tb-menu-item-sub { font-size: 11px; color: #64748b; }
         .tb-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }
         .tb-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #fff; display: grid; gap: 10px; }
         .tb-title { font-size: 14px; font-weight: 800; color: #111827; }
@@ -1142,51 +1353,61 @@ export default function TicketBuilderPage() {
         .tb-price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
         .tb-result { margin: 0; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; max-height: 260px; overflow: auto; }
         .tb-product-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; background: #fff; display: grid; gap: 8px; }
-        @media (max-width: 920px) { .tb-grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 980px) {
+          .tb-shell { grid-template-columns: 1fr; }
+          .tb-menu { position: static; }
+          .tb-grid-2 { grid-template-columns: 1fr; }
+        }
       `}</style>
 
-      <div className="tb-wrap">
-        <s-section heading="Current Products">
-          <div className="tb-grid-2">
-            {ensureArray(configs).map((config) => (
-              <div key={config.id} className="tb-product-card">
-                <div className="tb-row" style={{ justifyContent: "space-between" }}>
-                  <div className="tb-title">{config.mainProduct?.title || config.label || "Untitled"}</div>
-                  <span className="tb-pill">{config.park || "-"}</span>
-                </div>
-                <div className="tb-hint">Config handle: {config.configHandle}</div>
-                <div className="tb-hint">Main handle: {config.mainProduct?.handle || "-"}</div>
-                <div className="tb-hint">Combo products: {config.childProducts?.length || 0}</div>
-                <div className="tb-row">
-                  <button type="button" className="tb-btn" onClick={() => loadExisting(config)}>
-                    Load into editor
-                  </button>
-                  {config.mainProduct?.id && (
-                    <button
-                      type="button"
-                      className="tb-btn"
-                      onClick={() => {
-                        shopify.intents.invoke?.("edit:shopify/Product", {
-                          value: config.mainProduct.id,
-                        });
-                      }}
-                    >
-                      Edit main product
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="tb-row" style={{ marginTop: 10 }}>
-            <button type="button" className="tb-btn" onClick={resetBuilder}>
-              Add product (new)
+      <div className="tb-shell">
+        <aside className="tb-menu">
+          <div className="tb-menu-head">
+            <div className="tb-title">Products</div>
+            <button
+              type="button"
+              className="tb-btn"
+              onClick={() => {
+                setSelectedConfigKey("new");
+                resetBuilder();
+              }}
+            >
+              Add New
             </button>
           </div>
-        </s-section>
+          <div className="tb-menu-list">
+            {availableConfigs.map((config) => (
+              <button
+                key={config.id}
+                type="button"
+                className={`tb-menu-item ${selectedConfigKey === config.id ? "is-active" : ""}`}
+                onClick={() => {
+                  setSelectedConfigKey(config.id);
+                  loadExisting(config);
+                }}
+              >
+                <div className="tb-menu-item-title">{config.mainProduct?.title || config.label || "Untitled"}</div>
+                <div className="tb-menu-item-sub">{config.park || "-"}</div>
+                <div className="tb-menu-item-sub">Combos: {config.childProducts?.length || 0}</div>
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`tb-menu-item ${selectedConfigKey === "new" ? "is-active" : ""}`}
+              onClick={() => {
+                setSelectedConfigKey("new");
+                resetBuilder();
+              }}
+            >
+              <div className="tb-menu-item-title">+ Add New Product</div>
+              <div className="tb-menu-item-sub">Create a fresh setup</div>
+            </button>
+          </div>
+        </aside>
 
-        <s-section heading="Add / Edit Product">
-          <fetcher.Form method="POST" className="tb-wrap">
+        <div className="tb-wrap">
+          <s-section heading={selectedConfigKey === "new" ? "Add Product" : "Edit Product"}>
+            <fetcher.Form method="POST" className="tb-wrap">
             <div className="tb-card">
               <div className="tb-grid-2">
                 <label>
@@ -1228,6 +1449,7 @@ export default function TicketBuilderPage() {
 
             <div className="tb-card">
               <div className="tb-title">Option Groups</div>
+              <div className="tb-hint">Single-value groups are treated as toggle options and generate OFF + ON combo products.</div>
               {optionGroups.map((group, idx) => (
                 <div key={group.id} className="tb-grid-2">
                   <label>
@@ -1348,74 +1570,98 @@ export default function TicketBuilderPage() {
                   <span className="tb-label">Different tiers per combo</span>
                 </label>
               </div>
+              <div className="tb-row">
+                <label className="tb-row">
+                  <input type="radio" checked={tierInputMode === "calendar"} onChange={() => setTierInputMode("calendar")} />
+                  <span className="tb-label">Edit with calendar dates</span>
+                </label>
+                <label className="tb-row">
+                  <input type="radio" checked={tierInputMode === "json"} onChange={() => setTierInputMode("json")} />
+                  <span className="tb-label">Edit as JSON</span>
+                </label>
+              </div>
 
               {tierMode === "global" && (
                 <div className="tb-card" style={{ padding: 10 }}>
-                  {globalTiers.map((tier, idx) => (
-                    <div key={tier.id} className="tb-row">
-                      <label>
-                        <div className="tb-label">Tier</div>
-                        <input
-                          className="tb-input"
-                          value={tier.name}
-                          onChange={(e) => {
-                            const next = [...globalTiers];
-                            next[idx] = { ...tier, name: e.target.value };
-                            setGlobalTiers(next);
-                          }}
-                        />
-                      </label>
-                      <label>
-                        <div className="tb-label">Start</div>
-                        <input
-                          className="tb-input"
-                          type="date"
-                          value={tier.start}
-                          onChange={(e) => {
-                            const next = [...globalTiers];
-                            next[idx] = { ...tier, start: e.target.value };
-                            setGlobalTiers(next);
-                          }}
-                        />
-                      </label>
-                      <label>
-                        <div className="tb-label">End</div>
-                        <input
-                          className="tb-input"
-                          type="date"
-                          value={tier.end}
-                          onChange={(e) => {
-                            const next = [...globalTiers];
-                            next[idx] = { ...tier, end: e.target.value };
-                            setGlobalTiers(next);
-                          }}
-                        />
-                      </label>
+                  {tierInputMode === "calendar" ? (
+                    <>
+                      {globalTiers.map((tier, idx) => (
+                        <div key={tier.id} className="tb-row">
+                          <label>
+                            <div className="tb-label">Tier</div>
+                            <input
+                              className="tb-input"
+                              value={tier.name}
+                              onChange={(e) => {
+                                const next = [...globalTiers];
+                                next[idx] = { ...tier, name: e.target.value };
+                                setGlobalTiers(next);
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <div className="tb-label">Start</div>
+                            <input
+                              className="tb-input"
+                              type="date"
+                              value={tier.start}
+                              onChange={(e) => {
+                                const next = [...globalTiers];
+                                next[idx] = { ...tier, start: e.target.value };
+                                setGlobalTiers(next);
+                              }}
+                            />
+                          </label>
+                          <label>
+                            <div className="tb-label">End</div>
+                            <input
+                              className="tb-input"
+                              type="date"
+                              value={tier.end}
+                              onChange={(e) => {
+                                const next = [...globalTiers];
+                                next[idx] = { ...tier, end: e.target.value };
+                                setGlobalTiers(next);
+                              }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="tb-btn tb-btn-danger"
+                            onClick={() => setGlobalTiers(globalTiers.filter((item) => item.id !== tier.id))}
+                          >
+                            Remove tier
+                          </button>
+                        </div>
+                      ))}
                       <button
                         type="button"
-                        className="tb-btn tb-btn-danger"
-                        onClick={() => setGlobalTiers(globalTiers.filter((item) => item.id !== tier.id))}
+                        className="tb-btn"
+                        onClick={() => setGlobalTiers([...globalTiers, { id: makeId("tier"), name: "", start: "", end: "" }])}
                       >
-                        Remove tier
+                        Add tier
                       </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="tb-btn"
-                    onClick={() => setGlobalTiers([...globalTiers, { id: makeId("tier"), name: "", start: "", end: "" }])}
-                  >
-                    Add tier
-                  </button>
+                    </>
+                  ) : (
+                    <label>
+                      <div className="tb-label">Tiers JSON</div>
+                      <textarea
+                        className="tb-textarea"
+                        value={globalTiersJson}
+                        onChange={(e) => setGlobalTiersJson(e.target.value)}
+                        placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
+                      />
+                    </label>
+                  )}
                 </div>
               )}
             </div>
 
             <div className="tb-card">
               <div className="tb-title">Combinations and Prices</div>
-              <div className="tb-hint">Main product is standalone. Every combo below is generated as a DRAFT product and mapped via ticket_matrix.</div>
+              <div className="tb-hint">Main product is standalone. Every combo below is generated as an UNLISTED product (fallback: DRAFT) and mapped via ticket_matrix.</div>
               {combinations.map((combo) => {
-                const tiers = tierMode === "per_combo" ? ensureArray(perComboTiers[combo.id]) : globalTiers;
+                const tiers = tierMode === "per_combo" ? ensureArray(effectivePerComboTiers[combo.id]) : effectiveGlobalTiers;
                 const tierNames = tiers.map((tier) => asString(tier.name)).filter(Boolean);
                 const noTier = tierNames.length === 0;
 
@@ -1423,76 +1669,95 @@ export default function TicketBuilderPage() {
                   <div key={combo.id} className="tb-combo">
                     <div className="tb-row" style={{ justifyContent: "space-between" }}>
                       <strong>{combo.title}</strong>
-                      <span className="tb-pill">Draft combo</span>
+                      <span className="tb-pill">Unlisted combo</span>
                     </div>
                     <div className="tb-hint">Handle: {`${slugify(mainProductTitle)}-${combo.slug}`}</div>
 
                     {tierMode === "per_combo" && (
                       <div className="tb-card" style={{ padding: 10 }}>
                         <div className="tb-label">Tiers for this combo</div>
-                        {tiers.map((tier, idx) => (
-                          <div key={tier.id || idx} className="tb-row">
-                            <input
-                              className="tb-input"
-                              placeholder="Tier name"
-                              value={tier.name || ""}
-                              onChange={(e) => {
-                                const list = ensureArray(perComboTiers[combo.id]);
-                                const next = [...list];
-                                next[idx] = { ...tier, name: e.target.value };
-                                setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                              }}
-                            />
-                            <input
-                              className="tb-input"
-                              type="date"
-                              value={tier.start || ""}
-                              onChange={(e) => {
-                                const list = ensureArray(perComboTiers[combo.id]);
-                                const next = [...list];
-                                next[idx] = { ...tier, start: e.target.value };
-                                setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                              }}
-                            />
-                            <input
-                              className="tb-input"
-                              type="date"
-                              value={tier.end || ""}
-                              onChange={(e) => {
-                                const list = ensureArray(perComboTiers[combo.id]);
-                                const next = [...list];
-                                next[idx] = { ...tier, end: e.target.value };
-                                setPerComboTiers({ ...perComboTiers, [combo.id]: next });
-                              }}
-                            />
+                        {tierInputMode === "calendar" ? (
+                          <>
+                            {ensureArray(perComboTiers[combo.id]).map((tier, idx) => (
+                              <div key={tier.id || idx} className="tb-row">
+                                <input
+                                  className="tb-input"
+                                  placeholder="Tier name"
+                                  value={tier.name || ""}
+                                  onChange={(e) => {
+                                    const list = ensureArray(perComboTiers[combo.id]);
+                                    const next = [...list];
+                                    next[idx] = { ...tier, name: e.target.value };
+                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                  }}
+                                />
+                                <input
+                                  className="tb-input"
+                                  type="date"
+                                  value={tier.start || ""}
+                                  onChange={(e) => {
+                                    const list = ensureArray(perComboTiers[combo.id]);
+                                    const next = [...list];
+                                    next[idx] = { ...tier, start: e.target.value };
+                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                  }}
+                                />
+                                <input
+                                  className="tb-input"
+                                  type="date"
+                                  value={tier.end || ""}
+                                  onChange={(e) => {
+                                    const list = ensureArray(perComboTiers[combo.id]);
+                                    const next = [...list];
+                                    next[idx] = { ...tier, end: e.target.value };
+                                    setPerComboTiers({ ...perComboTiers, [combo.id]: next });
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  className="tb-btn tb-btn-danger"
+                                  onClick={() => {
+                                    const list = ensureArray(perComboTiers[combo.id]);
+                                    setPerComboTiers({
+                                      ...perComboTiers,
+                                      [combo.id]: list.filter((_, i) => i !== idx),
+                                    });
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
                             <button
                               type="button"
-                              className="tb-btn tb-btn-danger"
+                              className="tb-btn"
                               onClick={() => {
                                 const list = ensureArray(perComboTiers[combo.id]);
                                 setPerComboTiers({
                                   ...perComboTiers,
-                                  [combo.id]: list.filter((_, i) => i !== idx),
+                                  [combo.id]: [...list, { id: makeId("tier"), name: "", start: "", end: "" }],
                                 });
                               }}
                             >
-                              Remove
+                              Add tier for combo
                             </button>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          className="tb-btn"
-                          onClick={() => {
-                            const list = ensureArray(perComboTiers[combo.id]);
-                            setPerComboTiers({
-                              ...perComboTiers,
-                              [combo.id]: [...list, { id: makeId("tier"), name: "", start: "", end: "" }],
-                            });
-                          }}
-                        >
-                          Add tier for combo
-                        </button>
+                          </>
+                        ) : (
+                          <label>
+                            <div className="tb-label">Combo Tiers JSON</div>
+                            <textarea
+                              className="tb-textarea"
+                              value={perComboTiersJson[combo.id] || tierRowsToJsonText(ensureArray(perComboTiers[combo.id]))}
+                              onChange={(e) => {
+                                setPerComboTiersJson({
+                                  ...perComboTiersJson,
+                                  [combo.id]: e.target.value,
+                                });
+                              }}
+                              placeholder={`{\n  "Tier 1": [{ "start": "2026-01-01", "end": "2026-02-15" }]\n}`}
+                            />
+                          </label>
+                        )}
                       </div>
                     )}
 
@@ -1553,61 +1818,62 @@ export default function TicketBuilderPage() {
               </button>
             </div>
           </fetcher.Form>
-        </s-section>
-
-        {fetcher.data && (
-          <s-section heading="Result">
-            {fetcher.data.mainProduct?.id && (
-              <div className="tb-row" style={{ marginBottom: 8 }}>
-                <strong>Main Product:</strong>
-                <span>{fetcher.data.mainProduct.title}</span>
-                <button
-                  type="button"
-                  className="tb-btn"
-                  onClick={() => {
-                    shopify.intents.invoke?.("edit:shopify/Product", {
-                      value: fetcher.data.mainProduct.id,
-                    });
-                  }}
-                >
-                  Edit main product
-                </button>
-              </div>
-            )}
-            {!!fetcher.data?.products?.length && (
-              <div className="tb-grid-2" style={{ marginBottom: 8 }}>
-                {fetcher.data.products.map((product) => (
-                  <div key={product.key} className="tb-product-card">
-                    <div className="tb-title">{product.title}</div>
-                    <div className="tb-hint">{product.handle}</div>
-                    <div className="tb-hint">Status: {product.status}</div>
-                    {!!product.userErrors?.length && (
-                      <div className="tb-hint" style={{ color: "#b91c1c" }}>
-                        {product.userErrors.map((error) => error.message).join(" | ")}
-                      </div>
-                    )}
-                    {product.productId && (
-                      <button
-                        type="button"
-                        className="tb-btn"
-                        onClick={() => {
-                          shopify.intents.invoke?.("edit:shopify/Product", {
-                            value: product.productId,
-                          });
-                        }}
-                      >
-                        Edit combo product
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            <pre className="tb-result">
-              <code>{JSON.stringify(fetcher.data, null, 2)}</code>
-            </pre>
           </s-section>
-        )}
+
+          {fetcher.data && (
+            <s-section heading="Result">
+              {fetcher.data.mainProduct?.id && (
+                <div className="tb-row" style={{ marginBottom: 8 }}>
+                  <strong>Main Product:</strong>
+                  <span>{fetcher.data.mainProduct.title}</span>
+                  <button
+                    type="button"
+                    className="tb-btn"
+                    onClick={() => {
+                      shopify.intents.invoke?.("edit:shopify/Product", {
+                        value: fetcher.data.mainProduct.id,
+                      });
+                    }}
+                  >
+                    Edit main product
+                  </button>
+                </div>
+              )}
+              {!!fetcher.data?.products?.length && (
+                <div className="tb-grid-2" style={{ marginBottom: 8 }}>
+                  {fetcher.data.products.map((product) => (
+                    <div key={product.key} className="tb-product-card">
+                      <div className="tb-title">{product.title}</div>
+                      <div className="tb-hint">{product.handle}</div>
+                      <div className="tb-hint">Status: {product.status}</div>
+                      {!!product.userErrors?.length && (
+                        <div className="tb-hint" style={{ color: "#b91c1c" }}>
+                          {product.userErrors.map((error) => error.message).join(" | ")}
+                        </div>
+                      )}
+                      {product.productId && (
+                        <button
+                          type="button"
+                          className="tb-btn"
+                          onClick={() => {
+                            shopify.intents.invoke?.("edit:shopify/Product", {
+                              value: product.productId,
+                            });
+                          }}
+                        >
+                          Edit combo product
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <pre className="tb-result">
+                <code>{JSON.stringify(fetcher.data, null, 2)}</code>
+              </pre>
+            </s-section>
+          )}
+        </div>
       </div>
     </s-page>
   );
