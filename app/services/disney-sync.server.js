@@ -323,13 +323,41 @@ async function getDisneyPricingCalendarMerged({ token, numDays, addOn, startDate
   return disneyTiersFromDates(mergeDateBuckets(allDates));
 }
 
+function isThrottledError(payload) {
+  const text = String(payload || "").toLowerCase();
+  return text.includes("throttled") || text.includes("too many requests") || text.includes("rate limit");
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function runGraphql(admin, query, variables) {
-  const response = await admin.graphql(query, { variables });
-  const json = await response.json();
-  if (json.errors?.length) {
-    throw new Error(json.errors.map((error) => error.message).join("; "));
+  const maxAttempts = 7;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await admin.graphql(query, { variables });
+      const json = await response.json();
+      if (json.errors?.length) {
+        const message = json.errors.map((error) => error.message).join("; ");
+        if (attempt < maxAttempts && isThrottledError(message)) {
+          const delayMs = Math.min(8000, 500 * 2 ** (attempt - 1));
+          await sleep(delayMs);
+          continue;
+        }
+        throw new Error(message);
+      }
+      return json.data;
+    } catch (error) {
+      if (attempt < maxAttempts && isThrottledError(error?.message || "")) {
+        const delayMs = Math.min(8000, 500 * 2 ** (attempt - 1));
+        await sleep(delayMs);
+        continue;
+      }
+      throw error;
+    }
   }
-  return json.data;
+  throw new Error("GraphQL request failed after retries.");
 }
 
 async function getProductByHandle(admin, handle) {
