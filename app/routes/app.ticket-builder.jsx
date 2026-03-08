@@ -1130,12 +1130,32 @@ export const action = async ({ request }) => {
           [onKey]: toTierPrices(onTiers),
         };
         importConfig.globalTiers = [];
+
+        return {
+          ok: true,
+          actionType,
+          importConfig,
+          debug: {
+            source: "disney_import",
+            inputs: { park, mainProductTitle, numDays, addOn, addOnLabel },
+            optionKeys,
+            offKey,
+            onKey,
+            offTiers,
+            onTiers,
+          },
+        };
       }
 
       return {
         ok: true,
         actionType,
         importConfig,
+        debug: {
+          source: "disney_import",
+          inputs: { park, mainProductTitle, numDays, addOn, addOnLabel },
+          onTiers,
+        },
       };
     }
 
@@ -1364,6 +1384,7 @@ export default function TicketBuilderPage() {
   const [editorMode, setEditorMode] = useState("menu");
   const [importNumDays, setImportNumDays] = useState("2");
   const [importAddOn, setImportAddOn] = useState("park-hopper");
+  const [showDebug, setShowDebug] = useState(false);
 
   const resetBuilder = () => {
     setPark("");
@@ -1548,6 +1569,33 @@ export default function TicketBuilderPage() {
     [ageGroups, comboPrices, effectiveGlobalTiers, effectivePerComboTiers, optionGroups, tierInputMode, tierMode],
   );
 
+  const debugPayload = useMemo(
+    () => ({
+      importResponse: importFetcher.data || null,
+      cleanedOptionGroups: cleanGroups,
+      optionKeys,
+      combinations,
+      tierMode,
+      tierInputMode,
+      effectiveGlobalTiers,
+      effectivePerComboTiers,
+      comboPrices,
+      builderConfig: safeJsonParse(builderConfig, {}),
+    }),
+    [
+      builderConfig,
+      cleanGroups,
+      comboPrices,
+      combinations,
+      effectiveGlobalTiers,
+      effectivePerComboTiers,
+      importFetcher.data,
+      optionKeys,
+      tierInputMode,
+      tierMode,
+    ],
+  );
+
   return (
     <s-page heading="Ticket Builder">
       <style>{`
@@ -1657,6 +1705,9 @@ export default function TicketBuilderPage() {
                 >
                   Add New Product
                 </button>
+                <button type="button" className="tb-btn" onClick={() => setShowDebug((prev) => !prev)}>
+                  {showDebug ? "Hide Debug" : "Show Debug"}
+                </button>
               </div>
 
               <importFetcher.Form method="POST" className="tb-card">
@@ -1697,6 +1748,15 @@ export default function TicketBuilderPage() {
                   </button>
                 </div>
               </importFetcher.Form>
+
+              {showDebug && (
+                <div className="tb-card">
+                  <div className="tb-title">Debug: Raw Import + Computed Builder State</div>
+                  <pre className="tb-result">
+                    <code>{JSON.stringify(debugPayload, null, 2)}</code>
+                  </pre>
+                </div>
+              )}
 
               <saveFetcher.Form method="POST" className="tb-wrap">
                 <div className="tb-card">
