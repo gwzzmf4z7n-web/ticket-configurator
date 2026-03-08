@@ -35,8 +35,27 @@ function plusDays(date, days) {
   return copy;
 }
 
+function parseYmd(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const parsed = new Date(`${match[1]}-${match[2]}-${match[3]}T00:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function ymd(date) {
   return date.toISOString().slice(0, 10);
+}
+
+function buildWindows(startDate, endDate, windowDays) {
+  const windows = [];
+  let cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    const end = plusDays(cursor, windowDays - 1);
+    const boundedEnd = end <= endDate ? end : endDate;
+    windows.push({ startDate: ymd(cursor), endDate: ymd(boundedEnd) });
+    cursor = plusDays(boundedEnd, 1);
+  }
+  return windows;
 }
 
 function lowestByAge(pricingRows, ageGroup) {
@@ -128,12 +147,44 @@ async function getPricingCalendar(token, { productType, discountGroup, addOn, st
   return fetchJson(url, { Authorization: `BEARER ${token}` });
 }
 
+function mergeDateBuckets(dateBuckets) {
+  const byDate = new Map();
+  (Array.isArray(dateBuckets) ? dateBuckets : []).forEach((item) => {
+    const date = String(item?.date || "");
+    if (!date) return;
+    byDate.set(date, item);
+  });
+  return Array.from(byDate.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
+async function getMergedPricingDates(token, params, windows) {
+  const allDates = [];
+  for (const window of windows) {
+    const calendar = await getPricingCalendar(token, {
+      ...params,
+      startDate: window.startDate,
+      endDate: window.endDate,
+    });
+    const bucket = Array.isArray(calendar?.pricingCalendar)
+      ? calendar.pricingCalendar.find((entry) => Number(entry?.numDays) === Number(params.numDays))
+      : null;
+    allDates.push(...(Array.isArray(bucket?.dates) ? bucket.dates : []));
+  }
+  return mergeDateBuckets(allDates);
+}
+
 async function buildOutput() {
   const generatedAt = new Date().toISOString();
-  const start = new Date();
-  const end = plusDays(start, 120);
-  const startDate = ymd(start);
-  const endDate = ymd(end);
+  const requestedStart = parseYmd(process.env.START_DATE) || new Date();
+  const horizonDays = Number.parseInt(process.env.HORIZON_DAYS || "365", 10);
+  const safeHorizonDays = Number.isFinite(horizonDays) && horizonDays > 0 ? horizonDays : 365;
+  const requestedEnd = parseYmd(process.env.END_DATE) || plusDays(requestedStart, safeHorizonDays);
+  const windowDays = Number.parseInt(process.env.WINDOW_DAYS || "120", 10);
+  const safeWindowDays = Number.isFinite(windowDays) && windowDays > 0 ? windowDays : 120;
+
+  const startDate = ymd(requestedStart);
+  const endDate = ymd(requestedEnd);
+  const windows = buildWindows(requestedStart, requestedEnd, safeWindowDays);
 
   const token = await getClientToken();
   const listing = await getProductListing(token);
@@ -152,18 +203,16 @@ async function buildOutput() {
         const numDays = Number(dayEntry?.numDays);
         if (!Number.isFinite(numDays)) continue;
 
-        const calendar = await getPricingCalendar(token, {
-          productType,
-          discountGroup: toApiDiscountGroup(discountGroupKey),
-          addOn,
-          startDate,
-          endDate,
-          numDays,
-        });
-
-        const dateBuckets = Array.isArray(calendar?.pricingCalendar)
-          ? calendar.pricingCalendar.find((bucket) => Number(bucket?.numDays) === numDays)?.dates || []
-          : [];
+        const dateBuckets = await getMergedPricingDates(
+          token,
+          {
+            productType,
+            discountGroup: toApiDiscountGroup(discountGroupKey),
+            addOn,
+            numDays,
+          },
+          windows,
+        );
 
         products.push({
           productKey,
@@ -186,6 +235,13 @@ async function buildOutput() {
       pricesTemplate:
         "https://disneyworld.disney.go.com/api/lexicon-view-assembler-service/wdw/tickets/product-types/{productType}/prices",
     },
+    requestConfig: {
+      startDate,
+      endDate,
+      windowDays: safeWindowDays,
+      windowCount: windows.length,
+    },
+    windows,
     window: { startDate, endDate },
     productCount: products.length,
     products,
