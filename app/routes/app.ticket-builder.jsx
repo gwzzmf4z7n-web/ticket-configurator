@@ -88,7 +88,7 @@ function comboSlug(optionPairs) {
     .map((pair) => {
       const nameSlug = slugify(pair.name);
       const value = pair?.value;
-      if (value == null || String(value).trim() === "") return `${nameSlug}-off`;
+      if (value == null || String(value).trim() === "") return "";
       return `${nameSlug}-${slugify(value)}`;
     })
     .filter(Boolean)
@@ -185,15 +185,7 @@ function defaultCalendarTemplate(optionGroups) {
 
 function comboDisplayTitle(optionPairs) {
   const title = ensureArray(optionPairs)
-    .map((pair) => {
-      const optionName = String(pair?.name || "")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-      if (pair?.value == null || String(pair.value).trim() === "") {
-        return optionName ? `No ${optionName}` : "Off";
-      }
-      return pair.value;
-    })
+    .map((pair) => (pair?.value == null || String(pair.value).trim() === "" ? "" : pair.value))
     .filter(Boolean)
     .join(" / ");
   return title || "Default";
