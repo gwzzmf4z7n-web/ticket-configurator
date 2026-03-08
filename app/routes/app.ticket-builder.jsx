@@ -295,14 +295,12 @@ function disneyTiersFromDates(dates) {
   }));
 }
 
-function displayAddOnLabel(addOnSlug) {
-  const slug = asString(addOnSlug);
-  if (!slug) return "";
-  return slug
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
-}
+const DISNEY_TICKET_TYPES = [
+  { slug: "", label: "1 Park Per Day" },
+  { slug: "park-hopper", label: "Park Hopper" },
+  { slug: "water-park-and-sports", label: "Water Park And Sports" },
+  { slug: "park-hopper-plus", label: "Park Hopper Plus" },
+];
 
 async function fetchDisneyJson(url, headers = {}) {
   const response = await fetch(url, {
@@ -1083,78 +1081,73 @@ export const action = async ({ request }) => {
   try {
     const actionType = asString(form.get("actionType")) || "save_ticket_setup";
 
-    if (actionType === "import_disney") {
+    if (actionType === "import_disney_full") {
       const park = asString(form.get("park")) || "Walt Disney World";
       const mainProductTitle = asString(form.get("mainProductTitle"));
-      const importNumDays = Number.parseInt(asString(form.get("importNumDays")) || "1", 10);
-      const numDays = Number.isFinite(importNumDays) && importNumDays > 0 ? importNumDays : 1;
-      const addOn = asString(form.get("importAddOn"));
-      const addOnLabel = displayAddOnLabel(addOn);
-
       const token = await getDisneyClientToken();
-      const onTiers = await getDisneyPricingCalendar({ token, numDays, addOn });
+      const dayValues = [];
+      const perComboTiers = {};
+      const comboPrices = {};
+      const optionKeys = ["duration", "ticket_type"];
+      const warnings = [];
 
-      if (!onTiers.length) {
-        throw new Error("Disney pricing returned no tiers for the selected inputs.");
+      for (let day = 1; day <= 10; day += 1) {
+        const dayString = String(day);
+        let dayHasAnyData = false;
+
+        for (const ticketType of DISNEY_TICKET_TYPES) {
+          try {
+            const tiers = await getDisneyPricingCalendar({ token, numDays: day, addOn: ticketType.slug });
+            if (!tiers.length) continue;
+            dayHasAnyData = true;
+
+            const key = comboKey(
+              [
+                { name: "duration", value: dayString },
+                { name: "ticket_type", value: ticketType.label },
+              ],
+              optionKeys,
+            );
+            perComboTiers[key] = toTierRows(tiers);
+            comboPrices[key] = toTierPrices(tiers);
+          } catch (error) {
+            warnings.push(`Skipped ${dayString} day / ${ticketType.label}: ${error.message}`);
+          }
+        }
+
+        if (dayHasAnyData) dayValues.push(dayString);
+      }
+
+      if (!dayValues.length) {
+        throw new Error("Disney pricing returned no day/ticket type combinations.");
       }
 
       const ageGroups = DEFAULT_AGES.map((age) => ({ ...age }));
       const importConfig = {
         park,
-        mainProductTitle: mainProductTitle || `${park} ${numDays} Day Tickets`,
+        mainProductTitle: mainProductTitle || `${park} Tickets`,
         ageGroups,
-        optionGroups: [],
-        tierMode: "global",
-        globalTiers: toTierRows(onTiers),
-        perComboTiers: {},
-        comboPrices: {
-          __default__: toTierPrices(onTiers),
-        },
+        optionGroups: [
+          { id: makeId("opt"), name: "duration", valuesText: dayValues.join("\n") },
+          { id: makeId("opt"), name: "ticket_type", valuesText: DISNEY_TICKET_TYPES.map((item) => item.label).join("\n") },
+        ],
+        tierMode: "per_combo",
+        globalTiers: [],
+        perComboTiers,
+        comboPrices,
       };
-
-      if (addOnLabel) {
-        const offTiers = await getDisneyPricingCalendar({ token, numDays, addOn: "" });
-        importConfig.optionGroups = [{ id: makeId("opt"), name: "ticket_type", valuesText: addOnLabel }];
-        importConfig.tierMode = "per_combo";
-
-        const optionKeys = ["ticket_type"];
-        const offKey = comboKey([{ name: "ticket_type", value: null }], optionKeys);
-        const onKey = comboKey([{ name: "ticket_type", value: addOnLabel }], optionKeys);
-
-        importConfig.perComboTiers = {
-          [offKey]: toTierRows(offTiers),
-          [onKey]: toTierRows(onTiers),
-        };
-        importConfig.comboPrices = {
-          [offKey]: toTierPrices(offTiers),
-          [onKey]: toTierPrices(onTiers),
-        };
-        importConfig.globalTiers = [];
-
-        return {
-          ok: true,
-          actionType,
-          importConfig,
-          debug: {
-            source: "disney_import",
-            inputs: { park, mainProductTitle, numDays, addOn, addOnLabel },
-            optionKeys,
-            offKey,
-            onKey,
-            offTiers,
-            onTiers,
-          },
-        };
-      }
 
       return {
         ok: true,
         actionType,
         importConfig,
         debug: {
-          source: "disney_import",
-          inputs: { park, mainProductTitle, numDays, addOn, addOnLabel },
-          onTiers,
+          source: "disney_import_full",
+          inputs: { park, mainProductTitle, daysTried: 10, ticketTypes: DISNEY_TICKET_TYPES },
+          optionKeys,
+          dayValues,
+          comboCount: Object.keys(perComboTiers).length,
+          warnings,
         },
       };
     }
@@ -1382,8 +1375,6 @@ export default function TicketBuilderPage() {
   const [comboPrices, setComboPrices] = useState({});
   const [selectedConfigKey, setSelectedConfigKey] = useState("new");
   const [editorMode, setEditorMode] = useState("menu");
-  const [importNumDays, setImportNumDays] = useState("2");
-  const [importAddOn, setImportAddOn] = useState("park-hopper");
   const [showDebug, setShowDebug] = useState(false);
 
   const resetBuilder = () => {
@@ -1539,7 +1530,7 @@ export default function TicketBuilderPage() {
       shopify.toast.show(importFetcher.data.error || "Disney import failed");
       return;
     }
-    if (importFetcher.data.actionType !== "import_disney") return;
+    if (importFetcher.data.actionType !== "import_disney_full") return;
     const imported = importFetcher.data.importConfig || {};
     setPark((prev) => imported.park || prev);
     setMainProductTitle((prev) => imported.mainProductTitle || prev);
@@ -1711,40 +1702,14 @@ export default function TicketBuilderPage() {
               </div>
 
               <importFetcher.Form method="POST" className="tb-card">
-                <input type="hidden" name="actionType" value="import_disney" />
+                <input type="hidden" name="actionType" value="import_disney_full" />
                 <input type="hidden" name="park" value={park} />
                 <input type="hidden" name="mainProductTitle" value={mainProductTitle} />
-                <div className="tb-title">Import Disney Pricing</div>
-                <div className="tb-hint">Pull current Walt Disney World tier pricing and prefill options, tiers, and prices.</div>
+                <div className="tb-title">Import Disney Full Matrix</div>
+                <div className="tb-hint">Pull days + all ticket types into one product creator config.</div>
                 <div className="tb-row">
-                  <label>
-                    <div className="tb-label">Days</div>
-                    <input
-                      className="tb-input"
-                      name="importNumDays"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={importNumDays}
-                      onChange={(e) => setImportNumDays(e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    <div className="tb-label">Add-on</div>
-                    <select
-                      className="tb-select"
-                      name="importAddOn"
-                      value={importAddOn}
-                      onChange={(e) => setImportAddOn(e.target.value)}
-                    >
-                      <option value="park-hopper">Park Hopper</option>
-                      <option value="water-park-and-sports">Water Park and Sports</option>
-                      <option value="park-hopper-plus">Park Hopper Plus</option>
-                      <option value="">None</option>
-                    </select>
-                  </label>
                   <button type="submit" className="tb-btn" disabled={isImporting}>
-                    {isImporting ? "Importing..." : "Import Disney Prices"}
+                    {isImporting ? "Importing..." : "Import All Disney Prices"}
                   </button>
                 </div>
               </importFetcher.Form>
