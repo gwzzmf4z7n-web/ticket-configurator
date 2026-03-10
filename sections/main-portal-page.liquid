@@ -261,6 +261,9 @@
           if product.metafields.portal.credit_cost != blank and product.metafields.portal.credit_cost.value != blank
             assign credit_cost = product.metafields.portal.credit_cost.value | plus: 0
             assign credit_cost_cents = credit_cost | times: 10
+          else
+            assign credit_cost_cents = product.price
+            assign credit_cost = product.price | divided_by: 10
           endif
 
           echo '<article class="portal-shop-card">'
@@ -304,7 +307,7 @@
             echo credit_cost
             echo ' credits'
           else
-            echo 'Credit cost not set'
+            echo 'Credit cost unavailable'
           endif
           echo '</p>'
           echo '<p class="portal-shop-card__money">'
@@ -322,7 +325,7 @@
           elsif credit_cost > 0
             echo '<span class="portal-shop-card__status">Additional credits required</span>'
           else
-            echo '<span class="portal-shop-card__status">Set portal.credit_cost on this product</span>'
+            echo '<span class="portal-shop-card__status">Check product price</span>'
           endif
           echo '<a class="button button--secondary" href="'
           echo product.url
