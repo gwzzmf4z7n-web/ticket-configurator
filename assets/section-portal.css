@@ -134,6 +134,35 @@
   margin-bottom: 1.6rem;
 }
 
+.portal-shop {
+  display: grid;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.portal-shop__header {
+  display: grid;
+  gap: 1.2rem;
+  align-items: end;
+}
+
+.portal-shop__header h2 {
+  margin: 0;
+}
+
+.portal-shop__meta {
+  color: rgba(var(--color-foreground), 0.76);
+}
+
+.portal-shop__meta p:first-child {
+  margin-top: 0;
+}
+
+.portal-shop__grid {
+  display: grid;
+  gap: 1.6rem;
+}
+
 .portal-card,
 .portal-panel,
 .portal-login-gate,
@@ -194,6 +223,97 @@
   color: rgba(var(--color-foreground), 0.72);
 }
 
+.portal-shop-card {
+  overflow: hidden;
+  border-radius: 2rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  background: rgba(var(--color-background), 0.82);
+}
+
+.portal-shop-card__media {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: rgba(var(--color-foreground), 0.05);
+}
+
+.portal-shop-card__media img,
+.portal-shop-card__placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portal-shop-card__placeholder {
+  display: grid;
+  place-items: center;
+  color: rgba(var(--color-foreground), 0.56);
+}
+
+.portal-shop-card__content {
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.8rem;
+}
+
+.portal-shop-card__eyebrow {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: 0.18rem;
+  text-transform: uppercase;
+  color: rgba(var(--color-foreground), 0.68);
+}
+
+.portal-shop-card__title {
+  margin: 0;
+}
+
+.portal-shop-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.portal-shop-card__description {
+  color: rgba(var(--color-foreground), 0.76);
+}
+
+.portal-shop-card__pricing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  align-items: baseline;
+}
+
+.portal-shop-card__credits,
+.portal-shop-card__money,
+.portal-shop-card__status {
+  margin: 0;
+}
+
+.portal-shop-card__credits {
+  font-weight: 700;
+}
+
+.portal-shop-card__money {
+  color: rgba(var(--color-foreground), 0.7);
+}
+
+.portal-shop-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-shop-card__status {
+  color: rgba(var(--color-foreground), 0.7);
+}
+
+.portal-shop-card__status--available {
+  color: rgb(var(--color-button));
+  font-weight: 700;
+}
+
 .portal-card__actions,
 .portal-login-gate__actions {
   margin-top: auto;
@@ -226,6 +346,14 @@
     padding: 3.2rem;
   }
 
+  .portal-shop__header {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .portal-shop__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .portal-grid--stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -240,5 +368,11 @@
 
   .portal-panel--full {
     grid-column: 1 / -1;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .portal-shop__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

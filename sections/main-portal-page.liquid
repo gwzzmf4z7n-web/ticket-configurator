@@ -34,6 +34,21 @@
   assign trip_countdown_label = blank
   assign now_timestamp = 'now' | date: '%s' | plus: 0
   assign trip_is_live = false
+  assign credit_balance = 0
+  assign credit_balance_cents = 0
+  assign discount_percent = blank
+  assign secret_shop_collection = section.settings.secret_shop_collection
+  assign secret_shop_products_limit = section.settings.secret_shop_products_limit
+  assign secret_shop_has_products = false
+
+  if customer and customer.metafields.portal.credit_balance != blank and customer.metafields.portal.credit_balance.value != blank
+    assign credit_balance = customer.metafields.portal.credit_balance.value | plus: 0
+    assign credit_balance_cents = credit_balance | times: 10
+  endif
+
+  if customer and customer.metafields.portal.discount_percent != blank and customer.metafields.portal.discount_percent.value != blank
+    assign discount_percent = customer.metafields.portal.discount_percent.value
+  endif
 
   if customer and customer.metafields.portal.trip_record != blank and customer.metafields.portal.trip_record.value != blank
     assign trip_record = customer.metafields.portal.trip_record.value
@@ -175,6 +190,152 @@
       endif
     endif
 
+    if page_key == 'shop'
+      echo '<div class="portal-grid portal-grid--stats">'
+
+      echo '<article class="portal-stat">'
+      echo '<p class="portal-stat__label">Available credits</p>'
+      echo '<p class="portal-stat__value">'
+      echo credit_balance
+      echo '</p>'
+      echo '<p class="portal-stat__meta">'
+      echo credit_balance_cents | money_without_trailing_zeros
+      echo ' equivalent'
+      echo '</p>'
+      echo '</article>'
+
+      echo '<article class="portal-stat">'
+      echo '<p class="portal-stat__label">Member discount</p>'
+      echo '<p class="portal-stat__value">'
+      if discount_percent != blank
+        echo discount_percent
+        echo '%'
+      else
+        echo 'TBC'
+      endif
+      echo '</p>'
+      echo '<p class="portal-stat__meta">'
+      if discount_percent != blank
+        echo 'This is the current synced rate intended for future checkout discount logic.'
+      else
+        echo 'Add customer metafield portal.discount_percent when the Salesforce sync is ready.'
+      endif
+      echo '</p>'
+      echo '</article>'
+
+      echo '<article class="portal-stat">'
+      echo '<p class="portal-stat__label">Credit conversion</p>'
+      echo '<p class="portal-stat__value">'
+      echo '10'
+      echo '</p>'
+      echo '<p class="portal-stat__meta">1 credit = '
+      echo 10 | money_without_trailing_zeros
+      echo ' in reward value.</p>'
+      echo '</article>'
+
+      echo '</div>'
+
+      if secret_shop_collection != blank and secret_shop_collection.products_count > 0
+        assign secret_shop_has_products = true
+        echo '<div class="portal-shop">'
+        echo '<div class="portal-shop__header">'
+        echo '<div><p class="portal-hero__eyebrow">'
+        echo section.settings.secret_shop_collection_label
+        echo '</p>'
+        echo '<h2 class="h2">'
+        echo secret_shop_collection.title | escape
+        echo '</h2></div>'
+        echo '<div class="portal-shop__meta rte">'
+        if section.settings.secret_shop_helper_text != blank
+          echo section.settings.secret_shop_helper_text
+        else
+          echo '<p>Attach products to your chosen Secret Shop collection and set <code>product.metafields.portal.credit_cost</code> on each item.</p>'
+        endif
+        echo '</div>'
+        echo '</div>'
+
+        echo '<div class="portal-shop__grid">'
+        for product in secret_shop_collection.products limit: secret_shop_products_limit
+          assign credit_cost = 0
+          assign credit_cost_cents = 0
+          if product.metafields.portal.credit_cost != blank and product.metafields.portal.credit_cost.value != blank
+            assign credit_cost = product.metafields.portal.credit_cost.value | plus: 0
+            assign credit_cost_cents = credit_cost | times: 10
+          endif
+
+          echo '<article class="portal-shop-card">'
+          echo '<a class="portal-shop-card__media" href="'
+          echo product.url
+          echo '">'
+          if product.featured_image != blank
+            echo '<img src="'
+            echo product.featured_image | image_url: width: 720
+            echo '" alt="'
+            echo product.featured_image.alt | escape
+            echo '" loading="lazy" width="720">'
+          else
+            echo '<div class="portal-shop-card__placeholder">No image</div>'
+          endif
+          echo '</a>'
+
+          echo '<div class="portal-shop-card__content">'
+          echo '<p class="portal-shop-card__eyebrow">'
+          if product.available
+            echo 'Member reward'
+          else
+            echo 'Currently unavailable'
+          endif
+          echo '</p>'
+          echo '<h3 class="portal-shop-card__title h4"><a href="'
+          echo product.url
+          echo '">'
+          echo product.title | escape
+          echo '</a></h3>'
+
+          if product.description != blank
+            echo '<div class="portal-shop-card__description rte">'
+            echo product.description | strip_html | truncatewords: 22
+            echo '</div>'
+          endif
+
+          echo '<div class="portal-shop-card__pricing">'
+          echo '<p class="portal-shop-card__credits">'
+          if credit_cost > 0
+            echo credit_cost
+            echo ' credits'
+          else
+            echo 'Credit cost not set'
+          endif
+          echo '</p>'
+          echo '<p class="portal-shop-card__money">'
+          if credit_cost_cents > 0
+            echo credit_cost_cents | money_without_trailing_zeros
+          else
+            echo product.price | money_without_trailing_zeros
+          endif
+          echo '</p>'
+          echo '</div>'
+
+          echo '<div class="portal-shop-card__footer">'
+          if credit_cost > 0 and credit_balance >= credit_cost
+            echo '<span class="portal-shop-card__status portal-shop-card__status--available">Enough credits available</span>'
+          elsif credit_cost > 0
+            echo '<span class="portal-shop-card__status">Additional credits required</span>'
+          else
+            echo '<span class="portal-shop-card__status">Set portal.credit_cost on this product</span>'
+          endif
+          echo '<a class="button button--secondary" href="'
+          echo product.url
+          echo '">View reward</a>'
+          echo '</div>'
+          echo '</div>'
+          echo '</article>'
+        endfor
+        echo '</div>'
+        echo '</div>'
+      endif
+    endif
+
     if page_key == 'hub'
       assign has_cards = false
       for block in section.blocks
@@ -307,6 +468,10 @@
       echo '<div class="portal-note rte"><p>No trip record is assigned to this customer yet.</p><p>Once you attach a <strong>Trip Record</strong> to <code>portal.trip_record</code>, this page will populate automatically.</p></div>'
     endif
 
+    if page_key == 'shop' and secret_shop_has_products == false
+      echo '<div class="portal-note rte"><p>No Secret Shop collection is selected yet.</p><p>Choose a collection in the page template settings, then add a <code>portal.credit_cost</code> product metafield to each reward item.</p></div>'
+    endif
+
     if section.settings.show_page_content and page.content != blank
       echo '<div class="portal-page-content"><div class="rte">'
       echo page.content
@@ -414,6 +579,36 @@
       "id": "color_scheme",
       "label": "Color scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Secret Shop"
+    },
+    {
+      "type": "collection",
+      "id": "secret_shop_collection",
+      "label": "Secret Shop collection"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "secret_shop_collection_label",
+      "label": "Secret Shop collection label",
+      "default": "Member collection"
+    },
+    {
+      "type": "richtext",
+      "id": "secret_shop_helper_text",
+      "label": "Secret Shop helper text",
+      "default": "<p>This page displays products from one curated collection. Product credit pricing is read from the portal credit cost product metafield.</p>"
+    },
+    {
+      "type": "range",
+      "id": "secret_shop_products_limit",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "label": "Products to show",
+      "default": 8
     },
     {
       "type": "header",
