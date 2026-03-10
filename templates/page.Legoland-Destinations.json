@@ -1,0 +1,197 @@
+{
+  "sections": {
+    "image_banner": {
+      "type": "image-banner",
+      "settings": {
+        "image": "shopify://shop_images/99.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "small",
+        "desktop_content_position": "middle-center",
+        "show_text_box": false,
+        "desktop_content_alignment": "center",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": false
+      }
+    },
+    "rich_text_QCKePb": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_jmXnUK": {
+          "type": "heading",
+          "settings": {
+            "heading": "Legoland Destinations - Book with Mr Chocolate's Travel",
+            "heading_size": "h2"
+          }
+        },
+        "text_EhDzCc": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Legoland Destinations - Book with Mr Chocolate's Travel</p><p>With theme parks around the world, LEGOLAND makes it easy for families everywhere to experience the magic of LEGO. This includes LEGOLAND California, LEGOLAND Florida, LEGOLAND Billund, LEGOLAND Windsor, LEGOLAND Japan, LEGOLAND Malaysia, LEGOLAND Dubai, LEGOLAND Korea, LEGOLAND New York, and LEGOLAND Deutschland.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_jmXnUK",
+        "text_EhDzCc"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-2",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "multirow_KQdnJc": {
+      "type": "multirow",
+      "blocks": {
+        "row_NDH8Ym": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/legoland-california-hotel.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland California Resort</strong>",
+            "text": "<p>Build unforgettable memories at LEGOLAND California Resort. Located in Carlsbad, just north of San Diego, this family-friendly park is designed especially for kids ages 2–12, with over 60 rides, shows, and attractions inspired by LEGO. Explore themed lands like LEGO NINJAGO World, Miniland USA, and LEGO Castle, plus splash around at LEGOLAND Water Park and SEA LIFE Aquarium. With a LEGO-themed hotel on-site, it's a full resort experience made for playful imaginations.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_J3d9yf": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/the-lego-race.webp",
+            "caption": "",
+            "heading": "<strong>Legoland Florida Resort</strong>",
+            "text": "<p>Unlock a world of creativity and adventure at LEGOLAND Florida Resort. Located in Winter Haven, just outside Orlando, this family-focused destination features more than 50 rides, shows, and attractions tailored for kids ages 2–12. Explore colorful lands like LEGO Kingdoms, LEGO NINJAGO World, and the immersive Peppa Pig Theme Park. Cool off at the LEGOLAND Water Park, and stay in one of the on-site themed hotels for a fully LEGO-inspired getaway in the Sunshine State.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_UmNWie": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/DSC06075-CC-scaled.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland New York Resort</strong>",
+            "text": "<p>Embark on a LEGO adventure at LEGOLAND New York Resort.Located in Goshen, within New York's picturesque Hudson Valley and just 60 miles northwest of New York City, this expansive 150-acre theme park offers seven immersive lands filled with over 17 rides, interactive attractions, and captivating shows designed for families with children aged 2–12. Highlights include the LEGO Factory Adventure Ride, The Dragon coaster, and the LEGO City Water Playground. Guests can also enjoy themed accommodations at the on-site LEGOLAND Hotel, featuring 250 rooms with unique LEGO designs, a heated pool, and convenient proximity to the park entrance.  Since its official opening in May 2021, LEGOLAND New York has become a premier destination for family fun in the Northeast.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_ygHXnz": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/3317_02.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland Japan Resort</strong>",
+            "text": "<p>Embark on a LEGO-filled adventure at LEGOLAND Japan Resort.Located in Nagoya, this expansive theme park features over 40 interactive rides, shows, and attractions, making it an ideal destination for families with children aged 2 to 12. Explore themed areas like Miniland, which showcases miniature replicas of iconic Japanese landmarks, and LEGO NINJAGO World, offering immersive ninja training experiences. Adjacent to the park, the LEGOLAND Japan Hotel provides themed accommodations, while the SEA LIFE Nagoya aquarium offers an underwater adventure, all within the vibrant Nagoya cityscape. you won’t find anywhere else.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_UicHjW": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/fb61a8a3fe95162aeb33f319a1ec1701-Legoland_korea.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland Korea Resort</strong>",
+            "text": "<p>Embark on a LEGO adventure at LEGOLAND Korea Resort.Located on Jungdo Island in Chuncheon, Gangwon Province, this expansive theme park opened on May 5, 2022, and is the first and only LEGOLAND situated on an island. The resort spans 70 acres and features over 40 interactive rides, shows, and attractions, making it the second-largest LEGOLAND in Asia. Themed areas include Miniland, showcasing miniature replicas of iconic Korean landmarks, and LEGO NINJAGO World, offering immersive ninja experiences. Adjacent to the park, the LEGOLAND Hotel provides themed accommodations, enhancing the immersive experience for families.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_XDzkGR": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/1900-x-1267-the-dragon.webp",
+            "caption": "",
+            "heading": "<strong>Legoland Malaysia Resort</strong>",
+            "text": "<p>Embark on a LEGO adventure at LEGOLAND Malaysia Resort.Located in Iskandar Puteri, Johor, this expansive resort features a theme park and water park, offering over 70 interactive rides, slides, shows, and attractions designed for families with children aged 2 to 12. Explore themed areas like Miniland, showcasing miniature replicas of iconic landmarks, and enjoy the LEGOLAND Water Park's unique attractions. The resort also offers on-site accommodations, ensuring a memorable stay for all visitors. </p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_XGidNN": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/legoland_windsor_speedway_selected_stills_001-copy.webp",
+            "caption": "",
+            "heading": "<strong>Legoland Windsor Resort (UK)</strong>",
+            "text": "<p>Spark young imaginations at LEGOLAND Windsor Resort. Located just outside London, this family-favorite theme park is packed with over 55 rides, shows, and attractions designed for kids aged 3–12. Explore themed lands like LEGO Mythica, Pirate Shores, and the ever-detailed Miniland, featuring famous landmarks built from millions of LEGO bricks. With on-site hotels and new woodland-themed lodges, it's a full LEGO adventure from morning to night.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_f48q6F": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Legoland-Hotel.gif",
+            "caption": "",
+            "heading": "<strong>Legoland Dubai Resort</strong>",
+            "text": "<p>Embark on a LEGO adventure at LEGOLAND Dubai Resort. Situated within Dubai Parks and Resorts, this expansive theme park offers over 40 interactive rides, shows, and attractions across six themed lands, including Miniland, Kingdoms, and Adventure. Designed for families with children aged 2–12, LEGOLAND Dubai also features a water park tailored for younger guests. Enhance your experience by staying at the on-site LEGOLAND Hotel, offering themed rooms and direct access to the park.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_nx3Tk7": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/legoland-billund-july-2022-70.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland Billund Resort (Denmark)</strong>",
+            "text": "<p>Step into the original LEGO adventure at LEGOLAND Billund Resort. As the first LEGOLAND park ever built, located in the heart of Billund, Denmark—the birthplace of LEGO—this iconic theme park features over 55 rides, shows, and attractions, including Miniland and LEGO Kingdoms. Perfect for families with children aged 2-12, it offers creative and interactive experiences, plus themed accommodations at the on-site LEGOLAND Hotel.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        },
+        "row_XRKFxC": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/LEGOLAND_DeutschlandResortSkip-the-LineAdmissionTicket.jpg",
+            "caption": "",
+            "heading": "<strong>Legoland Deutschland Resort (Germany)</strong>",
+            "text": "<p>Experience a world of adventure at LEGOLAND Deutschland Resort. Located in Günzburg, Bavaria, this expansive theme park offers 68 attractions across 11 themed areas, all crafted from over 57 million LEGO bricks. Highlights include Miniland, featuring detailed models of European cities, and LEGO NINJAGO WORLD, where young ninjas can test their skills. Families can also enjoy accommodations at the LEGOLAND Holiday Village, offering unique lodging options to extend the fun.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a/full?q=12493"
+          }
+        }
+      },
+      "block_order": [
+        "row_NDH8Ym",
+        "row_J3d9yf",
+        "row_UmNWie",
+        "row_ygHXnz",
+        "row_UicHjW",
+        "row_XDzkGR",
+        "row_XGidNN",
+        "row_f48q6F",
+        "row_nx3Tk7",
+        "row_XRKFxC"
+      ],
+      "settings": {
+        "image_height": "medium",
+        "desktop_image_width": "medium",
+        "heading_size": "h1",
+        "text_style": "body",
+        "button_style": "secondary",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "image_layout": "alternate-left",
+        "section_color_scheme": "scheme-1",
+        "row_color_scheme": "scheme-2",
+        "mobile_content_alignment": "left",
+        "padding_top": 16,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "image_banner",
+    "rich_text_QCKePb",
+    "multirow_KQdnJc"
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "sections": {
+    "image_banner": {
+      "type": "image-banner",
+      "settings": {
+        "image": "shopify://shop_images/poi-universalstudio.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "small",
+        "desktop_content_position": "middle-center",
+        "show_text_box": false,
+        "desktop_content_alignment": "center",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": false
+      }
+    },
+    "rich_text_QCKePb": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_jmXnUK": {
+          "type": "heading",
+          "settings": {
+            "heading": "Universal Destinations - Book with Mr Chocolate's Travel",
+            "heading_size": "h2"
+          }
+        },
+        "text_EhDzCc": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Universal Destinations - Book with Mr Chocolate's Travel</p><p>With theme parks across the globe, Universal makes it easier for fans everywhere to experience the excitement of movie magic. This includes Universal Studios Hollywood, Universal Orlando Resort, Universal Studios Japan, Universal Studios Singapore, Universal Beijing Resort, and the upcoming Universal Studios Great Britain.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_jmXnUK",
+        "text_EhDzCc"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-2",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "multirow_KQdnJc": {
+      "type": "multirow",
+      "blocks": {
+        "row_NDH8Ym": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Entryway.jpg",
+            "caption": "",
+            "heading": "<strong>Universal Studios Hollywood</strong>",
+            "text": "<p>Experience the thrill of movie magic at Universal Studios Hollywood. Home to world-famous rides and shows, it combines behind-the-scenes studio tours with immersive lands like The Wizarding World of Harry Potter and Super Nintendo World. Perfect for film fans and families alike, with exciting seasonal events and Universal CityWalk for shopping, dining, and entertainment.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a"
+          }
+        },
+        "row_J3d9yf": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/universal-epic-universe.webp",
+            "caption": "",
+            "heading": "<strong>Universal Orlando Resort</strong>",
+            "text": "<p>Step into epic adventures at Universal Orlando Resort. Featuring Universal Studios Florida, Islands of Adventure, and Volcano Bay, it delivers blockbuster thrills with attractions like The Wizarding World of Harry Potter and Jurassic World VelociCoaster. Perfect for families and thrill-seekers, with lively dining and entertainment at Universal CityWalk. Coming soon: Epic Universe — an all-new theme park that will redefine the future of immersive storytelling.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a"
+          }
+        },
+        "row_ygHXnz": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Universal-Studios-Japan-Entrance-Arch-by-Joshua-Meyer.jpg",
+            "caption": "",
+            "heading": "<strong>Universal Studios Japan</strong>",
+            "text": "<p>Unleash your imagination at Universal Studios Japan in Osaka. A dynamic mix of global blockbusters and Japanese favourites, it features iconic attractions like The Wizarding World of Harry Potter, Minion Park, and the groundbreaking Super Nintendo World. Great for families and fans of pop culture, with seasonal events and exclusive experiences you won’t find anywhere else.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws9rqrqxjkara2uwxzzyu6kl2wh2zvn3a"
+          }
+        },
+        "row_UicHjW": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/17876f22.jpg",
+            "caption": "",
+            "heading": "<strong>Universal Studios Singapore</strong>",
+            "text": "<p>Discover non-stop excitement at Universal Studios Singapore. Nestled on Sentosa Island, this vibrant theme park brings Hollywood magic to Southeast Asia with seven immersive zones, including Ancient Egypt, The Lost World, and Madagascar. Ride epic attractions like Transformers: The Ride, Battlestar Galactica dueling coasters, and Jurassic Park Rapids Adventure. Ideal for families and thrill-seekers, it’s part of the larger Resorts World Sentosa — offering luxurious stays, oceanariums, and world-class dining all just minutes from downtown Singapore.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a"
+          }
+        },
+        "row_XDzkGR": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/Universal-Beijing-Resort-scaled.jpg",
+            "caption": "",
+            "heading": "<strong>Universal Beijing Resort</strong>",
+            "text": "<p>Step into spectacular worlds at Universal Beijing Resort. One of the newest and most ambitious Universal parks, it features immersive lands like Kung Fu Panda Land of Awesomeness, Transformers Metrobase, and The Wizarding World of Harry Potter. A perfect blend of global hits and Chinese cultural touches, it’s designed for families and fans of cinematic adventures. With the lively Universal CityWalk Beijing and two themed hotels, it’s a full vacation destination in the heart of China.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a"
+          }
+        },
+        "row_XGidNN": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/skynews-universal-theme-park_6880196.jpg",
+            "caption": "",
+            "heading": "<strong>Universal Studios Great Britain</strong>",
+            "text": "<p>Experience cinematic adventures like never before at Universal Studios Great Britain. Slated to open in 2031 in Bedfordshire, England, this expansive 476-acre resort will be Universal's first theme park in the UK and Europe. Anticipated attractions include immersive lands inspired by iconic British franchises such as James Bond, Paddington Bear, and The Lord of the Rings. The resort will also feature a 500-room hotel, retail and dining options, and entertainment zones, all designed to deliver Universal's signature storytelling and thrills. With construction expected to begin in 2026, Universal Studios Great Britain promises to be a landmark destination for fans of all ages.</p>",
+            "button_label": "Request a Quote",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws8kxwnqntarz2anbj7mbs39e3ws5a"
+          }
+        }
+      },
+      "block_order": [
+        "row_NDH8Ym",
+        "row_J3d9yf",
+        "row_ygHXnz",
+        "row_UicHjW",
+        "row_XDzkGR",
+        "row_XGidNN"
+      ],
+      "settings": {
+        "image_height": "medium",
+        "desktop_image_width": "medium",
+        "heading_size": "h1",
+        "text_style": "body",
+        "button_style": "secondary",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "image_layout": "alternate-left",
+        "section_color_scheme": "scheme-1",
+        "row_color_scheme": "scheme-2",
+        "mobile_content_alignment": "left",
+        "padding_top": 16,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "image_banner",
+    "rich_text_QCKePb",
+    "multirow_KQdnJc"
+  ]
+}

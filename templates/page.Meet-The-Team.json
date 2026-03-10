@@ -1,0 +1,117 @@
+{
+  "sections": {
+    "image_banner": {
+      "type": "image-banner",
+      "settings": {
+        "image": "shopify://shop_images/Fab-Five-in-front-of-Cinderellas-Castle-Main-Street-USA-_-Disney-638x450_1.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "small",
+        "desktop_content_position": "middle-center",
+        "show_text_box": false,
+        "desktop_content_alignment": "left",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": false
+      }
+    },
+    "multicolumn_UUHkJJ": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_YTDfjj": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Mr Chocolate</strong>",
+            "text": "<p>Mr Chocolate has been Rebecca's faithful companion since she was 19 years old when her then boyfriend, now husband, Ian, purchased Mr Chocolate from Death by Chocolate in Elsternwick, VIC</p><p><br/></p><p>Mr Chocolate is a very special bear and has travelled the world with Rebecca and family.  <br/><br/><strong>Favourite Character: </strong> Duffy the Disney Bear</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_3rHkWm": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Rebecca</strong>",
+            "text": "<p>Rebecca is the founder / owner and manager of Mr Chocolate's Travel and passionate about travel for families, in particular large family groups and multi-generational travel.</p><p><br/></p><p>Rebecca has visited all Disney and Universal Parks except for Shanghai and Beijing, which are on her bucket list. She has also enjoyed several cruises on the Disney Wonder, departing from San Diego, USA, and Melbourne, Australia. Additionally, Rebecca was fortunate to be a guest on the inaugural sailing of the Disney Wish in 2022.</p><p><br/><br/><strong>Favourite Destination:</strong> Kaua'i, Hawai'i<br/><strong>Destinations Visited Include: </strong>Bahamas, Canada, Fiji, France, Hong Kong, Indonesia including Bali, Japan, Malaysia, Mexico, New Caledonia, New Zealand, Norfolk Island, Papua New Guinea, Singapore, United Kingdom, USA including the Hawaiian Islands, Vanuatu</p><p><br/><br/><strong>Favourite Disney Park:</strong> Hong Kong Disneyland<br/><strong>Favourite Disney Show: </strong> \"Believe! Sea of Dreams\" - Tokyo Disney Sea<br/><strong>Favourite Universal Park:</strong> Universal Orlando<br/><strong>Favourite 'Other' Theme Park:</strong> Dollywood, Tennessee,<br/>USA<br/><strong>Favourite part of my job: </strong>helping make travel dreams & goals come true</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_MdAErK": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Brittany</strong>",
+            "text": "<p>Brittany has grown up in the 'Mr Chocolate' family with her Mum, Rebecca being the owner & founder of Mr Chocolate's Travel.  Brittany is a Registered Emergency Paediatric Nurse as well as one of our Travel Advisors.  </p><p><br/><strong>Destinations Visited Include: </strong>Austria, Hong Kong, Czech Republic, Denmark, Germany, Hungary, Indonesia, Japan, Madagascar, Malaysia, Mexico, New Caledonia, New Zealand, Poland, Singapore, Switzerland, USA, Vanuatu</p><p><br/></p><p><strong>Brittany's Passion: </strong>finding Gluten Free restaurants and snacks around the world.<br/><br/><em>Brittany is founder of Instagram Account,</em><em><strong> coeliac_traveller</strong></em></p><p><br/></p><p><strong>Favourite Disney Character: </strong>Cinderella</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_3FT6jc": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Kimberley</strong>",
+            "text": "<p>Kimberley is our resident theme park expert, having visited 14 international theme parks, including Disneyland, Walt Disney World, and Universal Studios. Kimberley will be your first point of contact for any and all theme park-related questions.</p><p><br/></p><p>Kimberley loves celebrating her birthday at Walt Disney World in Florida, and enjoying cake in front of the castle during the fireworks. Recently, she completed the 2024 Run Disney Princess Fairy Tale Challenge, covering 36km over three days, and is considering the 2026 Walt Disney World Marathon Weekend Dopey Challenge, totaling 78km over four days. Despite her claim that she “doesn’t like running,” she always joins Disney events.</p><p><br/></p><p><strong>Travel Bucket List</strong></p><ul><li>visiting Japan during Cherry Blossom season, with a visit to Tokyo Disney, of course</li><li>visiting Paris in Spring, with a visit to Disneyland Paris, of course</li><li>a horseback safari in Kenya or Tanzania<br/><br/><em><strong>Kimberley recently fulfilled a bucket list dream by spending a night at the Bellagio Hotel in Las Vegas in a room overlooking the fountains.</strong></em></li></ul>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_eRLy9B": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Madison</strong>",
+            "text": "<p>Madison spent an unforgettable year working at Walt Disney World in Orlando, Florida, where she had the incredible opportunity to work in merchandise at <strong>Star Wars: Galaxy’s Edge. </strong>During her time in Florida, she explored all four Walt Disney World parks and became a dedicated annual passholder at Universal Orlando. A lifelong Disney fan, Madison’s time in Florida only deepened her passion for all things Disney.</p><p><strong>Favourite Disney Park: </strong>Disney California Adventure Park<br/><strong>Favourite Disney Character: </strong> Either Rapunzel or Stitch<br/><strong>Favourite Destination:</strong> Los Angeles or Boston</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_K8KE4z": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Kim</strong>",
+            "text": "<p>Kim is passionate 'all things Disney' and has visited the happiest place on earth in the USA, both Disneyland, California and Walt Disney World numerous times with her family.  Too many times to count!</p><p><br/></p><p>Kim is our Public Relations Officer and Disney Destination specialist.  Kim will be able to inspire and answer some of your tricky Disney and Theme Park destination questions.</p><p><br/></p><p><strong>Favourite Disney Property: </strong> Disney's Fort Wilderness Resort</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_9JAk6X": {
+          "type": "column",
+          "settings": {
+            "title": "<strong>Lachlan</strong>",
+            "text": "<p>Lachlan is another of our Team Members that speaks fluent 'Disney' & 'Universal'.  Not only does Lachlan have a keen interest in theme parks worldwide but he has worked in one!</p><p><br/></p><p>In 2020, Lachlan fulfilled one of his Disney dreams and worked at Walt Disney World as a cast member.  Lachlan was privileged to work as a ride operator for Journey Into Imagination with Figment at EPCOT.</p><p><br/></p><p>Lachlan currently works in the light and sound industry as well as answering the tricky Disney, Universal & general Theme Park questions for our clients at Mr Chocolate's Travel.</p>",
+            "link_label": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "column_YTDfjj",
+        "column_3rHkWm",
+        "column_MdAErK",
+        "column_3FT6jc",
+        "column_eRLy9B",
+        "column_K8KE4z",
+        "column_9JAk6X"
+      ],
+      "settings": {
+        "title": "<strong>Meet the Team: Where the Magic Happens</strong>",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "button_label": "",
+        "button_link": "",
+        "color_scheme": "scheme-2",
+        "columns_mobile": "1",
+        "swipe_on_mobile": false,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "image_banner",
+    "multicolumn_UUHkJJ"
+  ]
+}

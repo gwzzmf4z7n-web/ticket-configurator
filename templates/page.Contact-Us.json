@@ -1,0 +1,94 @@
+{
+  "sections": {
+    "image_banner": {
+      "type": "image-banner",
+      "settings": {
+        "image": "shopify://shop_images/v2a04n3t2idje70j8yn8.jpg",
+        "image_overlay_opacity": 0,
+        "image_height": "small",
+        "desktop_content_position": "middle-center",
+        "show_text_box": false,
+        "desktop_content_alignment": "left",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "center",
+        "stack_images_on_mobile": true,
+        "show_text_below": false
+      }
+    },
+    "rich_text_V3z8fh": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_4h7MKe": {
+          "type": "heading",
+          "settings": {
+            "heading": "<strong>Contact Us</strong>",
+            "heading_size": "h1"
+          }
+        },
+        "text_WtqbxW": {
+          "type": "text",
+          "settings": {
+            "text": "<h2><strong>Mr Chocolate's Travel</strong></h2><h3><strong>Australia's Theme Park Experts</strong></h3><p></p><p>3/784 Heidelberg-Kinglake Road, </p><p>Hurstbridge, VIC, Australia 3099</p><p>+61 (3) 9718 1120</p><p>hello@mrchocolate.com.au</p><h4><strong>Fill out the below form to connect with us</strong></h4>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_4h7MKe",
+        "text_WtqbxW"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-2",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 12
+      }
+    },
+    "contact_form_PgpDMR": {
+      "type": "contact-form",
+      "disabled": true,
+      "settings": {
+        "heading": "",
+        "heading_size": "h0",
+        "color_scheme": "scheme-2",
+        "padding_top": 0,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_44nQrk": {
+      "type": "rich-text",
+      "blocks": {
+        "button_3KnJBf": {
+          "type": "button",
+          "settings": {
+            "button_label": "Contact Us",
+            "button_link": "https://trips.mrchocolate.com.au/f/6ws9rqrqdybara2uwxzz2ne4hqlvyvknt2",
+            "button_style_secondary": false,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "button_3KnJBf"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 12
+      }
+    }
+  },
+  "order": [
+    "image_banner",
+    "rich_text_V3z8fh",
+    "contact_form_PgpDMR",
+    "rich_text_44nQrk"
+  ]
+}
