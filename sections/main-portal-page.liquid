@@ -20,6 +20,57 @@
   assign heading_text = section.settings.heading | default: page.title
   assign intro_text = section.settings.intro
   assign page_key = section.settings.portal_key
+  assign trip_record = blank
+  assign trip_title = blank
+  assign trip_start_date = blank
+  assign trip_end_date = blank
+  assign trip_overview = blank
+  assign booking_status = blank
+  assign upcoming_plans = blank
+  assign salesforce_placeholder = blank
+  assign advisor_name = blank
+  assign support_email = blank
+  assign days_until_trip = blank
+  assign trip_countdown_label = blank
+  assign now_timestamp = 'now' | date: '%s' | plus: 0
+  assign trip_is_live = false
+
+  if customer and customer.metafields.portal.trip_record != blank and customer.metafields.portal.trip_record.value != blank
+    assign trip_record = customer.metafields.portal.trip_record.value
+    assign trip_title = trip_record.title.value
+    assign trip_start_date = trip_record.trip_start_date.value
+    assign trip_end_date = trip_record.trip_end_date.value
+    assign trip_overview = trip_record.trip_overview.value
+    assign booking_status = trip_record.booking_status.value
+    assign upcoming_plans = trip_record.upcoming_plans.value
+    assign salesforce_placeholder = trip_record.salesforce_placeholder.value
+    assign advisor_name = trip_record.advisor_name.value
+    assign support_email = trip_record.support_email.value
+
+    if trip_start_date != blank
+      assign trip_start_timestamp = trip_start_date | date: '%s' | plus: 0
+      assign trip_end_timestamp = blank
+
+      if trip_end_date != blank
+        assign trip_end_timestamp = trip_end_date | date: '%s' | plus: 0
+        if trip_end_timestamp >= now_timestamp and trip_start_timestamp <= now_timestamp
+          assign trip_is_live = true
+        endif
+      endif
+
+      assign days_until_trip = trip_start_timestamp | minus: now_timestamp | divided_by: 86400
+
+      if days_until_trip > 0
+        assign trip_countdown_label = 'Days until departure'
+      elsif days_until_trip == 0
+        assign trip_countdown_label = 'Trip starts today'
+      elsif trip_end_timestamp != blank and trip_end_timestamp >= now_timestamp
+        assign trip_countdown_label = 'Trip in progress'
+      else
+        assign trip_countdown_label = 'Trip start date'
+      endif
+    endif
+  endif
 
   if page_key == 'hub'
     if customer and customer.first_name != blank
@@ -48,6 +99,81 @@
       echo '</div>'
     endif
     echo '</header>'
+
+    if page_key == 'trip'
+      if trip_record != blank
+        echo '<div class="portal-grid portal-grid--stats">'
+
+        echo '<article class="portal-stat">'
+        echo '<p class="portal-stat__label">'
+        if trip_countdown_label != blank
+          echo trip_countdown_label
+        else
+          echo 'Trip countdown'
+        endif
+        echo '</p>'
+        echo '<p class="portal-stat__value">'
+        if trip_start_date == blank
+          echo 'TBC'
+        elsif days_until_trip > 0
+          echo days_until_trip
+        elsif days_until_trip == 0
+          echo 'Today'
+        elsif trip_is_live
+          echo 'Live'
+        else
+          echo trip_start_date | date: '%b %-d'
+        endif
+        echo '</p>'
+        echo '<p class="portal-stat__meta">'
+        if trip_start_date != blank
+          echo trip_start_date | date: '%B %-d, %Y'
+        else
+          echo 'Add a trip start date to show the countdown.'
+        endif
+        echo '</p>'
+        echo '</article>'
+
+        echo '<article class="portal-stat">'
+        echo '<p class="portal-stat__label">Trip title</p>'
+        echo '<p class="portal-stat__value h2">'
+        if trip_title != blank
+          echo trip_title | escape
+        else
+          echo 'Your trip'
+        endif
+        echo '</p>'
+        echo '<p class="portal-stat__meta">'
+        if advisor_name != blank
+          echo 'Managed by ' | append: advisor_name | escape
+        else
+          echo 'Assign an advisor name when ready.'
+        endif
+        echo '</p>'
+        echo '</article>'
+
+        echo '<article class="portal-stat">'
+        echo '<p class="portal-stat__label">Booking status</p>'
+        echo '<p class="portal-stat__value h2">'
+        if booking_status != blank
+          echo booking_status | escape
+        else
+          echo 'Pending'
+        endif
+        echo '</p>'
+        echo '<p class="portal-stat__meta">'
+        if trip_end_date != blank
+          echo 'Returns '
+          echo trip_end_date | date: '%B %-d, %Y'
+        else
+          echo 'Add an end date for a full trip window.'
+        endif
+        echo '</p>'
+        echo '</article>'
+
+        echo '</div>'
+      endif
+    endif
 
     if page_key == 'hub'
       assign has_cards = false
@@ -108,6 +234,56 @@
         if block.settings.width == 'full'
           assign panel_classes = panel_classes | append: ' portal-panel--full'
         endif
+        assign panel_title = block.settings.title
+        assign panel_body = block.settings.body
+
+        if page_key == 'trip' and trip_record != blank
+          case block.settings.title
+            when 'Trip Overview'
+              if trip_overview != blank
+                assign panel_body = trip_overview | newline_to_br
+              endif
+            when 'Booking Status'
+              capture panel_body
+                echo '<p>'
+                if booking_status != blank
+                  echo booking_status | escape
+                else
+                  echo 'No booking status has been added yet.'
+                endif
+                echo '</p>'
+                if trip_start_date != blank
+                  echo '<p>Departure: '
+                  echo trip_start_date | date: '%B %-d, %Y'
+                  echo '</p>'
+                endif
+                if trip_end_date != blank
+                  echo '<p>Return: '
+                  echo trip_end_date | date: '%B %-d, %Y'
+                  echo '</p>'
+                endif
+              endcapture
+            when 'Upcoming Plans'
+              if upcoming_plans != blank
+                assign panel_body = upcoming_plans | newline_to_br
+              endif
+            when 'Future Salesforce / Itinerary Integration'
+              capture panel_body
+                if salesforce_placeholder != blank
+                  echo salesforce_placeholder | newline_to_br
+                else
+                  echo '<p>This reserved panel is ready for future Salesforce-connected trip data, itinerary feeds, documents, or support notes.</p>'
+                endif
+                if support_email != blank
+                  echo '<p>Current support contact: <a href="mailto:'
+                  echo support_email
+                  echo '">'
+                  echo support_email
+                  echo '</a></p>'
+                endif
+              endcapture
+          endcase
+        endif
 
         echo '<article class="'
         echo panel_classes
@@ -115,16 +291,20 @@
         echo block.shopify_attributes
         echo '>'
         echo '<h2 class="portal-panel__title h3">'
-        echo block.settings.title | escape
+        echo panel_title | escape
         echo '</h2>'
-        if block.settings.body != blank
+        if panel_body != blank
           echo '<div class="portal-panel__body rte">'
-          echo block.settings.body
+          echo panel_body
           echo '</div>'
         endif
         echo '</article>'
       endfor
       echo '</div>'
+    endif
+
+    if page_key == 'trip' and trip_record == blank
+      echo '<div class="portal-note rte"><p>No trip record is assigned to this customer yet.</p><p>Once you attach a <strong>Trip Record</strong> to <code>portal.trip_record</code>, this page will populate automatically.</p></div>'
     endif
 
     if section.settings.show_page_content and page.content != blank

@@ -30,8 +30,16 @@
 .portal-nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 2.4rem;
+}
+
+.portal-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .portal-nav__link {
@@ -58,6 +66,26 @@
   border-color: rgba(var(--color-button), 0.7);
   background: rgba(var(--color-button), 0.14);
   font-weight: 700;
+}
+
+.portal-nav__logout a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.5rem;
+  border-radius: 999px;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  color: rgb(var(--color-foreground));
+  text-decoration: none;
+  background: rgba(var(--color-background), 0.7);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.portal-nav__logout a:hover,
+.portal-nav__logout a:focus-visible {
+  transform: translateY(-0.1rem);
+  border-color: rgba(var(--color-foreground), 0.24);
+  background: rgba(var(--color-foreground), 0.06);
 }
 
 .portal-hero {
@@ -101,9 +129,15 @@
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
+.portal-grid--stats {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  margin-bottom: 1.6rem;
+}
+
 .portal-card,
 .portal-panel,
-.portal-login-gate {
+.portal-login-gate,
+.portal-stat {
   padding: 2rem;
   border-radius: 2rem;
   border: 0.1rem solid rgba(var(--color-foreground), 0.08);
@@ -136,6 +170,30 @@
   margin-top: 0;
 }
 
+.portal-stat {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.portal-stat__label {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: 0.18rem;
+  text-transform: uppercase;
+  color: rgba(var(--color-foreground), 0.7);
+}
+
+.portal-stat__value {
+  margin: 0;
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  line-height: 1;
+}
+
+.portal-stat__meta {
+  margin: 0;
+  color: rgba(var(--color-foreground), 0.72);
+}
+
 .portal-card__actions,
 .portal-login-gate__actions {
   margin-top: auto;
@@ -166,6 +224,10 @@
 @media screen and (min-width: 750px) {
   .portal-shell {
     padding: 3.2rem;
+  }
+
+  .portal-grid--stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .portal-grid--cards {

@@ -20,22 +20,30 @@
 -%}
 
 <nav class="portal-nav" aria-label="Customer portal">
-  <a
-    class="portal-nav__link{% if current_handle == 'client-hub' %} portal-nav__link--active{% endif %}"
-    href="{{ hub_url }}"
-  >
-    Client Hub
-  </a>
-  <a
-    class="portal-nav__link{% if current_handle == 'your-trip' %} portal-nav__link--active{% endif %}"
-    href="{{ trip_url }}"
-  >
-    Your Trip
-  </a>
-  <a
-    class="portal-nav__link{% if current_handle == 'secret-shop' %} portal-nav__link--active{% endif %}"
-    href="{{ shop_url }}"
-  >
-    Secret Shop
-  </a>
+  <div class="portal-nav__links">
+    <a
+      class="portal-nav__link{% if current_handle == 'client-hub' %} portal-nav__link--active{% endif %}"
+      href="{{ hub_url }}"
+    >
+      Client Hub
+    </a>
+    <a
+      class="portal-nav__link{% if current_handle == 'your-trip' %} portal-nav__link--active{% endif %}"
+      href="{{ trip_url }}"
+    >
+      Your Trip
+    </a>
+    <a
+      class="portal-nav__link{% if current_handle == 'secret-shop' %} portal-nav__link--active{% endif %}"
+      href="{{ shop_url }}"
+    >
+      Secret Shop
+    </a>
+  </div>
+
+  {%- if customer -%}
+    <div class="portal-nav__logout">
+      {{ 'Log out' | customer_logout_link }}
+    </div>
+  {%- endif -%}
 </nav>
