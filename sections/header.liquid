@@ -57,6 +57,13 @@
     line-height: calc(1 + 0.3 / var(--font-body-scale));
   }
 
+  .header__account-label {
+    margin-left: 0.8rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
   .list-menu__item--link {
     text-decoration: none;
     padding-bottom: 1rem;
@@ -251,6 +258,13 @@
           {%- else -%}
             <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
           {%- endif -%}
+          <span class="header__account-label{% if section.settings.menu != blank %} small-hide{% endif %}">
+            {% if customer %}
+              Portal
+            {% else %}
+              Login
+            {% endif %}
+          </span>
           <span class="visually-hidden">
             {%- liquid
               if customer

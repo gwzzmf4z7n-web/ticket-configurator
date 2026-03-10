@@ -4,8 +4,20 @@
       "type": "main-login",
       "settings": {
         "enable_shop_login_button": true,
-        "padding_top": 36,
-        "padding_bottom": 36
+        "eyebrow": "MrChocolate Accounts",
+        "heading": "Sign in to your customer portal",
+        "intro": "Use your MrChocolate customer account to access your travel plans, ticket details, documents, and support information. This login experience is custom-branded now and ready for Salesforce-linked data later.",
+        "login_heading": "Account login",
+        "login_copy": "Only logged-in customers can access portal content. Sign in below if your account has already been created.",
+        "login_button_label": "Sign in",
+        "create_account_label": "Create account",
+        "recover_heading": "Reset your password",
+        "recover_copy": "Enter your email address and we will send you a password reset link.",
+        "recover_button_label": "Send reset link",
+        "back_to_login_label": "Back to sign in",
+        "footnote": "Phase 1 uses Shopify customer authentication. Salesforce can later become the source of customer account data without replacing this front-end login experience.",
+        "padding_top": 48,
+        "padding_bottom": 48
       }
     }
   },

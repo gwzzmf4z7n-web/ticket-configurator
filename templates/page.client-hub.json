@@ -1,0 +1,48 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-portal-page",
+      "blocks": {
+        "trip_card": {
+          "type": "portal_card",
+          "settings": {
+            "title": "Your Trip",
+            "description": "<p>Open your private travel dashboard for booking status, itinerary placeholders, and future personalised updates.</p>",
+            "link": "/pages/your-trip",
+            "link_label": "View your trip"
+          }
+        },
+        "shop_card": {
+          "type": "portal_card",
+          "settings": {
+            "title": "Secret Shop",
+            "description": "<p>Visit your exclusive member area for private rewards, curated offers, and future loyalty experiences.</p>",
+            "link": "/pages/secret-shop",
+            "link_label": "Enter secret shop"
+          }
+        }
+      },
+      "block_order": [
+        "trip_card",
+        "shop_card"
+      ],
+      "settings": {
+        "portal_key": "hub",
+        "eyebrow": "Members area",
+        "heading": "Client Hub",
+        "intro": "<p>Your private customer portal gives you one secure place to access trip details, member perks, and future personalised updates.</p>",
+        "member_note": "<p>This hub is ready for future customer metafields, tags, metaobjects, or Salesforce-connected data without changing the login flow.</p>",
+        "show_page_content": false,
+        "logged_out_title": "Please log in to access your portal",
+        "logged_out_message": "<p>You need to log in with your Shopify customer account before you can view the Client Hub.</p>",
+        "login_button_label": "Log in",
+        "color_scheme": "scheme-1",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

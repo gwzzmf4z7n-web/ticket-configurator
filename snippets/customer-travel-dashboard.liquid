@@ -1,12 +1,20 @@
 <section class="travel-portal-dashboard" aria-labelledby="TravelPortalHeading">
   <div class="travel-portal-dashboard__header">
     <div>
-      <p class="travel-portal-dashboard__eyebrow">MrChocolate Travel Portal</p>
+      <p class="travel-portal-dashboard__eyebrow">
+        {% if portal_brand == 'magical_tickets' %}
+          Magical Tickets Portal
+        {% else %}
+          MrChocolate Travel Portal
+        {% endif %}
+      </p>
       <h2 id="TravelPortalHeading" class="travel-portal-dashboard__title">
-        {% if trip_name != blank %}
+        {% if portal_title != blank %}
+          {{ portal_title }}
+        {% elsif trip_name != blank %}
           {{ trip_name }}
         {% else %}
-          Your next adventure
+          Your customer portal
         {% endif %}
       </h2>
       <div class="travel-portal-dashboard__meta">
@@ -14,117 +22,105 @@
           <span>{{ customer_email }}</span>
         {% endif %}
         {% if booking_number != blank %}
-          <span>Booking {{ booking_number }}</span>
+          <span>Reference {{ booking_number }}</span>
+        {% endif %}
+        {% if portal_status != blank %}
+          <span>Status: {{ portal_status }}</span>
         {% endif %}
       </div>
     </div>
 
-    <div class="travel-portal-dashboard__actions">
-      {% if travefy_itinerary_link != blank %}
-        <a
-          class="button button--primary"
-          href="{{ travefy_itinerary_link }}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View itinerary
-        </a>
-      {% endif %}
-
-      {% if rewards_enabled and rewards_store_url != blank %}
-        <a class="button button--secondary" href="{{ rewards_store_url }}">
-          Rewards store
-        </a>
-      {% endif %}
-    </div>
+    {% if next_important_date != blank %}
+      <div class="travel-portal-dashboard__badge">
+        <span class="travel-portal-dashboard__badge-label">Next important date</span>
+        <strong>{{ next_important_date | time_tag: format: 'date' }}</strong>
+      </div>
+    {% endif %}
   </div>
 
-  <div class="travel-portal-dashboard__grid">
-    <article class="travel-portal-card travel-portal-card--hero">
-      <p class="travel-portal-card__label">Trip window</p>
-      <div class="travel-portal-card__value-group">
-        <p class="travel-portal-card__value">
+  {% if portal_has_content %}
+    <div class="travel-portal-dashboard__grid">
+      <article class="travel-portal-card travel-portal-card--hero">
+        <p class="travel-portal-card__label">Overview</p>
+        <h3 class="travel-portal-card__heading">
+          {% if trip_name != blank %}
+            {{ trip_name }}
+          {% else %}
+            Portal summary
+          {% endif %}
+        </h3>
+        {% if portal_summary != blank %}
+          <div class="travel-portal-card__copy rte">{{ portal_summary | newline_to_br }}</div>
+        {% endif %}
+        <div class="travel-portal-card__list">
           {% if trip_start_date != blank %}
-            {{ trip_start_date | time_tag: format: 'date' }}
-          {% else %}
-            <span>TBC</span>
+            <p><strong>Start:</strong> {{ trip_start_date | time_tag: format: 'date' }}</p>
           {% endif %}
-        </p>
-        <p class="travel-portal-card__separator">to</p>
-        <p class="travel-portal-card__value">
           {% if trip_end_date != blank %}
-            {{ trip_end_date | time_tag: format: 'date' }}
-          {% else %}
-            <span>TBC</span>
+            <p><strong>End:</strong> {{ trip_end_date | time_tag: format: 'date' }}</p>
           {% endif %}
-        </p>
-      </div>
-    </article>
+          {% if advisor_name != blank %}
+            <p><strong>Advisor:</strong> {{ advisor_name }}</p>
+          {% endif %}
+        </div>
+      </article>
 
-    <article class="travel-portal-card">
-      <p class="travel-portal-card__label">Reward credits</p>
-      <p class="travel-portal-card__value">{{ credits_balance }}</p>
-      <p class="travel-portal-card__hint">
-        {% if rewards_enabled %}
-          Credits are available for this trip.
-        {% elsif trip_has_ended %}
-          Credits expired when the trip ended.
-        {% else %}
-          Rewards access is currently unavailable.
-        {% endif %}
-      </p>
-    </article>
+      {% if ticket_summary != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Tickets</p>
+          <div class="travel-portal-card__copy rte">{{ ticket_summary | newline_to_br }}</div>
+        </article>
+      {% endif %}
 
-    <article class="travel-portal-card">
-      <p class="travel-portal-card__label">Countdown</p>
-      <p class="travel-portal-card__value">
-        {% if countdown_days != blank %}
-          {{ countdown_days }} days
-        {% elsif trip_has_ended %}
-          Trip complete
-        {% elsif trip_has_started %}
-          In progress
-        {% else %}
-          TBC
-        {% endif %}
-      </p>
-      <p class="travel-portal-card__hint">
-        {% if countdown_days != blank %}
-          Until departure
-        {% elsif trip_has_started and trip_has_ended == false %}
-          Your travel dates are underway.
-        {% else %}
-          Countdown updates when travel dates are set.
-        {% endif %}
-      </p>
-    </article>
+      {% if hotel_summary != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Hotel</p>
+          <div class="travel-portal-card__copy rte">{{ hotel_summary | newline_to_br }}</div>
+        </article>
+      {% endif %}
 
-    <article class="travel-portal-card">
-      <p class="travel-portal-card__label">Rewards access</p>
-      <p class="travel-portal-card__value">
-        {% if rewards_enabled %}
-          Active
-        {% else %}
-          Locked
-        {% endif %}
-      </p>
-      <p class="travel-portal-card__hint">
-        {% if rewards_enabled %}
-          Rewards store access stays open until the trip ends.
-        {% elsif rewards_store_url == blank %}
-          Add a rewards store URL in the account section settings.
-        {% elsif trip_has_ended %}
-          Access closes automatically after the end date.
-        {% else %}
-          Salesforce should set `rewards_access` to enable redemption.
-        {% endif %}
-      </p>
-    </article>
-  </div>
+      {% if important_dates != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Important dates</p>
+          <div class="travel-portal-card__copy rte">{{ important_dates | newline_to_br }}</div>
+        </article>
+      {% endif %}
 
-  {% unless rewards_enabled %}
-    <div class="travel-portal-dashboard__notice" role="status">
-      Rewards store access is hidden because `rewards_access` is false or the trip has ended.
+      {% if documents_links != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Documents and links</p>
+          <div class="travel-portal-card__copy rte">{{ documents_links | newline_to_br }}</div>
+        </article>
+      {% endif %}
+
+      {% if advisor_notes != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Advisor notes</p>
+          <div class="travel-portal-card__copy rte">{{ advisor_notes | newline_to_br }}</div>
+        </article>
+      {% endif %}
+
+      {% if support_email != blank or support_phone != blank %}
+        <article class="travel-portal-card">
+          <p class="travel-portal-card__label">Support</p>
+          <div class="travel-portal-card__list">
+            {% if support_email != blank %}
+              <p><strong>Email:</strong> <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+            {% endif %}
+            {% if support_phone != blank %}
+              <p><strong>Phone:</strong> <a href="tel:{{ support_phone | replace: ' ', '' }}">{{ support_phone }}</a></p>
+            {% endif %}
+          </div>
+        </article>
+      {% endif %}
     </div>
-  {% endunless %}
+  {% else %}
+    <div class="travel-portal-dashboard__empty" role="status">
+      <h3>Your portal is not ready yet</h3>
+      <p>We found your customer login, but there is no portal content assigned to this account yet.</p>
+      {% if support_email != blank %}
+        <p>Need help? Contact <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+      {% endif %}
+    </div>
+  {% endif %}
 </section>

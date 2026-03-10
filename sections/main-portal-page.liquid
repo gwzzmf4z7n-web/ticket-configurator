@@ -1,0 +1,334 @@
+{{ 'section-portal.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign current_handle = page.handle | default: ''
+  assign return_to = page.url | default: request.path | default: routes.root_url
+  assign heading_text = section.settings.heading | default: page.title
+  assign intro_text = section.settings.intro
+  assign page_key = section.settings.portal_key
+
+  if page_key == 'hub'
+    if customer and customer.first_name != blank
+      assign heading_text = 'Welcome back, ' | append: customer.first_name
+    elsif customer
+      assign heading_text = 'Welcome back'
+    endif
+  endif
+
+  capture protected_content
+    echo '<div class="portal-shell">'
+    render 'portal-nav', current_handle: current_handle
+
+    echo '<header class="portal-hero">'
+    if section.settings.eyebrow != blank
+      echo '<p class="portal-hero__eyebrow">'
+      echo section.settings.eyebrow
+      echo '</p>'
+    endif
+    echo '<h1 class="portal-hero__heading h0">'
+    echo heading_text | escape
+    echo '</h1>'
+    if intro_text != blank
+      echo '<div class="portal-hero__intro rte">'
+      echo intro_text
+      echo '</div>'
+    endif
+    echo '</header>'
+
+    if page_key == 'hub'
+      assign has_cards = false
+      for block in section.blocks
+        if block.type == 'portal_card'
+          assign has_cards = true
+          break
+        endif
+      endfor
+
+      if has_cards
+        echo '<div class="portal-grid portal-grid--cards">'
+        for block in section.blocks
+          if block.type != 'portal_card'
+            continue
+          endif
+
+          echo '<article class="portal-card" '
+          echo block.shopify_attributes
+          echo '>'
+          echo '<h2 class="portal-card__title h3">'
+          echo block.settings.title | escape
+          echo '</h2>'
+          if block.settings.description != blank
+            echo '<div class="portal-card__description rte">'
+            echo block.settings.description
+            echo '</div>'
+          endif
+          if block.settings.link != blank
+            echo '<div class="portal-card__actions"><a class="button" href="'
+            echo block.settings.link
+            echo '">'
+            echo block.settings.link_label | escape
+            echo '</a></div>'
+          endif
+          echo '</article>'
+        endfor
+        echo '</div>'
+      endif
+    endif
+
+    assign has_panels = false
+    for block in section.blocks
+      if block.type == 'info_panel'
+        assign has_panels = true
+        break
+      endif
+    endfor
+
+    if has_panels
+      echo '<div class="portal-grid portal-grid--panels">'
+      for block in section.blocks
+        if block.type != 'info_panel'
+          continue
+        endif
+
+        assign panel_classes = 'portal-panel'
+        if block.settings.width == 'full'
+          assign panel_classes = panel_classes | append: ' portal-panel--full'
+        endif
+
+        echo '<article class="'
+        echo panel_classes
+        echo '" '
+        echo block.shopify_attributes
+        echo '>'
+        echo '<h2 class="portal-panel__title h3">'
+        echo block.settings.title | escape
+        echo '</h2>'
+        if block.settings.body != blank
+          echo '<div class="portal-panel__body rte">'
+          echo block.settings.body
+          echo '</div>'
+        endif
+        echo '</article>'
+      endfor
+      echo '</div>'
+    endif
+
+    if section.settings.show_page_content and page.content != blank
+      echo '<div class="portal-page-content"><div class="rte">'
+      echo page.content
+      echo '</div></div>'
+    endif
+
+    if section.settings.member_note != blank
+      echo '<div class="portal-note rte">'
+      echo section.settings.member_note
+      echo '</div>'
+    endif
+
+    echo '</div>'
+  endcapture
+-%}
+
+<section class="portal-area section-{{ section.id }}-padding color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width">
+    {% render 'portal-login-gate',
+      title: section.settings.logged_out_title,
+      message: section.settings.logged_out_message,
+      button_label: section.settings.login_button_label,
+      return_to: return_to,
+      gated_content: protected_content
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Portal page",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "portal_key",
+      "label": "Portal page type",
+      "default": "hub",
+      "options": [
+        {
+          "value": "hub",
+          "label": "Client Hub"
+        },
+        {
+          "value": "trip",
+          "label": "Your Trip"
+        },
+        {
+          "value": "shop",
+          "label": "Secret Shop"
+        }
+      ]
+    },
+    {
+      "type": "inline_richtext",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Private customer portal"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Client Hub"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro text",
+      "default": "<p>Use this private area to access your trip information and member-only experiences.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "member_note",
+      "label": "Member note",
+      "default": "<p>This section is theme-powered today and ready for future Shopify metafield, metaobject, or external integration work.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_page_content",
+      "label": "Show page body content below portal modules",
+      "default": false
+    },
+    {
+      "type": "inline_richtext",
+      "id": "logged_out_title",
+      "label": "Logged out heading",
+      "default": "Please log in to access your portal"
+    },
+    {
+      "type": "richtext",
+      "id": "logged_out_message",
+      "label": "Logged out message",
+      "default": "<p>You need to be logged in with your Shopify customer account to view this private area.</p>"
+    },
+    {
+      "type": "text",
+      "id": "login_button_label",
+      "label": "Login button label",
+      "default": "Log in"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "portal_card",
+      "name": "Portal card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Your Trip"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Add a short description for this destination page.</p>"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Button label",
+          "default": "Open"
+        }
+      ]
+    },
+    {
+      "type": "info_panel",
+      "name": "Info panel",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Panel heading"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body",
+          "default": "<p>Add content for logged-in customers here.</p>"
+        },
+        {
+          "type": "select",
+          "id": "width",
+          "label": "Width",
+          "default": "half",
+          "options": [
+            {
+              "value": "half",
+              "label": "Half width"
+            },
+            {
+              "value": "full",
+              "label": "Full width"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Portal page"
+    }
+  ]
+}
+{% endschema %}

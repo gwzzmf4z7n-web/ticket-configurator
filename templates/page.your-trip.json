@@ -1,0 +1,64 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-portal-page",
+      "blocks": {
+        "overview": {
+          "type": "info_panel",
+          "settings": {
+            "title": "Trip Overview",
+            "body": "<p>This is your private travel dashboard. Trip details and itinerary information will appear here.</p><p>Use this area later for trip summaries, destinations, dates, booking references, or customer-specific portal data.</p>",
+            "width": "half"
+          }
+        },
+        "status": {
+          "type": "info_panel",
+          "settings": {
+            "title": "Booking Status",
+            "body": "<p>Placeholder for live booking progress, payment milestones, confirmation stages, or team updates.</p><p>This can later be powered by customer metafields, tags, or external sync logic.</p>",
+            "width": "half"
+          }
+        },
+        "plans": {
+          "type": "info_panel",
+          "settings": {
+            "title": "Upcoming Plans",
+            "body": "<p>Add upcoming trip milestones here, such as travel dates, planning tasks, reminders, or pre-departure actions.</p>",
+            "width": "half"
+          }
+        },
+        "integration": {
+          "type": "info_panel",
+          "settings": {
+            "title": "Future Salesforce / Itinerary Integration",
+            "body": "<p>This reserved panel is intended for future Salesforce-connected trip data, itinerary feeds, documents, or support notes.</p><p>Keeping it in this section means the data source can change later without rebuilding the page structure.</p>",
+            "width": "full"
+          }
+        }
+      },
+      "block_order": [
+        "overview",
+        "status",
+        "plans",
+        "integration"
+      ],
+      "settings": {
+        "portal_key": "trip",
+        "eyebrow": "Private travel dashboard",
+        "heading": "Your Trip",
+        "intro": "<p>This is your private travel dashboard. Trip details and itinerary information will appear here.</p>",
+        "member_note": "<p>Future enhancements can pull in customer metafields, customer tags, metaobject-based trip records, or app/API data without changing the page access rules.</p>",
+        "show_page_content": false,
+        "logged_out_title": "Please log in to access your trip",
+        "logged_out_message": "<p>You need to log in with your Shopify customer account to view your private trip dashboard.</p>",
+        "login_button_label": "Log in",
+        "color_scheme": "scheme-1",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

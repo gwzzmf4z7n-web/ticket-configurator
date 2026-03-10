@@ -1,0 +1,41 @@
+{%- liquid
+  assign hub_page = pages['client-hub']
+  assign trip_page = pages['your-trip']
+  assign shop_page = pages['secret-shop']
+
+  assign hub_url = '/pages/client-hub'
+  if hub_page != blank
+    assign hub_url = hub_page.url
+  endif
+
+  assign trip_url = '/pages/your-trip'
+  if trip_page != blank
+    assign trip_url = trip_page.url
+  endif
+
+  assign shop_url = '/pages/secret-shop'
+  if shop_page != blank
+    assign shop_url = shop_page.url
+  endif
+-%}
+
+<nav class="portal-nav" aria-label="Customer portal">
+  <a
+    class="portal-nav__link{% if current_handle == 'client-hub' %} portal-nav__link--active{% endif %}"
+    href="{{ hub_url }}"
+  >
+    Client Hub
+  </a>
+  <a
+    class="portal-nav__link{% if current_handle == 'your-trip' %} portal-nav__link--active{% endif %}"
+    href="{{ trip_url }}"
+  >
+    Your Trip
+  </a>
+  <a
+    class="portal-nav__link{% if current_handle == 'secret-shop' %} portal-nav__link--active{% endif %}"
+    href="{{ shop_url }}"
+  >
+    Secret Shop
+  </a>
+</nav>

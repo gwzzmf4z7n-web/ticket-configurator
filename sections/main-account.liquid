@@ -12,197 +12,323 @@
       padding-bottom: {{ section.settings.padding_bottom }}px;
     }
   }
+
+  .travel-portal-shell {
+    display: grid;
+    gap: 2.4rem;
+  }
+
+  .travel-portal-shell__topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .travel-portal-dashboard {
+    display: grid;
+    gap: 1.8rem;
+    padding: 2rem;
+    border-radius: 2rem;
+    background: linear-gradient(180deg, rgba(var(--color-background), 1), rgba(var(--color-foreground), 0.04));
+    border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  }
+
+  .travel-portal-dashboard__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.6rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .travel-portal-dashboard__eyebrow,
+  .travel-portal-card__label {
+    margin: 0 0 0.8rem;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+
+  .travel-portal-dashboard__title,
+  .travel-portal-card__heading {
+    margin: 0;
+  }
+
+  .travel-portal-dashboard__meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 1.4rem;
+    opacity: 0.82;
+  }
+
+  .travel-portal-dashboard__badge {
+    min-width: 20rem;
+    padding: 1.4rem 1.6rem;
+    border-radius: 1.6rem;
+    background: rgba(var(--color-foreground), 0.05);
+  }
+
+  .travel-portal-dashboard__badge-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.72;
+  }
+
+  .travel-portal-dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.6rem;
+  }
+
+  .travel-portal-card {
+    grid-column: span 12;
+    padding: 1.8rem;
+    border-radius: 1.6rem;
+    background: rgb(var(--color-background));
+    border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  }
+
+  .travel-portal-card--hero {
+    background: rgba(var(--color-foreground), 0.04);
+  }
+
+  .travel-portal-card__copy,
+  .travel-portal-card__list {
+    font-size: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .travel-portal-dashboard__empty {
+    padding: 1.8rem;
+    border-radius: 1.6rem;
+    background: rgba(var(--color-foreground), 0.04);
+  }
+
+  .travel-portal-login-guard {
+    display: grid;
+    gap: 1rem;
+    max-width: 48rem;
+    padding: 2rem;
+    border-radius: 1.6rem;
+    background: rgba(var(--color-foreground), 0.04);
+  }
+
+  @media screen and (min-width: 750px) {
+    .travel-portal-card--hero {
+      grid-column: span 6;
+    }
+
+    .travel-portal-card {
+      grid-column: span 6;
+    }
+  }
 {%- endstyle -%}
 
 <div class="customer account section-{{ section.id }}-padding">
-  {%- liquid
-    assign portal_namespace = 'travel_portal'
-    assign trip_name = customer.metafields[portal_namespace].trip_name.value | default: blank
-    assign booking_number = customer.metafields[portal_namespace].booking_number.value | default: blank
-    assign trip_start_date = customer.metafields[portal_namespace].trip_start_date.value
-    assign trip_end_date = customer.metafields[portal_namespace].trip_end_date.value
-    assign credits_balance = customer.metafields[portal_namespace].credits_balance.value | default: 0
-    assign rewards_access = customer.metafields[portal_namespace].rewards_access.value
-    assign travefy_itinerary_link = customer.metafields[portal_namespace].travefy_itinerary_link.value | default: blank
-    assign now_timestamp = 'now' | date: '%s' | plus: 0
-    assign trip_start_timestamp = trip_start_date | date: '%s' | plus: 0
-    assign trip_end_timestamp = trip_end_date | date: '%s' | plus: 0
-    assign trip_has_started = false
-    assign trip_has_ended = false
-    assign rewards_enabled = false
-    assign active_credits_balance = credits_balance
-    assign countdown_days = blank
+  {% if customer %}
+    {%- liquid
+      assign portal_namespace = 'travel_portal'
+      assign portal_brand = customer.metafields[portal_namespace].brand.value | default: 'mrchocolate_travel'
+      assign portal_title = customer.metafields[portal_namespace].portal_title.value | default: blank
+      assign portal_status = customer.metafields[portal_namespace].portal_status.value | default: blank
+      assign trip_name = customer.metafields[portal_namespace].trip_name.value | default: blank
+      assign booking_number = customer.metafields[portal_namespace].booking_number.value | default: blank
+      assign trip_start_date = customer.metafields[portal_namespace].trip_start_date.value
+      assign trip_end_date = customer.metafields[portal_namespace].trip_end_date.value
+      assign next_important_date = customer.metafields[portal_namespace].next_important_date.value
+      assign advisor_name = customer.metafields[portal_namespace].advisor_name.value | default: blank
+      assign portal_summary = customer.metafields[portal_namespace].portal_summary.value | default: blank
+      assign ticket_summary = customer.metafields[portal_namespace].ticket_summary.value | default: blank
+      assign hotel_summary = customer.metafields[portal_namespace].hotel_summary.value | default: blank
+      assign important_dates = customer.metafields[portal_namespace].important_dates.value | default: blank
+      assign documents_links = customer.metafields[portal_namespace].documents_links.value | default: blank
+      assign advisor_notes = customer.metafields[portal_namespace].advisor_notes.value | default: blank
+      assign support_email = customer.metafields[portal_namespace].support_email.value | default: section.settings.default_support_email
+      assign support_phone = customer.metafields[portal_namespace].support_phone.value | default: section.settings.default_support_phone
+      assign portal_has_content = false
 
-    if trip_start_date != blank and trip_start_timestamp <= now_timestamp
-      assign trip_has_started = true
-    endif
+      if portal_title != blank or trip_name != blank or portal_summary != blank or ticket_summary != blank or hotel_summary != blank or important_dates != blank or documents_links != blank or advisor_notes != blank
+        assign portal_has_content = true
+      endif
+    -%}
 
-    if trip_end_date != blank and trip_end_timestamp < now_timestamp
-      assign trip_has_ended = true
-    endif
+    <div class="travel-portal-shell">
+      <div class="travel-portal-shell__topbar">
+        <div>
+          <h1 class="customer__title">Customer portal</h1>
+          <p>Only this logged-in customer can access the portal content shown on this page.</p>
+        </div>
+        <a href="{{ routes.account_logout_url }}">
+          <span class="svg-wrapper">
+            {{- 'icon-account.svg' | inline_asset_content -}}
+          </span>
+          {{ 'customer.log_out' | t }}
+        </a>
+      </div>
 
-    if trip_start_date != blank and trip_has_started == false
-      assign countdown_seconds = trip_start_timestamp | minus: now_timestamp
-      assign countdown_days = countdown_seconds | divided_by: 86400.0 | ceil
-    endif
+      {% render 'customer-travel-dashboard',
+        customer_email: customer.email,
+        portal_brand: portal_brand,
+        portal_title: portal_title,
+        portal_status: portal_status,
+        trip_name: trip_name,
+        booking_number: booking_number,
+        trip_start_date: trip_start_date,
+        trip_end_date: trip_end_date,
+        next_important_date: next_important_date,
+        advisor_name: advisor_name,
+        portal_summary: portal_summary,
+        ticket_summary: ticket_summary,
+        hotel_summary: hotel_summary,
+        important_dates: important_dates,
+        documents_links: documents_links,
+        advisor_notes: advisor_notes,
+        support_email: support_email,
+        support_phone: support_phone,
+        portal_has_content: portal_has_content
+      %}
 
-    if rewards_access and trip_has_ended == false
-      assign rewards_enabled = true
-    endif
+      {% if section.settings.show_orders %}
+        <div>
+          <h2>{{ 'customer.orders.title' | t }}</h2>
 
-    unless rewards_enabled
-      assign active_credits_balance = 0
-    endunless
-  -%}
+          {% paginate customer.orders by 20 %}
+            {%- if customer.orders.size > 0 -%}
+              <table role="table" class="order-history">
+                <caption class="visually-hidden">
+                  {{ 'customer.orders.title' | t }}
+                </caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th id="ColumnOrder" scope="col" role="columnheader">{{ 'customer.orders.order_number' | t }}</th>
+                    <th id="ColumnDate" scope="col" role="columnheader">{{ 'customer.orders.date' | t }}</th>
+                    <th id="ColumnPayment" scope="col" role="columnheader">{{ 'customer.orders.payment_status' | t }}</th>
+                    <th id="ColumnFulfillment" scope="col" role="columnheader">
+                      {{ 'customer.orders.fulfillment_status' | t }}
+                    </th>
+                    <th id="ColumnTotal" scope="col" role="columnheader">{{ 'customer.orders.total' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  {%- for order in customer.orders -%}
+                    <tr role="row">
+                      <td
+                        id="RowOrder"
+                        role="cell"
+                        headers="ColumnOrder"
+                        data-label="{{ 'customer.orders.order_number' | t }}"
+                      >
+                        <a
+                          href="{{ order.customer_url }}"
+                          aria-label="{{ 'customer.orders.order_number_link' | t: number: order.name }}"
+                        >
+                          {{ order.name }}
+                        </a>
+                      </td>
+                      <td headers="RowOrder ColumnDate" role="cell" data-label="{{ 'customer.orders.date' | t }}">
+                        {{ order.created_at | time_tag: format: 'date' }}
+                      </td>
+                      <td
+                        headers="RowOrder ColumnPayment"
+                        role="cell"
+                        data-label="{{ 'customer.orders.payment_status' | t }}"
+                      >
+                        {{ order.financial_status_label }}
+                      </td>
+                      <td
+                        headers="RowOrder ColumnFulfillment"
+                        role="cell"
+                        data-label="{{ 'customer.orders.fulfillment_status' | t }}"
+                      >
+                        {{ order.fulfillment_status_label }}
+                      </td>
+                      <td headers="RowOrder ColumnTotal" role="cell" data-label="{{ 'customer.orders.total' | t }}">
+                        {{ order.total_net_amount | money_with_currency }}
+                      </td>
+                    </tr>
+                  {%- endfor -%}
+                </tbody>
+              </table>
+            {%- else -%}
+              <p>{{ 'customer.orders.none' | t }}</p>
+            {%- endif -%}
 
-  <div>
-    <h1 class="customer__title">{{ 'customer.account.title' | t }}</h1>
-    <a href="{{ routes.account_logout_url }}">
-      <span class="svg-wrapper">
-        {{- 'icon-account.svg' | inline_asset_content -}}
-      </span>
-      {{ 'customer.log_out' | t }}
-    </a>
-  </div>
-
-  <div>
-    {% render 'customer-travel-dashboard',
-      customer_email: customer.email,
-      trip_name: trip_name,
-      booking_number: booking_number,
-      trip_start_date: trip_start_date,
-      trip_end_date: trip_end_date,
-      credits_balance: active_credits_balance,
-      countdown_days: countdown_days,
-      rewards_enabled: rewards_enabled,
-      trip_has_started: trip_has_started,
-      trip_has_ended: trip_has_ended,
-      travefy_itinerary_link: travefy_itinerary_link,
-      rewards_store_url: section.settings.rewards_store_url
-    %}
-
-    <div>
-      <h2>{{ 'customer.orders.title' | t }}</h2>
-
-      {% paginate customer.orders by 20 %}
-        {%- if customer.orders.size > 0 -%}
-          <table role="table" class="order-history">
-            <caption class="visually-hidden">
-              {{ 'customer.orders.title' | t }}
-            </caption>
-            <thead role="rowgroup">
-              <tr role="row">
-                <th id="ColumnOrder" scope="col" role="columnheader">{{ 'customer.orders.order_number' | t }}</th>
-                <th id="ColumnDate" scope="col" role="columnheader">{{ 'customer.orders.date' | t }}</th>
-                <th id="ColumnPayment" scope="col" role="columnheader">{{ 'customer.orders.payment_status' | t }}</th>
-                <th id="ColumnFulfillment" scope="col" role="columnheader">
-                  {{ 'customer.orders.fulfillment_status' | t }}
-                </th>
-                <th id="ColumnTotal" scope="col" role="columnheader">{{ 'customer.orders.total' | t }}</th>
-              </tr>
-            </thead>
-            <tbody role="rowgroup">
-              {%- for order in customer.orders -%}
-                <tr role="row">
-                  <td
-                    id="RowOrder"
-                    role="cell"
-                    headers="ColumnOrder"
-                    data-label="{{ 'customer.orders.order_number' | t }}"
-                  >
-                    <a
-                      href="{{ order.customer_url }}"
-                      aria-label="{{ 'customer.orders.order_number_link' | t: number: order.name }}"
-                    >
-                      {{ order.name }}
-                    </a>
-                  </td>
-                  <td headers="RowOrder ColumnDate" role="cell" data-label="{{ 'customer.orders.date' | t }}">
-                    {{ order.created_at | time_tag: format: 'date' }}
-                  </td>
-                  <td
-                    headers="RowOrder ColumnPayment"
-                    role="cell"
-                    data-label="{{ 'customer.orders.payment_status' | t }}"
-                  >
-                    {{ order.financial_status_label }}
-                  </td>
-                  <td
-                    headers="RowOrder ColumnFulfillment"
-                    role="cell"
-                    data-label="{{ 'customer.orders.fulfillment_status' | t }}"
-                  >
-                    {{ order.fulfillment_status_label }}
-                  </td>
-                  <td headers="RowOrder ColumnTotal" role="cell" data-label="{{ 'customer.orders.total' | t }}">
-                    {{ order.total_net_amount | money_with_currency }}
-                  </td>
-                </tr>
-              {%- endfor -%}
-            </tbody>
-          </table>
-        {%- else -%}
-          <p>{{ 'customer.orders.none' | t }}</p>
-        {%- endif -%}
-
-        {%- if paginate.pages > 1 -%}
-          {%- if paginate.parts.size > 0 -%}
-            <nav class="pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}">
-              <ul role="list">
-                {%- if paginate.previous -%}
-                  <li>
-                    <a href="{{ paginate.previous.url }}" aria-label="{{ 'general.pagination.previous' | t }}">
-                      <span class="svg-wrapper">
-                        {{- 'icon-caret.svg' | inline_asset_content -}}
-                      </span>
-                    </a>
-                  </li>
-                {%- endif -%}
-
-                {%- for part in paginate.parts -%}
-                  <li>
-                    {%- if part.is_link -%}
-                      <a href="{{ part.url }}" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">
-                        {{- part.title -}}
-                      </a>
-                    {%- else -%}
-                      {%- if part.title == paginate.current_page -%}
-                        <span aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">
-                          {{- part.title -}}
-                        </span>
-                      {%- else -%}
-                        <span>{{ part.title }}</span>
-                      {%- endif -%}
+            {%- if paginate.pages > 1 -%}
+              {%- if paginate.parts.size > 0 -%}
+                <nav class="pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}">
+                  <ul role="list">
+                    {%- if paginate.previous -%}
+                      <li>
+                        <a href="{{ paginate.previous.url }}" aria-label="{{ 'general.pagination.previous' | t }}">
+                          <span class="svg-wrapper">
+                            {{- 'icon-caret.svg' | inline_asset_content -}}
+                          </span>
+                        </a>
+                      </li>
                     {%- endif -%}
-                  </li>
-                {%- endfor -%}
 
-                {%- if paginate.next -%}
-                  <li>
-                    <a href="{{ paginate.next.url }}" aria-label="{{ 'general.pagination.next' | t }}">
-                      <span class="svg-wrapper">
-                        {{- 'icon-caret.svg' | inline_asset_content -}}
-                      </span>
-                    </a>
-                  </li>
-                {%- endif -%}
-              </ul>
-            </nav>
-          {%- endif -%}
-        {%- endif -%}
-      {% endpaginate %}
+                    {%- for part in paginate.parts -%}
+                      <li>
+                        {%- if part.is_link -%}
+                          <a href="{{ part.url }}" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">
+                            {{- part.title -}}
+                          </a>
+                        {%- else -%}
+                          {%- if part.title == paginate.current_page -%}
+                            <span aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">
+                              {{- part.title -}}
+                            </span>
+                          {%- else -%}
+                            <span>{{ part.title }}</span>
+                          {%- endif -%}
+                        {%- endif -%}
+                      </li>
+                    {%- endfor -%}
+
+                    {%- if paginate.next -%}
+                      <li>
+                        <a href="{{ paginate.next.url }}" aria-label="{{ 'general.pagination.next' | t }}">
+                          <span class="svg-wrapper">
+                            {{- 'icon-caret.svg' | inline_asset_content -}}
+                          </span>
+                        </a>
+                      </li>
+                    {%- endif -%}
+                  </ul>
+                </nav>
+              {%- endif -%}
+            {%- endif -%}
+          {% endpaginate %}
+        </div>
+      {% endif %}
+
+      {% if section.settings.show_account_details %}
+        <div>
+          <h2>{{ 'customer.account.details' | t }}</h2>
+
+          {{ customer.default_address | format_address }}
+
+          <a href="{{ routes.account_addresses_url }}">
+            {{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})
+          </a>
+        </div>
+      {% endif %}
     </div>
-
-    <div>
-      <h2>{{ 'customer.account.details' | t }}</h2>
-
-      {{ customer.default_address | format_address }}
-
-      <a href="{{ routes.account_addresses_url }}">
-        {{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})
-      </a>
+  {% else %}
+    <div class="travel-portal-login-guard">
+      <h1 class="customer__title">Customer portal</h1>
+      <p>This portal is only available to logged-in customers.</p>
+      <a class="button" href="{{ routes.account_login_url }}">Log in to continue</a>
     </div>
-  </div>
+  {% endif %}
 </div>
 
 {% schema %}
@@ -210,9 +336,26 @@
   "name": "t:sections.main-account.name",
   "settings": [
     {
-      "type": "url",
-      "id": "rewards_store_url",
-      "label": "Rewards store URL"
+      "type": "text",
+      "id": "default_support_email",
+      "label": "Default support email"
+    },
+    {
+      "type": "text",
+      "id": "default_support_phone",
+      "label": "Default support phone"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_orders",
+      "label": "Show Shopify orders",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account_details",
+      "label": "Show customer address details",
+      "default": true
     },
     {
       "type": "header",

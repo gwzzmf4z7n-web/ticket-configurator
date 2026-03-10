@@ -1,0 +1,25 @@
+{%- liquid
+  assign login_title = title | default: 'Members access required'
+  assign login_message = message | default: '<p>Please log in to access your portal.</p>'
+  assign login_label = button_label | default: 'Log in'
+  assign redirect_target = return_to | default: request.path | default: routes.root_url
+  assign encoded_redirect_target = redirect_target | url_encode
+  assign login_url = routes.root_url | append: 'customer_authentication/login?return_to=' | append: encoded_redirect_target
+-%}
+
+{% comment %}
+  Shared login gate for portal pages.
+  When the customer is authenticated, render the supplied protected content.
+  Otherwise, show a login prompt that returns them to the current page.
+{% endcomment %}
+{%- if customer -%}
+  {{ gated_content }}
+{%- else -%}
+  <div class="portal-login-gate" role="status">
+    <h2 class="portal-login-gate__title h2">{{ login_title }}</h2>
+    <div class="portal-login-gate__body rte">{{ login_message }}</div>
+    <div class="portal-login-gate__actions">
+      <a class="button" href="{{ login_url }}">{{ login_label }}</a>
+    </div>
+  </div>
+{%- endif -%}
