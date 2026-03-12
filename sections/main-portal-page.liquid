@@ -16,10 +16,10 @@
 
 {%- liquid
   assign current_handle = page.handle | default: ''
+  assign page_key = section.settings.portal_key | default: 'hub'
   assign return_to = page.url | default: request.path | default: routes.root_url
   assign heading_text = section.settings.heading | default: page.title
   assign intro_text = section.settings.intro
-  assign page_key = section.settings.portal_key
   assign trip_record = blank
   assign trip_title = blank
   assign trip_start_date = blank
@@ -27,19 +27,21 @@
   assign trip_overview = blank
   assign booking_status = blank
   assign upcoming_plans = blank
-  assign salesforce_placeholder = blank
   assign advisor_name = blank
   assign support_email = blank
-  assign days_until_trip = blank
-  assign trip_countdown_label = blank
-  assign now_timestamp = 'now' | date: '%s' | plus: 0
-  assign trip_is_live = false
-  assign credit_balance = 0
-  assign credit_balance_cents = 0
-  assign discount_percent = blank
+  assign salesforce_placeholder = blank
+
   assign secret_shop_collection = section.settings.secret_shop_collection
   assign secret_shop_products_limit = section.settings.secret_shop_products_limit
   assign secret_shop_has_products = false
+  assign credit_balance = 0
+  assign credit_balance_cents = 0
+  assign discount_percent = blank
+
+  assign dashboard_card_count = 0
+  assign next_step_count = 0
+  assign past_trip_count = 0
+  assign info_panel_count = 0
 
   if customer and customer.metafields.portal.credit_balance != blank and customer.metafields.portal.credit_balance.value != blank
     assign credit_balance = customer.metafields.portal.credit_balance.value | plus: 0
@@ -58,33 +60,27 @@
     assign trip_overview = trip_record.trip_overview.value
     assign booking_status = trip_record.booking_status.value
     assign upcoming_plans = trip_record.upcoming_plans.value
-    assign salesforce_placeholder = trip_record.salesforce_placeholder.value
     assign advisor_name = trip_record.advisor_name.value
     assign support_email = trip_record.support_email.value
+    assign salesforce_placeholder = trip_record.salesforce_placeholder.value
+  endif
 
-    if trip_start_date != blank
-      assign trip_start_timestamp = trip_start_date | date: '%s' | plus: 0
-      assign trip_end_timestamp = blank
+  for block in section.blocks
+    case block.type
+      when 'dashboard_card', 'portal_card'
+        assign dashboard_card_count = dashboard_card_count | plus: 1
+      when 'next_step'
+        assign next_step_count = next_step_count | plus: 1
+      when 'past_trip'
+        assign past_trip_count = past_trip_count | plus: 1
+      when 'info_panel'
+        assign info_panel_count = info_panel_count | plus: 1
+    endcase
+  endfor
 
-      if trip_end_date != blank
-        assign trip_end_timestamp = trip_end_date | date: '%s' | plus: 0
-        if trip_end_timestamp >= now_timestamp and trip_start_timestamp <= now_timestamp
-          assign trip_is_live = true
-        endif
-      endif
-
-      assign days_until_trip = trip_start_timestamp | minus: now_timestamp | divided_by: 86400
-
-      if days_until_trip > 0
-        assign trip_countdown_label = 'Days until departure'
-      elsif days_until_trip == 0
-        assign trip_countdown_label = 'Trip starts today'
-      elsif trip_end_timestamp != blank and trip_end_timestamp >= now_timestamp
-        assign trip_countdown_label = 'Trip in progress'
-      else
-        assign trip_countdown_label = 'Trip start date'
-      endif
-    endif
+  assign has_live_trip = false
+  if trip_record != blank or section.settings.show_demo_trip
+    assign has_live_trip = true
   endif
 
   if page_key == 'hub'
@@ -115,54 +111,348 @@
     endif
     echo '</header>'
 
+    comment
+      Hub view: placeholder-driven dashboard for phase 1.
+      Real trip data can later replace these settings via metafields or metaobjects.
+    endcomment
+    if page_key == 'hub'
+      echo '<div class="portal-dashboard">'
+
+      echo '<section class="portal-section portal-section--feature">'
+      echo '<div class="portal-section__header">'
+      echo '<div>'
+      echo '<p class="portal-section__eyebrow">Portal overview</p>'
+      echo '<h2 class="portal-section__title h2">Your client hub</h2>'
+      echo '</div>'
+      echo '<p class="portal-section__copy">This first phase is theme-powered only. The layout is ready for future metafields, metaobjects, and API integrations without changing the customer access flow.</p>'
+      echo '</div>'
+
+      if has_live_trip
+        assign overview_kicker = section.settings.demo_trip_kicker
+        assign overview_title = section.settings.demo_trip_title
+        assign overview_dates = section.settings.demo_trip_dates
+        assign overview_status = section.settings.demo_trip_status
+        assign overview_summary = section.settings.demo_trip_summary
+        assign overview_button_label = section.settings.demo_trip_button_label
+        assign overview_button_link = section.settings.demo_trip_button_link
+
+        if trip_record != blank
+          assign overview_kicker = 'Upcoming trip'
+          assign overview_title = trip_title | default: section.settings.demo_trip_title
+          assign overview_status = booking_status | default: section.settings.demo_trip_status
+          assign overview_summary = trip_overview | default: section.settings.demo_trip_summary
+          assign overview_button_label = 'Open trip details'
+          assign overview_button_link = pages['your-trip'].url | default: '/pages/your-trip'
+          capture overview_dates
+            if trip_start_date != blank
+              echo trip_start_date | date: '%B %-d, %Y'
+              if trip_end_date != blank
+                echo ' to '
+                echo trip_end_date | date: '%B %-d, %Y'
+              endif
+            endif
+          endcapture
+        endif
+
+        echo '<article class="portal-feature-card">'
+        echo '<div class="portal-feature-card__media">'
+        echo '<div class="portal-feature-card__orbit"></div>'
+        echo '<p class="portal-feature-card__eyebrow">'
+        echo overview_kicker | escape
+        echo '</p>'
+        echo '<h3 class="portal-feature-card__title h2">'
+        echo overview_title | escape
+        echo '</h3>'
+        if overview_summary != blank
+          echo '<div class="portal-feature-card__copy rte">'
+          echo overview_summary
+          echo '</div>'
+        endif
+        echo '</div>'
+        echo '<div class="portal-feature-card__details">'
+        echo '<div class="portal-pill-group">'
+        if overview_dates != blank
+          echo '<span class="portal-pill">'
+          echo overview_dates
+          echo '</span>'
+        endif
+        if overview_status != blank
+          echo '<span class="portal-pill portal-pill--accent">'
+          echo overview_status | escape
+          echo '</span>'
+        endif
+        if advisor_name != blank
+          echo '<span class="portal-pill">Advisor: '
+          echo advisor_name | escape
+          echo '</span>'
+        endif
+        echo '</div>'
+        echo '<div class="portal-feature-card__list">'
+        echo '<p>Trip details, tickets, forms, and payment checkpoints can all slot into this dashboard structure later.</p>'
+        if support_email != blank
+          echo '<p>Support contact: <a href="mailto:'
+          echo support_email | escape
+          echo '">'
+          echo support_email | escape
+          echo '</a></p>'
+        else
+          echo '<p>Use the cards below as phase-1 placeholders until live data is connected.</p>'
+        endif
+        echo '</div>'
+        if overview_button_link != blank and overview_button_label != blank
+          echo '<div class="portal-feature-card__actions"><a class="button" href="'
+          echo overview_button_link
+          echo '">'
+          echo overview_button_label | escape
+          echo '</a></div>'
+        endif
+        echo '</div>'
+        echo '</article>'
+      else
+        echo '<article class="portal-empty-state" role="status">'
+        echo '<div class="portal-empty-state__content">'
+        echo '<p class="portal-empty-state__eyebrow">No active trip yet</p>'
+        echo '<h3 class="portal-empty-state__title h2">'
+        echo section.settings.empty_state_heading | escape
+        echo '</h3>'
+        echo '<div class="portal-empty-state__copy rte">'
+        echo section.settings.empty_state_body
+        echo '</div>'
+        echo '</div>'
+        echo '<div class="portal-empty-state__actions">'
+        if section.settings.empty_primary_label != blank and section.settings.empty_primary_link != blank
+          echo '<a class="button" href="'
+          echo section.settings.empty_primary_link
+          echo '">'
+          echo section.settings.empty_primary_label | escape
+          echo '</a>'
+        endif
+        if section.settings.empty_secondary_label != blank and section.settings.empty_secondary_link != blank
+          echo '<a class="button button--secondary" href="'
+          echo section.settings.empty_secondary_link
+          echo '">'
+          echo section.settings.empty_secondary_label | escape
+          echo '</a>'
+        endif
+        if section.settings.empty_tertiary_label != blank and section.settings.empty_tertiary_link != blank
+          echo '<a class="portal-text-link" href="'
+          echo section.settings.empty_tertiary_link
+          echo '">'
+          echo section.settings.empty_tertiary_label | escape
+          echo '</a>'
+        endif
+        echo '</div>'
+        echo '</article>'
+      endif
+      echo '</section>'
+
+      if dashboard_card_count > 0
+        echo '<section class="portal-section">'
+        echo '<div class="portal-section__header">'
+        echo '<div>'
+        echo '<p class="portal-section__eyebrow">Quick access</p>'
+        echo '<h2 class="portal-section__title h2">'
+        echo section.settings.dashboard_heading
+        echo '</h2>'
+        echo '</div>'
+        echo '<p class="portal-section__copy">Keep the first release simple: card-based navigation now, real customer-specific content later.</p>'
+        echo '</div>'
+        echo '<div class="portal-dashboard-grid">'
+        for block in section.blocks
+          unless block.type == 'dashboard_card' or block.type == 'portal_card'
+            continue
+          endunless
+
+          assign card_eyebrow = block.settings.eyebrow | default: 'Portal area'
+          assign card_title = block.settings.title
+          assign card_description = block.settings.description
+          assign card_status = block.settings.status
+          assign card_link = block.settings.link
+          assign card_link_label = block.settings.link_label | default: 'Open'
+
+          echo '<article class="portal-dashboard-card" '
+          echo block.shopify_attributes
+          echo '>'
+          echo '<div class="portal-dashboard-card__top">'
+          echo '<p class="portal-dashboard-card__eyebrow">'
+          echo card_eyebrow | escape
+          echo '</p>'
+          if card_status != blank
+            echo '<span class="portal-dashboard-card__status">'
+            echo card_status | escape
+            echo '</span>'
+          endif
+          echo '</div>'
+          echo '<h3 class="portal-dashboard-card__title h4">'
+          echo card_title | escape
+          echo '</h3>'
+          if card_description != blank
+            echo '<div class="portal-dashboard-card__copy rte">'
+            echo card_description
+            echo '</div>'
+          endif
+          if card_link != blank
+            echo '<div class="portal-dashboard-card__actions"><a class="button button--secondary" href="'
+            echo card_link
+            echo '">'
+            echo card_link_label | escape
+            echo '</a></div>'
+          endif
+          echo '</article>'
+        endfor
+        echo '</div>'
+        echo '</section>'
+      endif
+
+      if next_step_count > 0
+        echo '<section class="portal-section">'
+        echo '<div class="portal-section__header">'
+        echo '<div>'
+        echo '<p class="portal-section__eyebrow">Action list</p>'
+        echo '<h2 class="portal-section__title h2">'
+        echo section.settings.next_steps_heading
+        echo '</h2>'
+        echo '</div>'
+        if section.settings.next_steps_intro != blank
+          echo '<div class="portal-section__copy rte">'
+          echo section.settings.next_steps_intro
+          echo '</div>'
+        endif
+        echo '</div>'
+        echo '<div class="portal-step-list">'
+        assign next_step_index = 0
+        for block in section.blocks
+          unless block.type == 'next_step'
+            continue
+          endunless
+
+          assign next_step_index = next_step_index | plus: 1
+
+          echo '<article class="portal-step" '
+          echo block.shopify_attributes
+          echo '>'
+          echo '<div class="portal-step__number">'
+          if next_step_index < 10
+            echo '0'
+          endif
+          echo next_step_index
+          echo '</div>'
+          echo '<div class="portal-step__content">'
+          echo '<h3 class="portal-step__title h4">'
+          echo block.settings.title | escape
+          echo '</h3>'
+          if block.settings.description != blank
+            echo '<div class="portal-step__copy rte">'
+            echo block.settings.description
+            echo '</div>'
+          endif
+          echo '</div>'
+          if block.settings.link != blank
+            echo '<div class="portal-step__actions"><a class="portal-text-link" href="'
+            echo block.settings.link
+            echo '">'
+            echo block.settings.link_label | default: 'Open' | escape
+            echo '</a></div>'
+          endif
+          echo '</article>'
+        endfor
+        echo '</div>'
+        echo '</section>'
+      endif
+
+      echo '<section class="portal-section">'
+      echo '<div class="portal-section__header">'
+      echo '<div>'
+      echo '<p class="portal-section__eyebrow">Archive</p>'
+      echo '<h2 class="portal-section__title h2">'
+      echo section.settings.past_trips_heading
+      echo '</h2>'
+      echo '</div>'
+      if section.settings.past_trips_intro != blank
+        echo '<div class="portal-section__copy rte">'
+        echo section.settings.past_trips_intro
+        echo '</div>'
+      endif
+      echo '</div>'
+
+      if past_trip_count > 0
+        echo '<div class="portal-past-trips">'
+        for block in section.blocks
+          unless block.type == 'past_trip'
+            continue
+          endunless
+
+          echo '<article class="portal-past-trip" '
+          echo block.shopify_attributes
+          echo '>'
+          echo '<p class="portal-past-trip__dates">'
+          echo block.settings.dates | escape
+          echo '</p>'
+          echo '<h3 class="portal-past-trip__title h4">'
+          echo block.settings.title | escape
+          echo '</h3>'
+          if block.settings.description != blank
+            echo '<div class="portal-past-trip__copy rte">'
+            echo block.settings.description
+            echo '</div>'
+          endif
+          if block.settings.link != blank
+            echo '<a class="portal-text-link" href="'
+            echo block.settings.link
+            echo '">'
+            echo block.settings.link_label | default: 'View details' | escape
+            echo '</a>'
+          endif
+          echo '</article>'
+        endfor
+        echo '</div>'
+      else
+        echo '<div class="portal-note rte"><p>Past trips will appear here once you add them as section blocks or connect customer trip data later.</p></div>'
+      endif
+      echo '</section>'
+
+      if section.settings.cta_heading != blank or section.settings.cta_button_label != blank
+        echo '<section class="portal-cta">'
+        echo '<div>'
+        if section.settings.cta_heading != blank
+          echo '<p class="portal-cta__eyebrow">Next adventure</p>'
+          echo '<h2 class="portal-cta__title h2">'
+          echo section.settings.cta_heading | escape
+          echo '</h2>'
+        endif
+        if section.settings.cta_body != blank
+          echo '<div class="portal-cta__copy rte">'
+          echo section.settings.cta_body
+          echo '</div>'
+        endif
+        echo '</div>'
+        if section.settings.cta_button_label != blank and section.settings.cta_button_link != blank
+          echo '<div class="portal-cta__actions"><a class="button" href="'
+          echo section.settings.cta_button_link
+          echo '">'
+          echo section.settings.cta_button_label | escape
+          echo '</a></div>'
+        endif
+        echo '</section>'
+      endif
+
+      echo '</div>'
+    endif
+
     if page_key == 'trip'
       if trip_record != blank
         echo '<div class="portal-grid portal-grid--stats">'
 
         echo '<article class="portal-stat">'
-        echo '<p class="portal-stat__label">'
-        if trip_countdown_label != blank
-          echo trip_countdown_label
-        else
-          echo 'Trip countdown'
-        endif
-        echo '</p>'
-        echo '<p class="portal-stat__value">'
-        if trip_start_date == blank
-          echo 'TBC'
-        elsif days_until_trip > 0
-          echo days_until_trip
-        elsif days_until_trip == 0
-          echo 'Today'
-        elsif trip_is_live
-          echo 'Live'
-        else
-          echo trip_start_date | date: '%b %-d'
-        endif
+        echo '<p class="portal-stat__label">Trip title</p>'
+        echo '<p class="portal-stat__value h2">'
+        echo trip_title | default: 'Your trip' | escape
         echo '</p>'
         echo '<p class="portal-stat__meta">'
         if trip_start_date != blank
           echo trip_start_date | date: '%B %-d, %Y'
         else
-          echo 'Add a trip start date to show the countdown.'
-        endif
-        echo '</p>'
-        echo '</article>'
-
-        echo '<article class="portal-stat">'
-        echo '<p class="portal-stat__label">Trip title</p>'
-        echo '<p class="portal-stat__value h2">'
-        if trip_title != blank
-          echo trip_title | escape
-        else
-          echo 'Your trip'
-        endif
-        echo '</p>'
-        echo '<p class="portal-stat__meta">'
-        if advisor_name != blank
-          echo 'Managed by ' | append: advisor_name | escape
-        else
-          echo 'Assign an advisor name when ready.'
+          echo 'Add trip dates when ready.'
         endif
         echo '</p>'
         echo '</article>'
@@ -170,23 +460,98 @@
         echo '<article class="portal-stat">'
         echo '<p class="portal-stat__label">Booking status</p>'
         echo '<p class="portal-stat__value h2">'
-        if booking_status != blank
-          echo booking_status | escape
-        else
-          echo 'Pending'
-        endif
+        echo booking_status | default: 'Pending' | escape
         echo '</p>'
         echo '<p class="portal-stat__meta">'
-        if trip_end_date != blank
-          echo 'Returns '
-          echo trip_end_date | date: '%B %-d, %Y'
+        if advisor_name != blank
+          echo 'Managed by '
+          echo advisor_name | escape
         else
-          echo 'Add an end date for a full trip window.'
+          echo 'Assign an advisor later.'
         endif
         echo '</p>'
         echo '</article>'
 
+        echo '<article class="portal-stat">'
+        echo '<p class="portal-stat__label">Support</p>'
+        echo '<p class="portal-stat__value h5">'
+        if support_email != blank
+          echo '<a href="mailto:'
+          echo support_email | escape
+          echo '">'
+          echo support_email | escape
+          echo '</a>'
+        else
+          echo 'Contact to be added'
+        endif
+        echo '</p>'
+        echo '<p class="portal-stat__meta">Reserved for future synced trip data.</p>'
+        echo '</article>'
+
         echo '</div>'
+      endif
+
+      if info_panel_count > 0
+        echo '<div class="portal-grid portal-grid--panels">'
+        for block in section.blocks
+          unless block.type == 'info_panel'
+            continue
+          endunless
+
+          assign panel_classes = 'portal-panel'
+          if block.settings.width == 'full'
+            assign panel_classes = panel_classes | append: ' portal-panel--full'
+          endif
+
+          assign panel_body = block.settings.body
+
+          if trip_record != blank
+            case block.settings.title
+              when 'Trip Overview'
+                assign panel_body = trip_overview | default: block.settings.body
+              when 'Booking Status'
+                capture panel_body
+                  echo '<p>'
+                  echo booking_status | default: 'No booking status has been added yet.' | escape
+                  echo '</p>'
+                  if trip_start_date != blank
+                    echo '<p>Departure: '
+                    echo trip_start_date | date: '%B %-d, %Y'
+                    echo '</p>'
+                  endif
+                  if trip_end_date != blank
+                    echo '<p>Return: '
+                    echo trip_end_date | date: '%B %-d, %Y'
+                    echo '</p>'
+                  endif
+                endcapture
+              when 'Upcoming Plans'
+                assign panel_body = upcoming_plans | default: block.settings.body
+              when 'Future Salesforce / Itinerary Integration'
+                assign panel_body = salesforce_placeholder | default: block.settings.body
+            endcase
+          endif
+
+          echo '<article class="'
+          echo panel_classes
+          echo '" '
+          echo block.shopify_attributes
+          echo '>'
+          echo '<h2 class="portal-panel__title h3">'
+          echo block.settings.title | escape
+          echo '</h2>'
+          if panel_body != blank
+            echo '<div class="portal-panel__body rte">'
+            echo panel_body
+            echo '</div>'
+          endif
+          echo '</article>'
+        endfor
+        echo '</div>'
+      endif
+
+      if trip_record == blank
+        echo '<div class="portal-note rte"><p>No trip record is assigned to this customer yet.</p><p>Add a future metafield or metaobject later and this page can populate without changing the template.</p></div>'
       endif
     endif
 
@@ -200,8 +565,7 @@
       echo '</p>'
       echo '<p class="portal-stat__meta">'
       echo credit_balance_cents | money_without_trailing_zeros
-      echo ' equivalent'
-      echo '</p>'
+      echo ' equivalent</p>'
       echo '</article>'
 
       echo '<article class="portal-stat">'
@@ -214,20 +578,12 @@
         echo 'TBC'
       endif
       echo '</p>'
-      echo '<p class="portal-stat__meta">'
-      if discount_percent != blank
-        echo 'This is the current synced rate intended for future checkout discount logic.'
-      else
-        echo 'Add customer metafield portal.discount_percent when the Salesforce sync is ready.'
-      endif
-      echo '</p>'
+      echo '<p class="portal-stat__meta">Reserved for future synced discount logic.</p>'
       echo '</article>'
 
       echo '<article class="portal-stat">'
       echo '<p class="portal-stat__label">Credit conversion</p>'
-      echo '<p class="portal-stat__value">'
-      echo '10'
-      echo '</p>'
+      echo '<p class="portal-stat__value">10</p>'
       echo '<p class="portal-stat__meta">1 credit = '
       echo 10 | money_without_trailing_zeros
       echo ' in reward value.</p>'
@@ -239,18 +595,14 @@
         assign secret_shop_has_products = true
         echo '<div class="portal-shop">'
         echo '<div class="portal-shop__header">'
-        echo '<div><p class="portal-hero__eyebrow">'
+        echo '<div><p class="portal-section__eyebrow">'
         echo section.settings.secret_shop_collection_label
         echo '</p>'
         echo '<h2 class="h2">'
         echo secret_shop_collection.title | escape
         echo '</h2></div>'
         echo '<div class="portal-shop__meta rte">'
-        if section.settings.secret_shop_helper_text != blank
-          echo section.settings.secret_shop_helper_text
-        else
-          echo '<p>Attach products to your chosen Secret Shop collection and set <code>product.metafields.portal.credit_cost</code> on each item.</p>'
-        endif
+        echo section.settings.secret_shop_helper_text
         echo '</div>'
         echo '</div>'
 
@@ -280,7 +632,6 @@
             echo '<div class="portal-shop-card__placeholder">No image</div>'
           endif
           echo '</a>'
-
           echo '<div class="portal-shop-card__content">'
           echo '<p class="portal-shop-card__eyebrow">'
           if product.available
@@ -294,13 +645,11 @@
           echo '">'
           echo product.title | escape
           echo '</a></h3>'
-
           if product.description != blank
             echo '<div class="portal-shop-card__description rte">'
             echo product.description | strip_html | truncatewords: 22
             echo '</div>'
           endif
-
           echo '<div class="portal-shop-card__pricing">'
           echo '<p class="portal-shop-card__credits">'
           if credit_cost > 0
@@ -318,7 +667,6 @@
           endif
           echo '</p>'
           echo '</div>'
-
           echo '<div class="portal-shop-card__footer">'
           if credit_cost > 0 and credit_balance >= credit_cost
             echo '<span class="portal-shop-card__status portal-shop-card__status--available">Enough credits available</span>'
@@ -337,142 +685,10 @@
         echo '</div>'
         echo '</div>'
       endif
-    endif
 
-    if page_key == 'hub'
-      assign has_cards = false
-      for block in section.blocks
-        if block.type == 'portal_card'
-          assign has_cards = true
-          break
-        endif
-      endfor
-
-      if has_cards
-        echo '<div class="portal-grid portal-grid--cards">'
-        for block in section.blocks
-          if block.type != 'portal_card'
-            continue
-          endif
-
-          echo '<article class="portal-card" '
-          echo block.shopify_attributes
-          echo '>'
-          echo '<h2 class="portal-card__title h3">'
-          echo block.settings.title | escape
-          echo '</h2>'
-          if block.settings.description != blank
-            echo '<div class="portal-card__description rte">'
-            echo block.settings.description
-            echo '</div>'
-          endif
-          if block.settings.link != blank
-            echo '<div class="portal-card__actions"><a class="button" href="'
-            echo block.settings.link
-            echo '">'
-            echo block.settings.link_label | escape
-            echo '</a></div>'
-          endif
-          echo '</article>'
-        endfor
-        echo '</div>'
+      if secret_shop_has_products == false
+        echo '<div class="portal-note rte"><p>No Secret Shop collection is selected yet.</p><p>Choose a collection in the theme editor when you are ready to populate this member area.</p></div>'
       endif
-    endif
-
-    assign has_panels = false
-    for block in section.blocks
-      if block.type == 'info_panel'
-        assign has_panels = true
-        break
-      endif
-    endfor
-
-    if has_panels
-      echo '<div class="portal-grid portal-grid--panels">'
-      for block in section.blocks
-        if block.type != 'info_panel'
-          continue
-        endif
-
-        assign panel_classes = 'portal-panel'
-        if block.settings.width == 'full'
-          assign panel_classes = panel_classes | append: ' portal-panel--full'
-        endif
-        assign panel_title = block.settings.title
-        assign panel_body = block.settings.body
-
-        if page_key == 'trip' and trip_record != blank
-          case block.settings.title
-            when 'Trip Overview'
-              if trip_overview != blank
-                assign panel_body = trip_overview | newline_to_br
-              endif
-            when 'Booking Status'
-              capture panel_body
-                echo '<p>'
-                if booking_status != blank
-                  echo booking_status | escape
-                else
-                  echo 'No booking status has been added yet.'
-                endif
-                echo '</p>'
-                if trip_start_date != blank
-                  echo '<p>Departure: '
-                  echo trip_start_date | date: '%B %-d, %Y'
-                  echo '</p>'
-                endif
-                if trip_end_date != blank
-                  echo '<p>Return: '
-                  echo trip_end_date | date: '%B %-d, %Y'
-                  echo '</p>'
-                endif
-              endcapture
-            when 'Upcoming Plans'
-              if upcoming_plans != blank
-                assign panel_body = upcoming_plans | newline_to_br
-              endif
-            when 'Future Salesforce / Itinerary Integration'
-              capture panel_body
-                if salesforce_placeholder != blank
-                  echo salesforce_placeholder | newline_to_br
-                else
-                  echo '<p>This reserved panel is ready for future Salesforce-connected trip data, itinerary feeds, documents, or support notes.</p>'
-                endif
-                if support_email != blank
-                  echo '<p>Current support contact: <a href="mailto:'
-                  echo support_email
-                  echo '">'
-                  echo support_email
-                  echo '</a></p>'
-                endif
-              endcapture
-          endcase
-        endif
-
-        echo '<article class="'
-        echo panel_classes
-        echo '" '
-        echo block.shopify_attributes
-        echo '>'
-        echo '<h2 class="portal-panel__title h3">'
-        echo panel_title | escape
-        echo '</h2>'
-        if panel_body != blank
-          echo '<div class="portal-panel__body rte">'
-          echo panel_body
-          echo '</div>'
-        endif
-        echo '</article>'
-      endfor
-      echo '</div>'
-    endif
-
-    if page_key == 'trip' and trip_record == blank
-      echo '<div class="portal-note rte"><p>No trip record is assigned to this customer yet.</p><p>Once you attach a <strong>Trip Record</strong> to <code>portal.trip_record</code>, this page will populate automatically.</p></div>'
-    endif
-
-    if page_key == 'shop' and secret_shop_has_products == false
-      echo '<div class="portal-note rte"><p>No Secret Shop collection is selected yet.</p><p>Choose a collection in the page template settings, then add a <code>portal.credit_cost</code> product metafield to each reward item.</p></div>'
     endif
 
     if section.settings.show_page_content and page.content != blank
@@ -533,7 +749,7 @@
       "type": "inline_richtext",
       "id": "eyebrow",
       "label": "Eyebrow",
-      "default": "Private customer portal"
+      "default": "Private client portal"
     },
     {
       "type": "inline_richtext",
@@ -545,19 +761,176 @@
       "type": "richtext",
       "id": "intro",
       "label": "Intro text",
-      "default": "<p>Use this private area to access your trip information and member-only experiences.</p>"
+      "default": "<p>Your private MrChocolate dashboard gives logged-in customers one premium place to access upcoming trips, tickets, planning tools, and future client services.</p>"
     },
     {
       "type": "richtext",
       "id": "member_note",
       "label": "Member note",
-      "default": "<p>This section is theme-powered today and ready for future Shopify metafield, metaobject, or external integration work.</p>"
+      "default": "<p>Phase 1 is intentionally front-end only. This structure is ready for future customer metafields, metaobjects, and third-party integrations without rebuilding the layout.</p>"
     },
     {
       "type": "checkbox",
       "id": "show_page_content",
       "label": "Show page body content below portal modules",
       "default": false
+    },
+    {
+      "type": "header",
+      "content": "Hub content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "dashboard_heading",
+      "label": "Dashboard cards heading",
+      "default": "Your dashboard"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "next_steps_heading",
+      "label": "Next steps heading",
+      "default": "Next steps"
+    },
+    {
+      "type": "richtext",
+      "id": "next_steps_intro",
+      "label": "Next steps intro",
+      "default": "<p>Use this area for the most important actions you want a client to take next.</p>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "past_trips_heading",
+      "label": "Past trips heading",
+      "default": "Past Trips"
+    },
+    {
+      "type": "richtext",
+      "id": "past_trips_intro",
+      "label": "Past trips intro",
+      "default": "<p>Keep previous journeys visible here as a lightweight travel history area.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_demo_trip",
+      "label": "Show demo upcoming trip card",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "demo_trip_kicker",
+      "label": "Demo trip label",
+      "default": "Upcoming trip"
+    },
+    {
+      "type": "text",
+      "id": "demo_trip_title",
+      "label": "Demo trip title",
+      "default": "Your next adventure is taking shape"
+    },
+    {
+      "type": "text",
+      "id": "demo_trip_dates",
+      "label": "Demo trip dates",
+      "default": "September 18 to September 25"
+    },
+    {
+      "type": "text",
+      "id": "demo_trip_status",
+      "label": "Demo trip status",
+      "default": "Planning in progress"
+    },
+    {
+      "type": "richtext",
+      "id": "demo_trip_summary",
+      "label": "Demo trip summary",
+      "default": "<p>Use this hero card for a trip snapshot, booking summary, or top-line itinerary message once live data is connected.</p>"
+    },
+    {
+      "type": "text",
+      "id": "demo_trip_button_label",
+      "label": "Demo trip button label",
+      "default": "View placeholder trip"
+    },
+    {
+      "type": "url",
+      "id": "demo_trip_button_link",
+      "label": "Demo trip button link"
+    },
+    {
+      "type": "text",
+      "id": "empty_state_heading",
+      "label": "Empty state heading",
+      "default": "We can't see an active trip on your account yet"
+    },
+    {
+      "type": "richtext",
+      "id": "empty_state_body",
+      "label": "Empty state body",
+      "default": "<p>Your portal is ready, but there is no live trip data connected yet. You can still start planning, browse tickets, or explore guides while phase 1 is running on placeholder content.</p>"
+    },
+    {
+      "type": "text",
+      "id": "empty_primary_label",
+      "label": "Empty state primary button label",
+      "default": "Start planning a trip"
+    },
+    {
+      "type": "url",
+      "id": "empty_primary_link",
+      "label": "Empty state primary button link"
+    },
+    {
+      "type": "text",
+      "id": "empty_secondary_label",
+      "label": "Empty state secondary button label",
+      "default": "Browse Magical Tickets"
+    },
+    {
+      "type": "url",
+      "id": "empty_secondary_link",
+      "label": "Empty state secondary button link"
+    },
+    {
+      "type": "text",
+      "id": "empty_tertiary_label",
+      "label": "Empty state text link label",
+      "default": "View planning guides"
+    },
+    {
+      "type": "url",
+      "id": "empty_tertiary_link",
+      "label": "Empty state text link"
+    },
+    {
+      "type": "header",
+      "content": "Bottom CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_heading",
+      "label": "CTA heading",
+      "default": "Plan Your Next Adventure"
+    },
+    {
+      "type": "richtext",
+      "id": "cta_body",
+      "label": "CTA body",
+      "default": "<p>Keep one strong call to action at the bottom of the hub so clients always know the next commercial path.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_button_label",
+      "label": "CTA button label",
+      "default": "Plan Your Next Adventure"
+    },
+    {
+      "type": "url",
+      "id": "cta_button_link",
+      "label": "CTA button link"
+    },
+    {
+      "type": "header",
+      "content": "Logged out state"
     },
     {
       "type": "inline_richtext",
@@ -602,7 +975,7 @@
       "type": "richtext",
       "id": "secret_shop_helper_text",
       "label": "Secret Shop helper text",
-      "default": "<p>This page displays products from one curated collection. Product credit pricing is read from the portal credit cost product metafield.</p>"
+      "default": "<p>This page displays products from one curated collection. Product credit pricing can later come from metafields or synced external data.</p>"
     },
     {
       "type": "range",
@@ -625,7 +998,7 @@
       "step": 4,
       "unit": "px",
       "label": "Top padding",
-      "default": 36
+      "default": 48
     },
     {
       "type": "range",
@@ -635,13 +1008,118 @@
       "step": 4,
       "unit": "px",
       "label": "Bottom padding",
-      "default": 36
+      "default": 48
     }
   ],
   "blocks": [
     {
+      "type": "dashboard_card",
+      "name": "Dashboard card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "default": "Portal area"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Upcoming Trip"
+        },
+        {
+          "type": "text",
+          "id": "status",
+          "label": "Status",
+          "default": "Placeholder"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Add a short description for this client-hub card.</p>"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Button label",
+          "default": "Open"
+        }
+      ]
+    },
+    {
+      "type": "next_step",
+      "name": "Next step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Complete pre-travel form"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Add short helper text for this next step.</p>"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Link label",
+          "default": "Open"
+        }
+      ]
+    },
+    {
+      "type": "past_trip",
+      "name": "Past trip",
+      "settings": [
+        {
+          "type": "text",
+          "id": "dates",
+          "label": "Dates",
+          "default": "June 2025"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Past trip title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Use this area for a previous destination, trip type, or short recap.</p>"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Link label",
+          "default": "View details"
+        }
+      ]
+    },
+    {
       "type": "portal_card",
-      "name": "Portal card",
+      "name": "Legacy portal card",
       "settings": [
         {
           "type": "text",

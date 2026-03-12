@@ -3,38 +3,177 @@
     "main": {
       "type": "main-portal-page",
       "blocks": {
-        "trip_card": {
-          "type": "portal_card",
+        "upcoming_trip": {
+          "type": "dashboard_card",
           "settings": {
-            "title": "Your Trip",
-            "description": "<p>Open your private travel dashboard for booking status, itinerary placeholders, and future personalised updates.</p>",
+            "eyebrow": "Trip",
+            "title": "Upcoming Trip",
+            "status": "Phase 1 placeholder",
+            "description": "<p>Use this card for a future trip summary, itinerary snapshot, or quick travel overview.</p>",
             "link": "/pages/your-trip",
-            "link_label": "View your trip"
+            "link_label": "View trip"
           }
         },
-        "shop_card": {
-          "type": "portal_card",
+        "tickets": {
+          "type": "dashboard_card",
           "settings": {
+            "eyebrow": "Access",
+            "title": "My Tickets",
+            "status": "Placeholder",
+            "description": "<p>Reserve this area for ticket confirmations, delivery notes, or park access details once connected.</p>",
+            "link": "/pages/your-trip",
+            "link_label": "Check tickets"
+          }
+        },
+        "forms": {
+          "type": "dashboard_card",
+          "settings": {
+            "eyebrow": "Admin",
+            "title": "Forms",
+            "status": "Placeholder",
+            "description": "<p>Use this card later for pre-travel forms, client questionnaires, waivers, or onboarding steps.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Open forms"
+          }
+        },
+        "payments": {
+          "type": "dashboard_card",
+          "settings": {
+            "eyebrow": "Finance",
+            "title": "Payments",
+            "status": "Placeholder",
+            "description": "<p>Future payment schedules, deposits, reminders, and invoice links can sit here without changing the dashboard layout.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Review payments"
+          }
+        },
+        "secret_shop": {
+          "type": "dashboard_card",
+          "settings": {
+            "eyebrow": "Members",
             "title": "Secret Shop",
-            "description": "<p>Visit your exclusive member area for private rewards, curated offers, and future loyalty experiences.</p>",
+            "status": "Private area",
+            "description": "<p>Link clients into an exclusive members-only shopping experience, rewards area, or curated offers page.</p>",
             "link": "/pages/secret-shop",
-            "link_label": "Enter secret shop"
+            "link_label": "Enter Secret Shop"
+          }
+        },
+        "guides": {
+          "type": "dashboard_card",
+          "settings": {
+            "eyebrow": "Planning",
+            "title": "Guides / Planning Tools",
+            "status": "Ready for content",
+            "description": "<p>Point customers to planning guides, prep resources, destination tips, and future travel tools from here.</p>",
+            "link": "/pages/storybook-itineraries",
+            "link_label": "View guides"
+          }
+        },
+        "step_form": {
+          "type": "next_step",
+          "settings": {
+            "title": "Complete pre-travel form",
+            "description": "<p>Placeholder task for intake forms, preferences, dietary details, or special requests.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Complete form"
+          }
+        },
+        "step_itinerary": {
+          "type": "next_step",
+          "settings": {
+            "title": "Review itinerary",
+            "description": "<p>Use this to guide clients toward their itinerary page, trip summary, or planning notes later.</p>",
+            "link": "/pages/your-trip",
+            "link_label": "Review itinerary"
+          }
+        },
+        "step_tickets": {
+          "type": "next_step",
+          "settings": {
+            "title": "Check tickets",
+            "description": "<p>Reserve this action for important ticket checks, delivery confirmations, or access instructions.</p>",
+            "link": "/pages/your-trip",
+            "link_label": "Check tickets"
+          }
+        },
+        "step_call": {
+          "type": "next_step",
+          "settings": {
+            "title": "Book planning call",
+            "description": "<p>Use this next-step slot for consultation bookings, support callbacks, or itinerary review sessions.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Book now"
+          }
+        },
+        "past_trip_one": {
+          "type": "past_trip",
+          "settings": {
+            "dates": "June 2025",
+            "title": "Disney Cruise getaway",
+            "description": "<p>Example placeholder for a previous trip, recap, or archived planning record.</p>",
+            "link": "/pages/disney-cruises",
+            "link_label": "View inspiration"
+          }
+        },
+        "past_trip_two": {
+          "type": "past_trip",
+          "settings": {
+            "dates": "December 2024",
+            "title": "Theme park family escape",
+            "description": "<p>Another placeholder card showing how past journeys can be surfaced inside the portal later.</p>",
+            "link": "/pages/themepark-destinations",
+            "link_label": "Explore again"
           }
         }
       },
       "block_order": [
-        "trip_card",
-        "shop_card"
+        "upcoming_trip",
+        "tickets",
+        "forms",
+        "payments",
+        "secret_shop",
+        "guides",
+        "step_form",
+        "step_itinerary",
+        "step_tickets",
+        "step_call",
+        "past_trip_one",
+        "past_trip_two"
       ],
       "settings": {
         "portal_key": "hub",
-        "eyebrow": "Members area",
+        "eyebrow": "MrChocolate client portal",
         "heading": "Client Hub",
-        "intro": "<p>Your private customer portal gives you one secure place to access trip details, member perks, and future personalised updates.</p>",
-        "member_note": "<p>This hub is ready for future customer metafields, tags, metaobjects, or Salesforce-connected data without changing the login flow.</p>",
+        "intro": "<p>Your private dashboard is designed for logged-in customers only. Phase 1 keeps the structure inside the theme so you can launch the client experience now and connect real trip systems later.</p>",
+        "member_note": "<p>Keep this page as the front-end shell for future Salesforce, Travefy, Magical Tickets, VTO, Typeform, metafield, or metaobject integrations.</p>",
         "show_page_content": false,
-        "logged_out_title": "Please log in to access your portal",
-        "logged_out_message": "<p>You need to log in with your Shopify customer account before you can view the Client Hub.</p>",
+        "dashboard_heading": "Your dashboard",
+        "next_steps_heading": "Next steps",
+        "next_steps_intro": "<p>These are placeholder actions for the first release. Replace them later with customer-specific tasks, forms, or booking milestones.</p>",
+        "past_trips_heading": "Past Trips",
+        "past_trips_intro": "<p>Use this area to show archived holidays, previous journeys, or repeat-travel inspiration.</p>",
+        "show_demo_trip": false,
+        "demo_trip_kicker": "Upcoming trip",
+        "demo_trip_title": "Your next adventure is taking shape",
+        "demo_trip_dates": "September 18 to September 25",
+        "demo_trip_status": "Planning in progress",
+        "demo_trip_summary": "<p>This optional hero card gives you a polished populated state for demos before live trip data exists.</p>",
+        "demo_trip_button_label": "View placeholder trip",
+        "demo_trip_button_link": "/pages/your-trip",
+        "empty_state_heading": "We can't see an active trip on your account yet",
+        "empty_state_body": "<p>Your client hub is ready, but no live trip has been connected to this account yet. Start planning, browse Magical Tickets, or dive into guides while the integrations are still future-phase work.</p>",
+        "empty_primary_label": "Start planning a trip",
+        "empty_primary_link": "/pages/contact-us",
+        "empty_secondary_label": "Browse Magical Tickets",
+        "empty_secondary_link": "/collections/all",
+        "empty_tertiary_label": "View planning guides",
+        "empty_tertiary_link": "/pages/storybook-itineraries",
+        "cta_heading": "Plan Your Next Adventure",
+        "cta_body": "<p>Keep one clear growth action at the bottom of the hub so customers can move from account management back into planning.</p>",
+        "cta_button_label": "Plan Your Next Adventure",
+        "cta_button_link": "/pages/themepark-destinations",
+        "logged_out_title": "Please log in to access your client hub",
+        "logged_out_message": "<p>You need to log in with your Shopify customer account before you can view the MrChocolate client portal.</p>",
         "login_button_label": "Log in",
         "color_scheme": "scheme-1",
         "padding_top": 48,
