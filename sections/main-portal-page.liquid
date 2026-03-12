@@ -20,6 +20,7 @@
   assign return_to = page.url | default: request.path | default: routes.root_url
   assign heading_text = section.settings.heading | default: page.title
   assign intro_text = section.settings.intro
+
   assign trip_record = blank
   assign trip_title = blank
   assign trip_start_date = blank
@@ -38,6 +39,8 @@
   assign credit_balance_cents = 0
   assign discount_percent = blank
 
+  assign quick_action_count = 0
+  assign quick_link_count = 0
   assign dashboard_card_count = 0
   assign next_step_count = 0
   assign past_trip_count = 0
@@ -67,6 +70,10 @@
 
   for block in section.blocks
     case block.type
+      when 'quick_action'
+        assign quick_action_count = quick_action_count | plus: 1
+      when 'quick_link'
+        assign quick_link_count = quick_link_count | plus: 1
       when 'dashboard_card', 'portal_card'
         assign dashboard_card_count = dashboard_card_count | plus: 1
       when 'next_step'
@@ -83,6 +90,33 @@
     assign has_live_trip = true
   endif
 
+  assign overview_kicker = section.settings.demo_trip_kicker
+  assign overview_title = section.settings.demo_trip_title
+  assign overview_dates = section.settings.demo_trip_dates
+  assign overview_status = section.settings.demo_trip_status
+  assign overview_summary = section.settings.demo_trip_summary
+  assign overview_button_label = section.settings.demo_trip_button_label
+  assign overview_button_link = section.settings.demo_trip_button_link
+
+  if trip_record != blank
+    assign overview_kicker = 'Upcoming trip'
+    assign overview_title = trip_title | default: section.settings.demo_trip_title
+    assign overview_status = booking_status | default: section.settings.demo_trip_status
+    assign overview_summary = trip_overview | default: section.settings.demo_trip_summary
+    assign overview_button_label = 'Open trip details'
+    assign overview_button_link = pages['your-trip'].url | default: '/pages/your-trip'
+
+    capture overview_dates
+      if trip_start_date != blank
+        echo trip_start_date | date: '%B %-d, %Y'
+        if trip_end_date != blank
+          echo ' to '
+          echo trip_end_date | date: '%B %-d, %Y'
+        endif
+      endif
+    endcapture
+  endif
+
   if page_key == 'hub'
     if customer and customer.first_name != blank
       assign heading_text = 'Welcome back, ' | append: customer.first_name
@@ -90,622 +124,537 @@
       assign heading_text = 'Welcome back'
     endif
   endif
-
-  capture protected_content
-    echo '<div class="portal-shell">'
-    render 'portal-nav', current_handle: current_handle
-
-    echo '<header class="portal-hero">'
-    if section.settings.eyebrow != blank
-      echo '<p class="portal-hero__eyebrow">'
-      echo section.settings.eyebrow
-      echo '</p>'
-    endif
-    echo '<h1 class="portal-hero__heading h0">'
-    echo heading_text | escape
-    echo '</h1>'
-    if intro_text != blank
-      echo '<div class="portal-hero__intro rte">'
-      echo intro_text
-      echo '</div>'
-    endif
-    echo '</header>'
-
-    comment
-      Hub view: placeholder-driven dashboard for phase 1.
-      Real trip data can later replace these settings via metafields or metaobjects.
-    endcomment
-    if page_key == 'hub'
-      echo '<div class="portal-dashboard">'
-
-      echo '<section class="portal-section portal-section--feature">'
-      echo '<div class="portal-section__header">'
-      echo '<div>'
-      echo '<p class="portal-section__eyebrow">Portal overview</p>'
-      echo '<h2 class="portal-section__title h2">Your client hub</h2>'
-      echo '</div>'
-      echo '<p class="portal-section__copy">This first phase is theme-powered only. The layout is ready for future metafields, metaobjects, and API integrations without changing the customer access flow.</p>'
-      echo '</div>'
-
-      if has_live_trip
-        assign overview_kicker = section.settings.demo_trip_kicker
-        assign overview_title = section.settings.demo_trip_title
-        assign overview_dates = section.settings.demo_trip_dates
-        assign overview_status = section.settings.demo_trip_status
-        assign overview_summary = section.settings.demo_trip_summary
-        assign overview_button_label = section.settings.demo_trip_button_label
-        assign overview_button_link = section.settings.demo_trip_button_link
-
-        if trip_record != blank
-          assign overview_kicker = 'Upcoming trip'
-          assign overview_title = trip_title | default: section.settings.demo_trip_title
-          assign overview_status = booking_status | default: section.settings.demo_trip_status
-          assign overview_summary = trip_overview | default: section.settings.demo_trip_summary
-          assign overview_button_label = 'Open trip details'
-          assign overview_button_link = pages['your-trip'].url | default: '/pages/your-trip'
-          capture overview_dates
-            if trip_start_date != blank
-              echo trip_start_date | date: '%B %-d, %Y'
-              if trip_end_date != blank
-                echo ' to '
-                echo trip_end_date | date: '%B %-d, %Y'
-              endif
-            endif
-          endcapture
-        endif
-
-        echo '<article class="portal-feature-card">'
-        echo '<div class="portal-feature-card__media">'
-        echo '<div class="portal-feature-card__orbit"></div>'
-        echo '<p class="portal-feature-card__eyebrow">'
-        echo overview_kicker | escape
-        echo '</p>'
-        echo '<h3 class="portal-feature-card__title h2">'
-        echo overview_title | escape
-        echo '</h3>'
-        if overview_summary != blank
-          echo '<div class="portal-feature-card__copy rte">'
-          echo overview_summary
-          echo '</div>'
-        endif
-        echo '</div>'
-        echo '<div class="portal-feature-card__details">'
-        echo '<div class="portal-pill-group">'
-        if overview_dates != blank
-          echo '<span class="portal-pill">'
-          echo overview_dates
-          echo '</span>'
-        endif
-        if overview_status != blank
-          echo '<span class="portal-pill portal-pill--accent">'
-          echo overview_status | escape
-          echo '</span>'
-        endif
-        if advisor_name != blank
-          echo '<span class="portal-pill">Advisor: '
-          echo advisor_name | escape
-          echo '</span>'
-        endif
-        echo '</div>'
-        echo '<div class="portal-feature-card__list">'
-        echo '<p>Trip details, tickets, forms, and payment checkpoints can all slot into this dashboard structure later.</p>'
-        if support_email != blank
-          echo '<p>Support contact: <a href="mailto:'
-          echo support_email | escape
-          echo '">'
-          echo support_email | escape
-          echo '</a></p>'
-        else
-          echo '<p>Use the cards below as phase-1 placeholders until live data is connected.</p>'
-        endif
-        echo '</div>'
-        if overview_button_link != blank and overview_button_label != blank
-          echo '<div class="portal-feature-card__actions"><a class="button" href="'
-          echo overview_button_link
-          echo '">'
-          echo overview_button_label | escape
-          echo '</a></div>'
-        endif
-        echo '</div>'
-        echo '</article>'
-      else
-        echo '<article class="portal-empty-state" role="status">'
-        echo '<div class="portal-empty-state__content">'
-        echo '<p class="portal-empty-state__eyebrow">No active trip yet</p>'
-        echo '<h3 class="portal-empty-state__title h2">'
-        echo section.settings.empty_state_heading | escape
-        echo '</h3>'
-        echo '<div class="portal-empty-state__copy rte">'
-        echo section.settings.empty_state_body
-        echo '</div>'
-        echo '</div>'
-        echo '<div class="portal-empty-state__actions">'
-        if section.settings.empty_primary_label != blank and section.settings.empty_primary_link != blank
-          echo '<a class="button" href="'
-          echo section.settings.empty_primary_link
-          echo '">'
-          echo section.settings.empty_primary_label | escape
-          echo '</a>'
-        endif
-        if section.settings.empty_secondary_label != blank and section.settings.empty_secondary_link != blank
-          echo '<a class="button button--secondary" href="'
-          echo section.settings.empty_secondary_link
-          echo '">'
-          echo section.settings.empty_secondary_label | escape
-          echo '</a>'
-        endif
-        if section.settings.empty_tertiary_label != blank and section.settings.empty_tertiary_link != blank
-          echo '<a class="portal-text-link" href="'
-          echo section.settings.empty_tertiary_link
-          echo '">'
-          echo section.settings.empty_tertiary_label | escape
-          echo '</a>'
-        endif
-        echo '</div>'
-        echo '</article>'
-      endif
-      echo '</section>'
-
-      if dashboard_card_count > 0
-        echo '<section class="portal-section">'
-        echo '<div class="portal-section__header">'
-        echo '<div>'
-        echo '<p class="portal-section__eyebrow">Quick access</p>'
-        echo '<h2 class="portal-section__title h2">'
-        echo section.settings.dashboard_heading
-        echo '</h2>'
-        echo '</div>'
-        echo '<p class="portal-section__copy">Keep the first release simple: card-based navigation now, real customer-specific content later.</p>'
-        echo '</div>'
-        echo '<div class="portal-dashboard-grid">'
-        for block in section.blocks
-          unless block.type == 'dashboard_card' or block.type == 'portal_card'
-            continue
-          endunless
-
-          assign card_eyebrow = block.settings.eyebrow | default: 'Portal area'
-          assign card_title = block.settings.title
-          assign card_description = block.settings.description
-          assign card_status = block.settings.status
-          assign card_link = block.settings.link
-          assign card_link_label = block.settings.link_label | default: 'Open'
-
-          echo '<article class="portal-dashboard-card" '
-          echo block.shopify_attributes
-          echo '>'
-          echo '<div class="portal-dashboard-card__top">'
-          echo '<p class="portal-dashboard-card__eyebrow">'
-          echo card_eyebrow | escape
-          echo '</p>'
-          if card_status != blank
-            echo '<span class="portal-dashboard-card__status">'
-            echo card_status | escape
-            echo '</span>'
-          endif
-          echo '</div>'
-          echo '<h3 class="portal-dashboard-card__title h4">'
-          echo card_title | escape
-          echo '</h3>'
-          if card_description != blank
-            echo '<div class="portal-dashboard-card__copy rte">'
-            echo card_description
-            echo '</div>'
-          endif
-          if card_link != blank
-            echo '<div class="portal-dashboard-card__actions"><a class="button button--secondary" href="'
-            echo card_link
-            echo '">'
-            echo card_link_label | escape
-            echo '</a></div>'
-          endif
-          echo '</article>'
-        endfor
-        echo '</div>'
-        echo '</section>'
-      endif
-
-      if next_step_count > 0
-        echo '<section class="portal-section">'
-        echo '<div class="portal-section__header">'
-        echo '<div>'
-        echo '<p class="portal-section__eyebrow">Action list</p>'
-        echo '<h2 class="portal-section__title h2">'
-        echo section.settings.next_steps_heading
-        echo '</h2>'
-        echo '</div>'
-        if section.settings.next_steps_intro != blank
-          echo '<div class="portal-section__copy rte">'
-          echo section.settings.next_steps_intro
-          echo '</div>'
-        endif
-        echo '</div>'
-        echo '<div class="portal-step-list">'
-        assign next_step_index = 0
-        for block in section.blocks
-          unless block.type == 'next_step'
-            continue
-          endunless
-
-          assign next_step_index = next_step_index | plus: 1
-
-          echo '<article class="portal-step" '
-          echo block.shopify_attributes
-          echo '>'
-          echo '<div class="portal-step__number">'
-          if next_step_index < 10
-            echo '0'
-          endif
-          echo next_step_index
-          echo '</div>'
-          echo '<div class="portal-step__content">'
-          echo '<h3 class="portal-step__title h4">'
-          echo block.settings.title | escape
-          echo '</h3>'
-          if block.settings.description != blank
-            echo '<div class="portal-step__copy rte">'
-            echo block.settings.description
-            echo '</div>'
-          endif
-          echo '</div>'
-          if block.settings.link != blank
-            echo '<div class="portal-step__actions"><a class="portal-text-link" href="'
-            echo block.settings.link
-            echo '">'
-            echo block.settings.link_label | default: 'Open' | escape
-            echo '</a></div>'
-          endif
-          echo '</article>'
-        endfor
-        echo '</div>'
-        echo '</section>'
-      endif
-
-      echo '<section class="portal-section">'
-      echo '<div class="portal-section__header">'
-      echo '<div>'
-      echo '<p class="portal-section__eyebrow">Archive</p>'
-      echo '<h2 class="portal-section__title h2">'
-      echo section.settings.past_trips_heading
-      echo '</h2>'
-      echo '</div>'
-      if section.settings.past_trips_intro != blank
-        echo '<div class="portal-section__copy rte">'
-        echo section.settings.past_trips_intro
-        echo '</div>'
-      endif
-      echo '</div>'
-
-      if past_trip_count > 0
-        echo '<div class="portal-past-trips">'
-        for block in section.blocks
-          unless block.type == 'past_trip'
-            continue
-          endunless
-
-          echo '<article class="portal-past-trip" '
-          echo block.shopify_attributes
-          echo '>'
-          echo '<p class="portal-past-trip__dates">'
-          echo block.settings.dates | escape
-          echo '</p>'
-          echo '<h3 class="portal-past-trip__title h4">'
-          echo block.settings.title | escape
-          echo '</h3>'
-          if block.settings.description != blank
-            echo '<div class="portal-past-trip__copy rte">'
-            echo block.settings.description
-            echo '</div>'
-          endif
-          if block.settings.link != blank
-            echo '<a class="portal-text-link" href="'
-            echo block.settings.link
-            echo '">'
-            echo block.settings.link_label | default: 'View details' | escape
-            echo '</a>'
-          endif
-          echo '</article>'
-        endfor
-        echo '</div>'
-      else
-        echo '<div class="portal-note rte"><p>Past trips will appear here once you add them as section blocks or connect customer trip data later.</p></div>'
-      endif
-      echo '</section>'
-
-      if section.settings.cta_heading != blank or section.settings.cta_button_label != blank
-        echo '<section class="portal-cta">'
-        echo '<div>'
-        if section.settings.cta_heading != blank
-          echo '<p class="portal-cta__eyebrow">Next adventure</p>'
-          echo '<h2 class="portal-cta__title h2">'
-          echo section.settings.cta_heading | escape
-          echo '</h2>'
-        endif
-        if section.settings.cta_body != blank
-          echo '<div class="portal-cta__copy rte">'
-          echo section.settings.cta_body
-          echo '</div>'
-        endif
-        echo '</div>'
-        if section.settings.cta_button_label != blank and section.settings.cta_button_link != blank
-          echo '<div class="portal-cta__actions"><a class="button" href="'
-          echo section.settings.cta_button_link
-          echo '">'
-          echo section.settings.cta_button_label | escape
-          echo '</a></div>'
-        endif
-        echo '</section>'
-      endif
-
-      echo '</div>'
-    endif
-
-    if page_key == 'trip'
-      if trip_record != blank
-        echo '<div class="portal-grid portal-grid--stats">'
-
-        echo '<article class="portal-stat">'
-        echo '<p class="portal-stat__label">Trip title</p>'
-        echo '<p class="portal-stat__value h2">'
-        echo trip_title | default: 'Your trip' | escape
-        echo '</p>'
-        echo '<p class="portal-stat__meta">'
-        if trip_start_date != blank
-          echo trip_start_date | date: '%B %-d, %Y'
-        else
-          echo 'Add trip dates when ready.'
-        endif
-        echo '</p>'
-        echo '</article>'
-
-        echo '<article class="portal-stat">'
-        echo '<p class="portal-stat__label">Booking status</p>'
-        echo '<p class="portal-stat__value h2">'
-        echo booking_status | default: 'Pending' | escape
-        echo '</p>'
-        echo '<p class="portal-stat__meta">'
-        if advisor_name != blank
-          echo 'Managed by '
-          echo advisor_name | escape
-        else
-          echo 'Assign an advisor later.'
-        endif
-        echo '</p>'
-        echo '</article>'
-
-        echo '<article class="portal-stat">'
-        echo '<p class="portal-stat__label">Support</p>'
-        echo '<p class="portal-stat__value h5">'
-        if support_email != blank
-          echo '<a href="mailto:'
-          echo support_email | escape
-          echo '">'
-          echo support_email | escape
-          echo '</a>'
-        else
-          echo 'Contact to be added'
-        endif
-        echo '</p>'
-        echo '<p class="portal-stat__meta">Reserved for future synced trip data.</p>'
-        echo '</article>'
-
-        echo '</div>'
-      endif
-
-      if info_panel_count > 0
-        echo '<div class="portal-grid portal-grid--panels">'
-        for block in section.blocks
-          unless block.type == 'info_panel'
-            continue
-          endunless
-
-          assign panel_classes = 'portal-panel'
-          if block.settings.width == 'full'
-            assign panel_classes = panel_classes | append: ' portal-panel--full'
-          endif
-
-          assign panel_body = block.settings.body
-
-          if trip_record != blank
-            case block.settings.title
-              when 'Trip Overview'
-                assign panel_body = trip_overview | default: block.settings.body
-              when 'Booking Status'
-                capture panel_body
-                  echo '<p>'
-                  echo booking_status | default: 'No booking status has been added yet.' | escape
-                  echo '</p>'
-                  if trip_start_date != blank
-                    echo '<p>Departure: '
-                    echo trip_start_date | date: '%B %-d, %Y'
-                    echo '</p>'
-                  endif
-                  if trip_end_date != blank
-                    echo '<p>Return: '
-                    echo trip_end_date | date: '%B %-d, %Y'
-                    echo '</p>'
-                  endif
-                endcapture
-              when 'Upcoming Plans'
-                assign panel_body = upcoming_plans | default: block.settings.body
-              when 'Future Salesforce / Itinerary Integration'
-                assign panel_body = salesforce_placeholder | default: block.settings.body
-            endcase
-          endif
-
-          echo '<article class="'
-          echo panel_classes
-          echo '" '
-          echo block.shopify_attributes
-          echo '>'
-          echo '<h2 class="portal-panel__title h3">'
-          echo block.settings.title | escape
-          echo '</h2>'
-          if panel_body != blank
-            echo '<div class="portal-panel__body rte">'
-            echo panel_body
-            echo '</div>'
-          endif
-          echo '</article>'
-        endfor
-        echo '</div>'
-      endif
-
-      if trip_record == blank
-        echo '<div class="portal-note rte"><p>No trip record is assigned to this customer yet.</p><p>Add a future metafield or metaobject later and this page can populate without changing the template.</p></div>'
-      endif
-    endif
-
-    if page_key == 'shop'
-      echo '<div class="portal-grid portal-grid--stats">'
-
-      echo '<article class="portal-stat">'
-      echo '<p class="portal-stat__label">Available credits</p>'
-      echo '<p class="portal-stat__value">'
-      echo credit_balance
-      echo '</p>'
-      echo '<p class="portal-stat__meta">'
-      echo credit_balance_cents | money_without_trailing_zeros
-      echo ' equivalent</p>'
-      echo '</article>'
-
-      echo '<article class="portal-stat">'
-      echo '<p class="portal-stat__label">Member discount</p>'
-      echo '<p class="portal-stat__value">'
-      if discount_percent != blank
-        echo discount_percent
-        echo '%'
-      else
-        echo 'TBC'
-      endif
-      echo '</p>'
-      echo '<p class="portal-stat__meta">Reserved for future synced discount logic.</p>'
-      echo '</article>'
-
-      echo '<article class="portal-stat">'
-      echo '<p class="portal-stat__label">Credit conversion</p>'
-      echo '<p class="portal-stat__value">10</p>'
-      echo '<p class="portal-stat__meta">1 credit = '
-      echo 10 | money_without_trailing_zeros
-      echo ' in reward value.</p>'
-      echo '</article>'
-
-      echo '</div>'
-
-      if secret_shop_collection != blank and secret_shop_collection.products_count > 0
-        assign secret_shop_has_products = true
-        echo '<div class="portal-shop">'
-        echo '<div class="portal-shop__header">'
-        echo '<div><p class="portal-section__eyebrow">'
-        echo section.settings.secret_shop_collection_label
-        echo '</p>'
-        echo '<h2 class="h2">'
-        echo secret_shop_collection.title | escape
-        echo '</h2></div>'
-        echo '<div class="portal-shop__meta rte">'
-        echo section.settings.secret_shop_helper_text
-        echo '</div>'
-        echo '</div>'
-
-        echo '<div class="portal-shop__grid">'
-        for product in secret_shop_collection.products limit: secret_shop_products_limit
-          assign credit_cost = 0
-          assign credit_cost_cents = 0
-          if product.metafields.portal.credit_cost != blank and product.metafields.portal.credit_cost.value != blank
-            assign credit_cost = product.metafields.portal.credit_cost.value | plus: 0
-            assign credit_cost_cents = credit_cost | times: 10
-          else
-            assign credit_cost_cents = product.price
-            assign credit_cost = product.price | divided_by: 10
-          endif
-
-          echo '<article class="portal-shop-card">'
-          echo '<a class="portal-shop-card__media" href="'
-          echo product.url
-          echo '">'
-          if product.featured_image != blank
-            echo '<img src="'
-            echo product.featured_image | image_url: width: 720
-            echo '" alt="'
-            echo product.featured_image.alt | escape
-            echo '" loading="lazy" width="720">'
-          else
-            echo '<div class="portal-shop-card__placeholder">No image</div>'
-          endif
-          echo '</a>'
-          echo '<div class="portal-shop-card__content">'
-          echo '<p class="portal-shop-card__eyebrow">'
-          if product.available
-            echo 'Member reward'
-          else
-            echo 'Currently unavailable'
-          endif
-          echo '</p>'
-          echo '<h3 class="portal-shop-card__title h4"><a href="'
-          echo product.url
-          echo '">'
-          echo product.title | escape
-          echo '</a></h3>'
-          if product.description != blank
-            echo '<div class="portal-shop-card__description rte">'
-            echo product.description | strip_html | truncatewords: 22
-            echo '</div>'
-          endif
-          echo '<div class="portal-shop-card__pricing">'
-          echo '<p class="portal-shop-card__credits">'
-          if credit_cost > 0
-            echo credit_cost
-            echo ' credits'
-          else
-            echo 'Credit cost unavailable'
-          endif
-          echo '</p>'
-          echo '<p class="portal-shop-card__money">'
-          if credit_cost_cents > 0
-            echo credit_cost_cents | money_without_trailing_zeros
-          else
-            echo product.price | money_without_trailing_zeros
-          endif
-          echo '</p>'
-          echo '</div>'
-          echo '<div class="portal-shop-card__footer">'
-          if credit_cost > 0 and credit_balance >= credit_cost
-            echo '<span class="portal-shop-card__status portal-shop-card__status--available">Enough credits available</span>'
-          elsif credit_cost > 0
-            echo '<span class="portal-shop-card__status">Additional credits required</span>'
-          else
-            echo '<span class="portal-shop-card__status">Check product price</span>'
-          endif
-          echo '<a class="button button--secondary" href="'
-          echo product.url
-          echo '">View reward</a>'
-          echo '</div>'
-          echo '</div>'
-          echo '</article>'
-        endfor
-        echo '</div>'
-        echo '</div>'
-      endif
-
-      if secret_shop_has_products == false
-        echo '<div class="portal-note rte"><p>No Secret Shop collection is selected yet.</p><p>Choose a collection in the theme editor when you are ready to populate this member area.</p></div>'
-      endif
-    endif
-
-    if section.settings.show_page_content and page.content != blank
-      echo '<div class="portal-page-content"><div class="rte">'
-      echo page.content
-      echo '</div></div>'
-    endif
-
-    if section.settings.member_note != blank
-      echo '<div class="portal-note rte">'
-      echo section.settings.member_note
-      echo '</div>'
-    endif
-
-    echo '</div>'
-  endcapture
 -%}
+
+{% capture protected_content %}
+  <div class="portal-shell">
+    {% render 'portal-nav', current_handle: current_handle %}
+
+    <header class="portal-hero">
+      {% if section.settings.eyebrow != blank %}
+        <p class="portal-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      <div class="portal-hero__layout">
+        <div class="portal-hero__main">
+          <h1 class="portal-hero__heading h0">{{ heading_text }}</h1>
+          {% if intro_text != blank %}
+            <div class="portal-hero__intro rte">{{ intro_text }}</div>
+          {% endif %}
+        </div>
+        <div class="portal-hero__badge">
+          <span class="portal-hero__badge-icon">{% render 'portal-icon', icon: 'sparkle' %}</span>
+          <div>
+            <p class="portal-hero__badge-label">Phase 1 portal</p>
+            <p class="portal-hero__badge-copy">Theme-native, login-gated, and ready for future data sources.</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {% if page_key == 'hub' %}
+      <div class="portal-dashboard">
+        {% if quick_action_count > 0 %}
+          <section class="portal-quick-actions" aria-label="Quick actions">
+            {% for block in section.blocks %}
+              {% if block.type != 'quick_action' %}
+                {% continue %}
+              {% endif %}
+              <article class="portal-quick-action" {{ block.shopify_attributes }}>
+                <div class="portal-quick-action__icon">
+                  {% render 'portal-icon', icon: block.settings.icon %}
+                </div>
+                <div class="portal-quick-action__content">
+                  <p class="portal-quick-action__eyebrow">{{ block.settings.eyebrow }}</p>
+                  <h2 class="portal-quick-action__title h5">{{ block.settings.title }}</h2>
+                </div>
+                {% if block.settings.link != blank %}
+                  <a class="portal-quick-action__link" href="{{ block.settings.link }}" aria-label="{{ block.settings.title }}">
+                    <span class="visually-hidden">{{ block.settings.link_label | default: block.settings.title }}</span>
+                    {% render 'portal-icon', icon: 'arrow' %}
+                  </a>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </section>
+        {% endif %}
+
+        {% if has_live_trip %}
+          <section class="portal-hero-card portal-hero-card--trip">
+            <div class="portal-hero-card__main">
+              <div class="portal-hero-card__icon">
+                {% render 'portal-icon', icon: 'plane' %}
+              </div>
+              <p class="portal-hero-card__eyebrow">{{ overview_kicker }}</p>
+              <h2 class="portal-hero-card__title h1">{{ overview_title }}</h2>
+              {% if overview_summary != blank %}
+                <div class="portal-hero-card__copy rte">{{ overview_summary }}</div>
+              {% endif %}
+              <div class="portal-hero-card__pills">
+                {% if overview_dates != blank %}
+                  <span class="portal-pill">
+                    {% render 'portal-icon', icon: 'calendar' %}
+                    {{ overview_dates }}
+                  </span>
+                {% endif %}
+                {% if overview_status != blank %}
+                  <span class="portal-pill portal-pill--accent">
+                    {% render 'portal-icon', icon: 'sparkle' %}
+                    {{ overview_status }}
+                  </span>
+                {% endif %}
+                <span class="portal-pill">
+                  {% render 'portal-icon', icon: 'compass' %}
+                  Placeholder concierge view
+                </span>
+              </div>
+              {% if overview_button_link != blank and overview_button_label != blank %}
+                <div class="portal-hero-card__actions">
+                  <a class="button portal-button" href="{{ overview_button_link }}">{{ overview_button_label }}</a>
+                </div>
+              {% endif %}
+            </div>
+            <div class="portal-hero-card__aside">
+              <div class="portal-hero-stat">
+                <span class="portal-hero-stat__icon">{% render 'portal-icon', icon: 'map' %}</span>
+                <div>
+                  <p class="portal-hero-stat__label">Portal focus</p>
+                  <p class="portal-hero-stat__value">Upcoming trip</p>
+                </div>
+              </div>
+              <div class="portal-hero-stat">
+                <span class="portal-hero-stat__icon">{% render 'portal-icon', icon: 'ticket' %}</span>
+                <div>
+                  <p class="portal-hero-stat__label">Linked modules</p>
+                  <p class="portal-hero-stat__value">Tickets, forms, payments</p>
+                </div>
+              </div>
+              <div class="portal-hero-stat">
+                <span class="portal-hero-stat__icon">{% render 'portal-icon', icon: 'star' %}</span>
+                <div>
+                  <p class="portal-hero-stat__label">Support</p>
+                  <p class="portal-hero-stat__value">
+                    {% if support_email != blank %}
+                      <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+                    {% elsif advisor_name != blank %}
+                      {{ advisor_name }}
+                    {% else %}
+                      Concierge placeholder
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        {% else %}
+          <section class="portal-empty-state" role="status">
+            <div class="portal-empty-state__art">
+              <span class="portal-empty-state__art-ring"></span>
+              <span class="portal-empty-state__art-icon">{% render 'portal-icon', icon: 'suitcase' %}</span>
+            </div>
+            <div class="portal-empty-state__content">
+              <p class="portal-empty-state__eyebrow">No active trip yet</p>
+              <h2 class="portal-empty-state__title h2">{{ section.settings.empty_state_heading }}</h2>
+              <div class="portal-empty-state__copy rte">{{ section.settings.empty_state_body }}</div>
+              <div class="portal-empty-state__actions">
+                {% if section.settings.empty_primary_label != blank and section.settings.empty_primary_link != blank %}
+                  <a class="button portal-button" href="{{ section.settings.empty_primary_link }}">{{ section.settings.empty_primary_label }}</a>
+                {% endif %}
+                {% if section.settings.empty_secondary_label != blank and section.settings.empty_secondary_link != blank %}
+                  <a class="button button--secondary portal-button portal-button--secondary" href="{{ section.settings.empty_secondary_link }}">{{ section.settings.empty_secondary_label }}</a>
+                {% endif %}
+                {% if section.settings.empty_tertiary_label != blank and section.settings.empty_tertiary_link != blank %}
+                  <a class="portal-text-link" href="{{ section.settings.empty_tertiary_link }}">
+                    {% render 'portal-icon', icon: 'compass' %}
+                    {{ section.settings.empty_tertiary_label }}
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </section>
+        {% endif %}
+
+        {% if quick_link_count > 0 %}
+          <section class="portal-section portal-section--links">
+            <div class="portal-section__header">
+              <div>
+                <p class="portal-section__eyebrow">Quick links</p>
+                <h2 class="portal-section__title h2">{{ section.settings.quick_links_heading }}</h2>
+              </div>
+              <p class="portal-section__copy">Keep the most-used portal destinations one click away.</p>
+            </div>
+            <div class="portal-link-grid">
+              {% for block in section.blocks %}
+                {% if block.type != 'quick_link' %}
+                  {% continue %}
+                {% endif %}
+                <a class="portal-link-tile" href="{{ block.settings.link | default: '#' }}" {{ block.shopify_attributes }}>
+                  <span class="portal-link-tile__icon">{% render 'portal-icon', icon: block.settings.icon %}</span>
+                  <span class="portal-link-tile__text">{{ block.settings.title }}</span>
+                  <span class="portal-link-tile__arrow">{% render 'portal-icon', icon: 'arrow' %}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if dashboard_card_count > 0 %}
+          <section class="portal-section">
+            <div class="portal-section__header">
+              <div>
+                <p class="portal-section__eyebrow">Portal areas</p>
+                <h2 class="portal-section__title h2">{{ section.settings.dashboard_heading }}</h2>
+              </div>
+              <p class="portal-section__copy">These cards are placeholders today and can later swap to metafields, metaobjects, or external systems.</p>
+            </div>
+            <div class="portal-dashboard-grid">
+              {% for block in section.blocks %}
+                {% unless block.type == 'dashboard_card' or block.type == 'portal_card' %}
+                  {% continue %}
+                {% endunless %}
+                <article class="portal-dashboard-card" {{ block.shopify_attributes }}>
+                  <div class="portal-dashboard-card__top">
+                    <span class="portal-dashboard-card__icon">{% render 'portal-icon', icon: block.settings.icon | default: 'sparkle' %}</span>
+                    {% if block.settings.status != blank %}
+                      <span class="portal-dashboard-card__status">{{ block.settings.status }}</span>
+                    {% endif %}
+                  </div>
+                  <p class="portal-dashboard-card__eyebrow">{{ block.settings.eyebrow | default: 'Portal area' }}</p>
+                  <h3 class="portal-dashboard-card__title h4">{{ block.settings.title }}</h3>
+                  {% if block.settings.description != blank %}
+                    <div class="portal-dashboard-card__copy rte">{{ block.settings.description }}</div>
+                  {% endif %}
+                  {% if block.settings.link != blank %}
+                    <div class="portal-dashboard-card__actions">
+                      <a class="portal-text-link" href="{{ block.settings.link }}">
+                        {{ block.settings.link_label | default: 'Open' }}
+                        {% render 'portal-icon', icon: 'arrow' %}
+                      </a>
+                    </div>
+                  {% endif %}
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if next_step_count > 0 %}
+          <section class="portal-section">
+            <div class="portal-section__header">
+              <div>
+                <p class="portal-section__eyebrow">Action list</p>
+                <h2 class="portal-section__title h2">{{ section.settings.next_steps_heading }}</h2>
+              </div>
+              {% if section.settings.next_steps_intro != blank %}
+                <div class="portal-section__copy rte">{{ section.settings.next_steps_intro }}</div>
+              {% endif %}
+            </div>
+            <div class="portal-step-list">
+              {% assign next_step_index = 0 %}
+              {% for block in section.blocks %}
+                {% if block.type != 'next_step' %}
+                  {% continue %}
+                {% endif %}
+                {% assign next_step_index = next_step_index | plus: 1 %}
+                <article class="portal-step" {{ block.shopify_attributes }}>
+                  <div class="portal-step__number">
+                    {% if next_step_index < 10 %}0{% endif %}{{ next_step_index }}
+                  </div>
+                  <div class="portal-step__content">
+                    <div class="portal-step__icon">{% render 'portal-icon', icon: block.settings.icon %}</div>
+                    <div>
+                      <h3 class="portal-step__title h5">{{ block.settings.title }}</h3>
+                      {% if block.settings.description != blank %}
+                        <div class="portal-step__copy rte">{{ block.settings.description }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% if block.settings.link != blank %}
+                    <div class="portal-step__actions">
+                      <a class="button button--secondary portal-button portal-button--secondary" href="{{ block.settings.link }}">
+                        {{ block.settings.link_label | default: 'Open' }}
+                      </a>
+                    </div>
+                  {% endif %}
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        <section class="portal-section">
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">Archive</p>
+              <h2 class="portal-section__title h2">{{ section.settings.past_trips_heading }}</h2>
+            </div>
+            {% if section.settings.past_trips_intro != blank %}
+              <div class="portal-section__copy rte">{{ section.settings.past_trips_intro }}</div>
+            {% endif %}
+          </div>
+          {% if past_trip_count > 0 %}
+            <div class="portal-past-trips">
+              {% for block in section.blocks %}
+                {% if block.type != 'past_trip' %}
+                  {% continue %}
+                {% endif %}
+                <article class="portal-past-trip" {{ block.shopify_attributes }}>
+                  <div class="portal-past-trip__top">
+                    <p class="portal-past-trip__dates">{{ block.settings.dates }}</p>
+                    <span class="portal-past-trip__icon">{% render 'portal-icon', icon: block.settings.icon %}</span>
+                  </div>
+                  <h3 class="portal-past-trip__title h4">{{ block.settings.title }}</h3>
+                  {% if block.settings.description != blank %}
+                    <div class="portal-past-trip__copy rte">{{ block.settings.description }}</div>
+                  {% endif %}
+                  {% if block.settings.link != blank %}
+                    <a class="portal-text-link" href="{{ block.settings.link }}">
+                      {{ block.settings.link_label | default: 'View details' }}
+                      {% render 'portal-icon', icon: 'arrow' %}
+                    </a>
+                  {% endif %}
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="portal-note rte">
+              <p>Past trips will appear here once you add them as section blocks or connect customer trip data later.</p>
+            </div>
+          {% endif %}
+        </section>
+
+        {% if section.settings.cta_heading != blank or section.settings.cta_button_label != blank %}
+          <section class="portal-cta">
+            <div class="portal-cta__content">
+              <p class="portal-cta__eyebrow">Next adventure</p>
+              {% if section.settings.cta_heading != blank %}
+                <h2 class="portal-cta__title h2">{{ section.settings.cta_heading }}</h2>
+              {% endif %}
+              {% if section.settings.cta_body != blank %}
+                <div class="portal-cta__copy rte">{{ section.settings.cta_body }}</div>
+              {% endif %}
+            </div>
+            {% if section.settings.cta_button_label != blank and section.settings.cta_button_link != blank %}
+              <div class="portal-cta__actions">
+                <a class="button portal-button" href="{{ section.settings.cta_button_link }}">{{ section.settings.cta_button_label }}</a>
+              </div>
+            {% endif %}
+          </section>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if page_key == 'trip' %}
+      {% if trip_record != blank %}
+        <div class="portal-grid portal-grid--stats">
+          <article class="portal-stat">
+            <p class="portal-stat__label">Trip title</p>
+            <p class="portal-stat__value h2">{{ trip_title | default: 'Your trip' }}</p>
+            <p class="portal-stat__meta">
+              {% if trip_start_date != blank %}
+                {{ trip_start_date | date: '%B %-d, %Y' }}
+              {% else %}
+                Add trip dates when ready.
+              {% endif %}
+            </p>
+          </article>
+          <article class="portal-stat">
+            <p class="portal-stat__label">Booking status</p>
+            <p class="portal-stat__value h2">{{ booking_status | default: 'Pending' }}</p>
+            <p class="portal-stat__meta">
+              {% if advisor_name != blank %}
+                Managed by {{ advisor_name }}
+              {% else %}
+                Assign an advisor later.
+              {% endif %}
+            </p>
+          </article>
+          <article class="portal-stat">
+            <p class="portal-stat__label">Support</p>
+            <p class="portal-stat__value h5">
+              {% if support_email != blank %}
+                <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+              {% else %}
+                Contact to be added
+              {% endif %}
+            </p>
+            <p class="portal-stat__meta">Reserved for future synced trip data.</p>
+          </article>
+        </div>
+      {% endif %}
+
+      {% if info_panel_count > 0 %}
+        <div class="portal-grid portal-grid--panels">
+          {% for block in section.blocks %}
+            {% if block.type != 'info_panel' %}
+              {% continue %}
+            {% endif %}
+            {% assign panel_body = block.settings.body %}
+            {% assign panel_classes = 'portal-panel' %}
+            {% if block.settings.width == 'full' %}
+              {% assign panel_classes = panel_classes | append: ' portal-panel--full' %}
+            {% endif %}
+            {% if trip_record != blank %}
+              {% case block.settings.title %}
+                {% when 'Trip Overview' %}
+                  {% assign panel_body = trip_overview | default: block.settings.body %}
+                {% when 'Booking Status' %}
+                  {% capture panel_body %}
+                    <p>{{ booking_status | default: 'No booking status has been added yet.' }}</p>
+                    {% if trip_start_date != blank %}
+                      <p>Departure: {{ trip_start_date | date: '%B %-d, %Y' }}</p>
+                    {% endif %}
+                    {% if trip_end_date != blank %}
+                      <p>Return: {{ trip_end_date | date: '%B %-d, %Y' }}</p>
+                    {% endif %}
+                  {% endcapture %}
+                {% when 'Upcoming Plans' %}
+                  {% assign panel_body = upcoming_plans | default: block.settings.body %}
+                {% when 'Future Salesforce / Itinerary Integration' %}
+                  {% assign panel_body = salesforce_placeholder | default: block.settings.body %}
+              {% endcase %}
+            {% endif %}
+            <article class="{{ panel_classes }}" {{ block.shopify_attributes }}>
+              <h2 class="portal-panel__title h3">{{ block.settings.title }}</h2>
+              {% if panel_body != blank %}
+                <div class="portal-panel__body rte">{{ panel_body }}</div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if trip_record == blank %}
+        <div class="portal-note rte">
+          <p>No trip record is assigned to this customer yet.</p>
+          <p>Add a future metafield or metaobject later and this page can populate without changing the template.</p>
+        </div>
+      {% endif %}
+    {% endif %}
+
+    {% if page_key == 'shop' %}
+      <div class="portal-grid portal-grid--stats">
+        <article class="portal-stat">
+          <p class="portal-stat__label">Available credits</p>
+          <p class="portal-stat__value">{{ credit_balance }}</p>
+          <p class="portal-stat__meta">{{ credit_balance_cents | money_without_trailing_zeros }} equivalent</p>
+        </article>
+        <article class="portal-stat">
+          <p class="portal-stat__label">Member discount</p>
+          <p class="portal-stat__value">
+            {% if discount_percent != blank %}
+              {{ discount_percent }}%
+            {% else %}
+              TBC
+            {% endif %}
+          </p>
+          <p class="portal-stat__meta">Reserved for future synced discount logic.</p>
+        </article>
+        <article class="portal-stat">
+          <p class="portal-stat__label">Credit conversion</p>
+          <p class="portal-stat__value">10</p>
+          <p class="portal-stat__meta">1 credit = {{ 10 | money_without_trailing_zeros }} in reward value.</p>
+        </article>
+      </div>
+
+      {% if secret_shop_collection != blank and secret_shop_collection.products_count > 0 %}
+        {% assign secret_shop_has_products = true %}
+        <div class="portal-shop">
+          <div class="portal-shop__header">
+            <div>
+              <p class="portal-section__eyebrow">{{ section.settings.secret_shop_collection_label }}</p>
+              <h2 class="h2">{{ secret_shop_collection.title }}</h2>
+            </div>
+            <div class="portal-shop__meta rte">{{ section.settings.secret_shop_helper_text }}</div>
+          </div>
+          <div class="portal-shop__grid">
+            {% for product in secret_shop_collection.products limit: secret_shop_products_limit %}
+              {% assign credit_cost = 0 %}
+              {% assign credit_cost_cents = 0 %}
+              {% if product.metafields.portal.credit_cost != blank and product.metafields.portal.credit_cost.value != blank %}
+                {% assign credit_cost = product.metafields.portal.credit_cost.value | plus: 0 %}
+                {% assign credit_cost_cents = credit_cost | times: 10 %}
+              {% else %}
+                {% assign credit_cost_cents = product.price %}
+                {% assign credit_cost = product.price | divided_by: 10 %}
+              {% endif %}
+              <article class="portal-shop-card">
+                <a class="portal-shop-card__media" href="{{ product.url }}">
+                  {% if product.featured_image != blank %}
+                    <img
+                      src="{{ product.featured_image | image_url: width: 720 }}"
+                      alt="{{ product.featured_image.alt | escape }}"
+                      loading="lazy"
+                      width="720"
+                      height="540"
+                    >
+                  {% else %}
+                    <div class="portal-shop-card__placeholder">No image</div>
+                  {% endif %}
+                </a>
+                <div class="portal-shop-card__content">
+                  <p class="portal-shop-card__eyebrow">
+                    {% if product.available %}
+                      Member reward
+                    {% else %}
+                      Currently unavailable
+                    {% endif %}
+                  </p>
+                  <h3 class="portal-shop-card__title h4"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+                  {% if product.description != blank %}
+                    <div class="portal-shop-card__description rte">{{ product.description | strip_html | truncatewords: 22 }}</div>
+                  {% endif %}
+                  <div class="portal-shop-card__pricing">
+                    <p class="portal-shop-card__credits">
+                      {% if credit_cost > 0 %}
+                        {{ credit_cost }} credits
+                      {% else %}
+                        Credit cost unavailable
+                      {% endif %}
+                    </p>
+                    <p class="portal-shop-card__money">
+                      {% if credit_cost_cents > 0 %}
+                        {{ credit_cost_cents | money_without_trailing_zeros }}
+                      {% else %}
+                        {{ product.price | money_without_trailing_zeros }}
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="portal-shop-card__footer">
+                    {% if credit_cost > 0 and credit_balance >= credit_cost %}
+                      <span class="portal-shop-card__status portal-shop-card__status--available">Enough credits available</span>
+                    {% elsif credit_cost > 0 %}
+                      <span class="portal-shop-card__status">Additional credits required</span>
+                    {% else %}
+                      <span class="portal-shop-card__status">Check product price</span>
+                    {% endif %}
+                    <a class="button button--secondary portal-button portal-button--secondary" href="{{ product.url }}">View reward</a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if secret_shop_has_products == false %}
+        <div class="portal-note rte">
+          <p>No Secret Shop collection is selected yet.</p>
+          <p>Choose a collection in the theme editor when you are ready to populate this member area.</p>
+        </div>
+      {% endif %}
+    {% endif %}
+
+    {% if section.settings.show_page_content and page.content != blank %}
+      <div class="portal-page-content">
+        <div class="rte">{{ page.content }}</div>
+      </div>
+    {% endif %}
+
+    {% if section.settings.member_note != blank %}
+      <div class="portal-note rte">{{ section.settings.member_note }}</div>
+    {% endif %}
+  </div>
+{% endcapture %}
 
 <section class="portal-area section-{{ section.id }}-padding color-{{ section.settings.color_scheme }} gradient">
   <div class="page-width">
@@ -731,18 +680,9 @@
       "label": "Portal page type",
       "default": "hub",
       "options": [
-        {
-          "value": "hub",
-          "label": "Client Hub"
-        },
-        {
-          "value": "trip",
-          "label": "Your Trip"
-        },
-        {
-          "value": "shop",
-          "label": "Secret Shop"
-        }
+        { "value": "hub", "label": "Client Hub" },
+        { "value": "trip", "label": "Your Trip" },
+        { "value": "shop", "label": "Secret Shop" }
       ]
     },
     {
@@ -781,9 +721,15 @@
     },
     {
       "type": "inline_richtext",
+      "id": "quick_links_heading",
+      "label": "Quick links heading",
+      "default": "Quick links"
+    },
+    {
+      "type": "inline_richtext",
       "id": "dashboard_heading",
       "label": "Dashboard cards heading",
-      "default": "Your dashboard"
+      "default": "Portal sections"
     },
     {
       "type": "inline_richtext",
@@ -825,7 +771,7 @@
       "type": "text",
       "id": "demo_trip_title",
       "label": "Demo trip title",
-      "default": "Your next adventure is taking shape"
+      "default": "Your next luxury escape is taking shape"
     },
     {
       "type": "text",
@@ -843,7 +789,7 @@
       "type": "richtext",
       "id": "demo_trip_summary",
       "label": "Demo trip summary",
-      "default": "<p>Use this hero card for a trip snapshot, booking summary, or top-line itinerary message once live data is connected.</p>"
+      "default": "<p>Use this hero card for a refined upcoming-trip overview, booking summary, or top-line itinerary message until live data is connected.</p>"
     },
     {
       "type": "text",
@@ -915,7 +861,7 @@
       "type": "richtext",
       "id": "cta_body",
       "label": "CTA body",
-      "default": "<p>Keep one strong call to action at the bottom of the hub so clients always know the next commercial path.</p>"
+      "default": "<p>Keep one strong call to action at the bottom of the hub so clients always know the next planning path.</p>"
     },
     {
       "type": "text",
@@ -1013,26 +959,71 @@
   ],
   "blocks": [
     {
+      "type": "quick_action",
+      "name": "Quick action",
+      "settings": [
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Quick action" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Review itinerary" },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "compass",
+          "options": [
+            { "value": "compass", "label": "Compass" },
+            { "value": "ticket", "label": "Ticket" },
+            { "value": "clipboard", "label": "Clipboard" },
+            { "value": "card", "label": "Card" },
+            { "value": "plane", "label": "Plane" },
+            { "value": "sparkle", "label": "Sparkle" }
+          ]
+        },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "link_label", "label": "Link label", "default": "Open" }
+      ]
+    },
+    {
+      "type": "quick_link",
+      "name": "Quick link",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Itinerary" },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "map",
+          "options": [
+            { "value": "map", "label": "Map" },
+            { "value": "ticket", "label": "Ticket" },
+            { "value": "clipboard", "label": "Clipboard" },
+            { "value": "card", "label": "Card" },
+            { "value": "bag", "label": "Bag" }
+          ]
+        },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    },
+    {
       "type": "dashboard_card",
       "name": "Dashboard card",
       "settings": [
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Portal area" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Upcoming Trip" },
+        { "type": "text", "id": "status", "label": "Status", "default": "Placeholder" },
         {
-          "type": "text",
-          "id": "eyebrow",
-          "label": "Eyebrow",
-          "default": "Portal area"
-        },
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Upcoming Trip"
-        },
-        {
-          "type": "text",
-          "id": "status",
-          "label": "Status",
-          "default": "Placeholder"
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "sparkle",
+          "options": [
+            { "value": "plane", "label": "Plane" },
+            { "value": "ticket", "label": "Ticket" },
+            { "value": "clipboard", "label": "Clipboard" },
+            { "value": "card", "label": "Card" },
+            { "value": "bag", "label": "Bag" },
+            { "value": "compass", "label": "Compass" },
+            { "value": "sparkle", "label": "Sparkle" }
+          ]
         },
         {
           "type": "richtext",
@@ -1040,28 +1031,27 @@
           "label": "Description",
           "default": "<p>Add a short description for this client-hub card.</p>"
         },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Link"
-        },
-        {
-          "type": "text",
-          "id": "link_label",
-          "label": "Button label",
-          "default": "Open"
-        }
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "link_label", "label": "Button label", "default": "Open" }
       ]
     },
     {
       "type": "next_step",
       "name": "Next step",
       "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Complete pre-travel form" },
         {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Complete pre-travel form"
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "clipboard",
+          "options": [
+            { "value": "clipboard", "label": "Clipboard" },
+            { "value": "map", "label": "Map" },
+            { "value": "ticket", "label": "Ticket" },
+            { "value": "card", "label": "Card" },
+            { "value": "phone", "label": "Phone" }
+          ]
         },
         {
           "type": "richtext",
@@ -1069,34 +1059,27 @@
           "label": "Description",
           "default": "<p>Add short helper text for this next step.</p>"
         },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Link"
-        },
-        {
-          "type": "text",
-          "id": "link_label",
-          "label": "Link label",
-          "default": "Open"
-        }
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "link_label", "label": "Link label", "default": "Open" }
       ]
     },
     {
       "type": "past_trip",
       "name": "Past trip",
       "settings": [
+        { "type": "text", "id": "dates", "label": "Dates", "default": "June 2025" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Past trip title" },
         {
-          "type": "text",
-          "id": "dates",
-          "label": "Dates",
-          "default": "June 2025"
-        },
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Past trip title"
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "star",
+          "options": [
+            { "value": "star", "label": "Star" },
+            { "value": "plane", "label": "Plane" },
+            { "value": "map", "label": "Map" },
+            { "value": "bag", "label": "Bag" }
+          ]
         },
         {
           "type": "richtext",
@@ -1104,58 +1087,30 @@
           "label": "Description",
           "default": "<p>Use this area for a previous destination, trip type, or short recap.</p>"
         },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Link"
-        },
-        {
-          "type": "text",
-          "id": "link_label",
-          "label": "Link label",
-          "default": "View details"
-        }
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "link_label", "label": "Link label", "default": "View details" }
       ]
     },
     {
       "type": "portal_card",
       "name": "Legacy portal card",
       "settings": [
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Your Trip"
-        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Your Trip" },
         {
           "type": "richtext",
           "id": "description",
           "label": "Description",
           "default": "<p>Add a short description for this destination page.</p>"
         },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Link"
-        },
-        {
-          "type": "text",
-          "id": "link_label",
-          "label": "Button label",
-          "default": "Open"
-        }
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "link_label", "label": "Button label", "default": "Open" }
       ]
     },
     {
       "type": "info_panel",
       "name": "Info panel",
       "settings": [
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Panel heading"
-        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Panel heading" },
         {
           "type": "richtext",
           "id": "body",
@@ -1168,14 +1123,8 @@
           "label": "Width",
           "default": "half",
           "options": [
-            {
-              "value": "half",
-              "label": "Half width"
-            },
-            {
-              "value": "full",
-              "label": "Full width"
-            }
+            { "value": "half", "label": "Half width" },
+            { "value": "full", "label": "Full width" }
           ]
         }
       ]

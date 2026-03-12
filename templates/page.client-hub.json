@@ -3,12 +3,93 @@
     "main": {
       "type": "main-portal-page",
       "blocks": {
+        "quick_action_itinerary": {
+          "type": "quick_action",
+          "settings": {
+            "eyebrow": "Priority",
+            "title": "Review itinerary",
+            "icon": "compass",
+            "link": "/pages/your-trip",
+            "link_label": "Open itinerary"
+          }
+        },
+        "quick_action_tickets": {
+          "type": "quick_action",
+          "settings": {
+            "eyebrow": "Access",
+            "title": "Check tickets",
+            "icon": "ticket",
+            "link": "/pages/your-trip",
+            "link_label": "Check tickets"
+          }
+        },
+        "quick_action_forms": {
+          "type": "quick_action",
+          "settings": {
+            "eyebrow": "Admin",
+            "title": "Complete forms",
+            "icon": "clipboard",
+            "link": "/pages/contact-us",
+            "link_label": "Open forms"
+          }
+        },
+        "quick_action_payments": {
+          "type": "quick_action",
+          "settings": {
+            "eyebrow": "Finance",
+            "title": "Review payments",
+            "icon": "card",
+            "link": "/pages/contact-us",
+            "link_label": "Review payments"
+          }
+        },
+        "quick_link_itinerary": {
+          "type": "quick_link",
+          "settings": {
+            "title": "Itinerary",
+            "icon": "map",
+            "link": "/pages/your-trip"
+          }
+        },
+        "quick_link_tickets": {
+          "type": "quick_link",
+          "settings": {
+            "title": "Tickets",
+            "icon": "ticket",
+            "link": "/pages/your-trip"
+          }
+        },
+        "quick_link_forms": {
+          "type": "quick_link",
+          "settings": {
+            "title": "Forms",
+            "icon": "clipboard",
+            "link": "/pages/contact-us"
+          }
+        },
+        "quick_link_payments": {
+          "type": "quick_link",
+          "settings": {
+            "title": "Payments",
+            "icon": "card",
+            "link": "/pages/contact-us"
+          }
+        },
+        "quick_link_shop": {
+          "type": "quick_link",
+          "settings": {
+            "title": "Secret Shop",
+            "icon": "bag",
+            "link": "/pages/secret-shop"
+          }
+        },
         "upcoming_trip": {
           "type": "dashboard_card",
           "settings": {
             "eyebrow": "Trip",
             "title": "Upcoming Trip",
             "status": "Phase 1 placeholder",
+            "icon": "plane",
             "description": "<p>Use this card for a future trip summary, itinerary snapshot, or quick travel overview.</p>",
             "link": "/pages/your-trip",
             "link_label": "View trip"
@@ -20,6 +101,7 @@
             "eyebrow": "Access",
             "title": "My Tickets",
             "status": "Placeholder",
+            "icon": "ticket",
             "description": "<p>Reserve this area for ticket confirmations, delivery notes, or park access details once connected.</p>",
             "link": "/pages/your-trip",
             "link_label": "Check tickets"
@@ -31,6 +113,7 @@
             "eyebrow": "Admin",
             "title": "Forms",
             "status": "Placeholder",
+            "icon": "clipboard",
             "description": "<p>Use this card later for pre-travel forms, client questionnaires, waivers, or onboarding steps.</p>",
             "link": "/pages/contact-us",
             "link_label": "Open forms"
@@ -42,6 +125,7 @@
             "eyebrow": "Finance",
             "title": "Payments",
             "status": "Placeholder",
+            "icon": "card",
             "description": "<p>Future payment schedules, deposits, reminders, and invoice links can sit here without changing the dashboard layout.</p>",
             "link": "/pages/contact-us",
             "link_label": "Review payments"
@@ -53,6 +137,7 @@
             "eyebrow": "Members",
             "title": "Secret Shop",
             "status": "Private area",
+            "icon": "bag",
             "description": "<p>Link clients into an exclusive members-only shopping experience, rewards area, or curated offers page.</p>",
             "link": "/pages/secret-shop",
             "link_label": "Enter Secret Shop"
@@ -64,6 +149,7 @@
             "eyebrow": "Planning",
             "title": "Guides / Planning Tools",
             "status": "Ready for content",
+            "icon": "compass",
             "description": "<p>Point customers to planning guides, prep resources, destination tips, and future travel tools from here.</p>",
             "link": "/pages/storybook-itineraries",
             "link_label": "View guides"
@@ -73,6 +159,7 @@
           "type": "next_step",
           "settings": {
             "title": "Complete pre-travel form",
+            "icon": "clipboard",
             "description": "<p>Placeholder task for intake forms, preferences, dietary details, or special requests.</p>",
             "link": "/pages/contact-us",
             "link_label": "Complete form"
@@ -82,6 +169,7 @@
           "type": "next_step",
           "settings": {
             "title": "Review itinerary",
+            "icon": "map",
             "description": "<p>Use this to guide clients toward their itinerary page, trip summary, or planning notes later.</p>",
             "link": "/pages/your-trip",
             "link_label": "Review itinerary"
@@ -91,6 +179,7 @@
           "type": "next_step",
           "settings": {
             "title": "Check tickets",
+            "icon": "ticket",
             "description": "<p>Reserve this action for important ticket checks, delivery confirmations, or access instructions.</p>",
             "link": "/pages/your-trip",
             "link_label": "Check tickets"
@@ -100,6 +189,7 @@
           "type": "next_step",
           "settings": {
             "title": "Book planning call",
+            "icon": "phone",
             "description": "<p>Use this next-step slot for consultation bookings, support callbacks, or itinerary review sessions.</p>",
             "link": "/pages/contact-us",
             "link_label": "Book now"
@@ -110,6 +200,7 @@
           "settings": {
             "dates": "June 2025",
             "title": "Disney Cruise getaway",
+            "icon": "star",
             "description": "<p>Example placeholder for a previous trip, recap, or archived planning record.</p>",
             "link": "/pages/disney-cruises",
             "link_label": "View inspiration"
@@ -120,6 +211,7 @@
           "settings": {
             "dates": "December 2024",
             "title": "Theme park family escape",
+            "icon": "map",
             "description": "<p>Another placeholder card showing how past journeys can be surfaced inside the portal later.</p>",
             "link": "/pages/themepark-destinations",
             "link_label": "Explore again"
@@ -127,6 +219,15 @@
         }
       },
       "block_order": [
+        "quick_action_itinerary",
+        "quick_action_tickets",
+        "quick_action_forms",
+        "quick_action_payments",
+        "quick_link_itinerary",
+        "quick_link_tickets",
+        "quick_link_forms",
+        "quick_link_payments",
+        "quick_link_shop",
         "upcoming_trip",
         "tickets",
         "forms",
@@ -147,14 +248,15 @@
         "intro": "<p>Your private dashboard is designed for logged-in customers only. Phase 1 keeps the structure inside the theme so you can launch the client experience now and connect real trip systems later.</p>",
         "member_note": "<p>Keep this page as the front-end shell for future Salesforce, Travefy, Magical Tickets, VTO, Typeform, metafield, or metaobject integrations.</p>",
         "show_page_content": false,
-        "dashboard_heading": "Your dashboard",
+        "quick_links_heading": "Quick links",
+        "dashboard_heading": "Portal sections",
         "next_steps_heading": "Next steps",
         "next_steps_intro": "<p>These are placeholder actions for the first release. Replace them later with customer-specific tasks, forms, or booking milestones.</p>",
         "past_trips_heading": "Past Trips",
         "past_trips_intro": "<p>Use this area to show archived holidays, previous journeys, or repeat-travel inspiration.</p>",
         "show_demo_trip": false,
         "demo_trip_kicker": "Upcoming trip",
-        "demo_trip_title": "Your next adventure is taking shape",
+        "demo_trip_title": "Your next luxury escape is taking shape",
         "demo_trip_dates": "September 18 to September 25",
         "demo_trip_status": "Planning in progress",
         "demo_trip_summary": "<p>This optional hero card gives you a polished populated state for demos before live trip data exists.</p>",

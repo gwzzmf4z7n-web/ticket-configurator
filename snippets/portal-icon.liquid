@@ -1,0 +1,66 @@
+{% comment %}
+  Lightweight inline SVG icons used by the client hub.
+  Keeping this in a snippet makes the portal UI easier to expand later.
+{% endcomment %}
+{%- liquid
+  assign icon_name = icon | default: 'sparkle'
+-%}
+
+{%- case icon_name -%}
+  {%- when 'plane' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M21.5 3.8L2.9 10.9c-.7.3-.6 1.3.2 1.4l6.8 1.6 1.6 6.8c.2.8 1.2.9 1.4.2l7.1-18.6c.2-.7-.5-1.4-1.2-1.1zm-8.2 15.2l-1.1-4.6 5.8-5.8-7.7 4.1-4.6-1.1 12.2-4.7-4.6 12.1z" fill="currentColor"/>
+    </svg>
+  {%- when 'ticket' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M4 7.5A2.5 2.5 0 016.5 5h11A2.5 2.5 0 0120 7.5V9a2 2 0 000 4v1.5a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 14.5V13a2 2 0 000-4V7.5zm2.5-.5a.5.5 0 00-.5.5v2.3l.8.2a4 4 0 010 8l-.8.2v2.3c0 .3.2.5.5.5h11a.5.5 0 00.5-.5v-2.3l-.8-.2a4 4 0 010-8l.8-.2V7.5a.5.5 0 00-.5-.5h-11zm4.5 1.5h2v2h-2v-2zm0 4h2v2h-2v-2z" fill="currentColor"/>
+    </svg>
+  {%- when 'clipboard' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M9 3a2 2 0 00-2 2H6a2 2 0 00-2 2v11a3 3 0 003 3h10a3 3 0 003-3V7a2 2 0 00-2-2h-1a2 2 0 00-2-2H9zm0 2h6v2H9V5zm-2 4h10v2H7V9zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" fill="currentColor"/>
+    </svg>
+  {%- when 'card' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M5 5h14a3 3 0 013 3v8a3 3 0 01-3 3H5a3 3 0 01-3-3V8a3 3 0 013-3zm0 2a1 1 0 00-1 1v1h16V8a1 1 0 00-1-1H5zm-1 5v4a1 1 0 001 1h14a1 1 0 001-1v-4H4zm3 2h4v2H7v-2z" fill="currentColor"/>
+    </svg>
+  {%- when 'bag' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M8 6a4 4 0 118 0h2a2 2 0 012 2l1 10a3 3 0 01-3 3H6a3 3 0 01-3-3L4 8a2 2 0 012-2h2zm2 0h4a2 2 0 10-4 0zm-4 4l-.8 8.1A1 1 0 006.2 19h11.6a1 1 0 001-1.1L18 10h-2v2h-2v-2h-4v2H8v-2H6z" fill="currentColor"/>
+    </svg>
+  {%- when 'compass' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.7 5.3l-2.2 7.2-7.2 2.2 2.2-7.2 7.2-2.2zm-5 5l-.9 2.9 2.9-.9.9-2.9-2.9.9z" fill="currentColor"/>
+    </svg>
+  {%- when 'calendar' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M7 2h2v2h6V2h2v2h1a3 3 0 013 3v11a4 4 0 01-4 4H7a4 4 0 01-4-4V7a3 3 0 013-3h1V2zm12 8H5v8a2 2 0 002 2h10a2 2 0 002-2v-8zM7 6a1 1 0 00-1 1v1h12V7a1 1 0 00-1-1H7zm1 6h3v3H8v-3z" fill="currentColor"/>
+    </svg>
+  {%- when 'suitcase' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M9 4a2 2 0 012-2h2a2 2 0 012 2v1h4a2 2 0 012 2v10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a2 2 0 012-2h4V4zm2 1h2V4h-2v1zm-6 5v7a1 1 0 001 1h12a1 1 0 001-1v-7H5zm5 2h4v2h-4v-2z" fill="currentColor"/>
+    </svg>
+  {%- when 'map' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M15 4l5-2v16l-5 2-6-2-5 2V4l5-2 6 2zm-1 2.4l-4-1.3v12.5l4 1.3V6.4zm2-.1v12.5l2-.8V5.5l-2 .8zm-10 .2v12.5l2-.8V5.7l-2 .8z" fill="currentColor"/>
+    </svg>
+  {%- when 'lock' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a3 3 0 003 3h10a3 3 0 003-3v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3H9zm3 3a2 2 0 012 2 2 2 0 01-1 1.7V18h-2v-1.3a2 2 0 01-1-1.7 2 2 0 012-2z" fill="currentColor"/>
+    </svg>
+  {%- when 'phone' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M7.3 2h2.9a1 1 0 01.9.8l.7 3.5a1 1 0 01-.3.9l-1.8 1.8a14.5 14.5 0 005.5 5.5l1.8-1.8a1 1 0 01.9-.3l3.5.7a1 1 0 01.8.9v2.9A2 2 0 0120.8 21C10.4 21 3 13.6 3 3.2A2 2 0 015.2 1h2.1z" fill="currentColor"/>
+    </svg>
+  {%- when 'star' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M12 3l2.5 5.1 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8L12 3z" fill="currentColor"/>
+    </svg>
+  {%- when 'arrow' -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M6 12h10.2l-3.6-3.6L14 7l6 6-6 6-1.4-1.4 3.6-3.6H6v-2z" fill="currentColor"/>
+    </svg>
+  {%- else -%}
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 12l1.1 3.1L22 18l-2.9 1-1.1 3.1-1.1-3.1L14 18l2.9-1L18 14zM6 14l1.1 3.1L10 18l-2.9 1L6 22l-1.1-3.1L2 18l2.9-1L6 14z" fill="currentColor"/>
+    </svg>
+{%- endcase -%}
