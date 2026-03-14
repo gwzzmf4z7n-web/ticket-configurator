@@ -2,6 +2,7 @@
   Coeliac Traveller
 {% endcomment %}
 {{ 'coeliac-traveller.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'coeliac-traveller.js' | asset_url }}" defer="defer"></script>
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -61,19 +62,82 @@
         </div>
       </div>
 
-      <div class="coeliac-traveller__hero-image-wrap">
-        <div class="coeliac-traveller__hero-image">
-          {%- if section.settings.image != blank -%}
-            {{
-              section.settings.image
-              | image_url: width: 1200
-              | image_tag:
-                widths: '400, 600, 800, 1000, 1200',
-                sizes: '(min-width: 990px) 34rem, (min-width: 750px) 40vw, calc(100vw - 6rem)',
-                alt: section.settings.image.alt | escape
-            }}
-          {%- endif -%}
+      {%- liquid
+        assign slide_count = section.blocks.size
+        if slide_count == 0 and section.settings.image != blank
+          assign slide_count = 1
+        endif
+      -%}
+
+      <div class="coeliac-traveller__hero-media">
+        <div
+          class="coeliac-traveller__hero-slider"
+          {% if slide_count > 1 %}
+            data-coeliac-traveller-slider
+          {% endif %}
+        >
+          <div class="coeliac-traveller__hero-track" {% if slide_count > 1 %}data-coeliac-traveller-track{% endif %}>
+            {%- if section.blocks.size > 0 -%}
+              {%- for block in section.blocks -%}
+                <article class="coeliac-traveller__hero-slide" {{ block.shopify_attributes }} {% if slide_count > 1 %}data-coeliac-traveller-slide{% endif %}>
+                  <div class="coeliac-traveller__hero-image">
+                    {%- if block.settings.image != blank -%}
+                      {{
+                        block.settings.image
+                        | image_url: width: 1800
+                        | image_tag:
+                          widths: '600, 900, 1200, 1500, 1800',
+                          sizes: '(min-width: 990px) 60vw, (min-width: 750px) 52vw, calc(100vw - 6rem)',
+                          alt: block.settings.image.alt | escape
+                      }}
+                    {%- endif -%}
+                  </div>
+                  {%- if block.settings.caption != blank -%}
+                    <div class="coeliac-traveller__hero-slide-caption">{{ block.settings.caption }}</div>
+                  {%- endif -%}
+                </article>
+              {%- endfor -%}
+            {%- elsif section.settings.image != blank -%}
+              <article class="coeliac-traveller__hero-slide">
+                <div class="coeliac-traveller__hero-image">
+                  {{
+                    section.settings.image
+                    | image_url: width: 1800
+                    | image_tag:
+                      widths: '600, 900, 1200, 1500, 1800',
+                      sizes: '(min-width: 990px) 60vw, (min-width: 750px) 52vw, calc(100vw - 6rem)',
+                      alt: section.settings.image.alt | escape
+                  }}
+                </div>
+              </article>
+            {%- endif -%}
+          </div>
         </div>
+
+        {%- if slide_count > 1 -%}
+          <div class="coeliac-traveller__hero-controls">
+            <div class="coeliac-traveller__hero-arrows">
+              <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Previous slide" data-coeliac-traveller-prev>
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Next slide" data-coeliac-traveller-next>
+                <span aria-hidden="true">›</span>
+              </button>
+            </div>
+
+            <div class="coeliac-traveller__hero-dots">
+              {%- for block in section.blocks -%}
+                <button
+                  class="coeliac-traveller__hero-dot{% if forloop.first %} is-active{% endif %}"
+                  type="button"
+                  aria-label="Go to slide {{ forloop.index }}"
+                  {% if forloop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}
+                  data-coeliac-traveller-dot
+                ></button>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
       </div>
     </div>
   </div>
@@ -106,7 +170,7 @@
     {
       "type": "image_picker",
       "id": "image",
-      "label": "Image"
+      "label": "Fallback image"
     },
     {
       "type": "text",
@@ -173,9 +237,39 @@
       "default": 24
     }
   ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Hero slide",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption"
+        }
+      ]
+    }
+  ],
   "presets": [
     {
-      "name": "Coeliac Traveller hero"
+      "name": "Coeliac Traveller hero",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
     }
   ]
 }

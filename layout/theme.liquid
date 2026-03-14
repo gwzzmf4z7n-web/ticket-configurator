@@ -307,7 +307,11 @@
       {%- render 'cart-drawer' -%}
     {%- endif -%}
 
-    {% sections 'header-group' %}
+    {% if request.page_type == 'page' and template.suffix == 'coeliac-traveller' %}
+      {% sections 'coeliac-traveller-header-group' %}
+    {% else %}
+      {% sections 'header-group' %}
+    {% endif %}
 
     <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
       {{ content_for_layout }}

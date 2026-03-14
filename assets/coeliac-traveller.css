@@ -5,7 +5,7 @@
   --ct-ink: #2f2840;
   --ct-muted: rgba(47, 40, 64, 0.72);
   --ct-border: rgba(47, 40, 64, 0.12);
-  --ct-shadow: 0 24px 60px rgba(77, 62, 110, 0.12);
+  --ct-shadow: 0 18px 40px rgba(77, 62, 110, 0.08);
   --ct-radius-xl: 3.2rem;
   --ct-radius-lg: 2.4rem;
   --ct-radius-md: 1.8rem;
@@ -33,9 +33,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at top left, rgba(248, 254, 215, 0.9), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94));
   pointer-events: none;
 }
 
@@ -49,7 +47,7 @@
   overflow: hidden;
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-xl);
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: var(--ct-shadow);
 }
 
@@ -157,37 +155,40 @@
   display: grid;
   gap: 3.2rem;
   padding: 3.2rem;
-  background:
-    radial-gradient(circle at top right, rgba(219, 209, 240, 0.9), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(248, 254, 215, 0.92), transparent 24%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 255, 0.92));
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .coeliac-traveller__hero-copy {
-  max-width: 62rem;
+  max-width: 42rem;
 }
 
-.coeliac-traveller__hero-image-wrap {
+.coeliac-traveller__hero-media {
   position: relative;
 }
 
-.coeliac-traveller__hero-image-wrap::after {
-  content: '';
-  position: absolute;
-  inset: auto 1.6rem -1.6rem auto;
-  width: 12rem;
-  height: 12rem;
-  border-radius: 50%;
-  background: rgba(248, 254, 215, 0.9);
-  filter: blur(0.4rem);
+.coeliac-traveller__hero-slider {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--ct-radius-xl) - 0.8rem);
+  background: #f2eef9;
+  border: 1px solid rgba(47, 40, 64, 0.08);
+}
+
+.coeliac-traveller__hero-track {
+  display: flex;
+  transition: transform 280ms ease;
+}
+
+.coeliac-traveller__hero-slide {
+  position: relative;
+  min-width: 100%;
 }
 
 .coeliac-traveller__hero-image {
   position: relative;
   overflow: hidden;
-  border-radius: calc(var(--ct-radius-xl) - 0.8rem);
-  aspect-ratio: 4 / 5;
-  background: linear-gradient(160deg, rgba(219, 209, 240, 0.9), rgba(248, 254, 215, 0.95));
+  aspect-ratio: 16 / 11;
+  background: #f2eef9;
 }
 
 .coeliac-traveller__hero-image img,
@@ -196,6 +197,72 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.coeliac-traveller__hero-slide-caption {
+  position: absolute;
+  left: 1.6rem;
+  bottom: 1.6rem;
+  max-width: calc(100% - 3.2rem);
+  padding: 1rem 1.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  color: var(--ct-ink);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.coeliac-traveller__hero-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  margin-top: 1.6rem;
+}
+
+.coeliac-traveller__hero-arrows {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.coeliac-traveller__hero-arrow,
+.coeliac-traveller__hero-dot {
+  border: 0;
+  cursor: pointer;
+}
+
+.coeliac-traveller__hero-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background: rgba(248, 254, 215, 0.9);
+  color: var(--ct-ink);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.coeliac-traveller__hero-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.coeliac-traveller__hero-dot {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(47, 40, 64, 0.18);
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.coeliac-traveller__hero-dot.is-active {
+  transform: scale(1.15);
+  background: #b9abd9;
 }
 
 .coeliac-traveller__hero-meta {
@@ -240,7 +307,7 @@
 .coeliac-traveller__intro-card {
   padding: 2rem;
   border-radius: var(--ct-radius-lg);
-  background: rgba(248, 254, 215, 0.78);
+  background: rgba(248, 254, 215, 0.58);
 }
 
 .coeliac-traveller__feature-grid-panel,
@@ -269,19 +336,19 @@
   padding: 2.2rem;
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-lg);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 254, 215, 0.6));
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 2) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(219, 209, 240, 0.42));
+  background: rgba(250, 247, 255, 0.98);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 3) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 254, 215, 0.82));
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 4) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(219, 209, 240, 0.32));
+  background: rgba(250, 247, 255, 0.98);
 }
 
 .coeliac-traveller__feature-kicker {
@@ -343,9 +410,7 @@
 }
 
 .coeliac-traveller__signup-panel {
-  background:
-    radial-gradient(circle at top left, rgba(219, 209, 240, 0.85), transparent 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 254, 215, 0.82));
+  background: rgba(252, 252, 247, 0.98);
 }
 
 .coeliac-traveller__signup-layout {
@@ -448,7 +513,7 @@
   .coeliac-traveller__hero-panel,
   .coeliac-traveller__intro-panel,
   .coeliac-traveller__signup-layout {
-    grid-template-columns: minmax(0, 1.2fr) minmax(28rem, 0.8fr);
+    grid-template-columns: minmax(28rem, 0.78fr) minmax(0, 1.22fr);
     align-items: center;
   }
 
@@ -459,7 +524,7 @@
 
 @media screen and (min-width: 990px) {
   .coeliac-traveller__hero-panel {
-    grid-template-columns: minmax(0, 1.2fr) minmax(34rem, 0.8fr);
+    grid-template-columns: minmax(30rem, 0.72fr) minmax(0, 1.28fr);
   }
 
   .coeliac-traveller__intro-panel {

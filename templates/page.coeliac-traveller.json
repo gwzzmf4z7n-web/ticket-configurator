@@ -2,6 +2,27 @@
   "sections": {
     "coeliac_traveller_hero": {
       "type": "coeliac-traveller-hero",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "caption": "Destination inspiration"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "caption": "Gluten free travel planning"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "caption": "Creator-led recommendations"
+          }
+        }
+      },
+      "block_order": ["slide_1", "slide_2", "slide_3"],
       "settings": {
         "eyebrow": "Coeliac Traveller",
         "heading": "Gluten free travel with calm, useful guidance",
