@@ -20,124 +20,139 @@
 
 <section class="coeliac-traveller coeliac-traveller__section coeliac-traveller__hero section-{{ section.id }}-padding">
   <div class="page-width">
+    {%- liquid
+      assign slide_count = section.blocks.size
+      if slide_count == 0 and section.settings.image != blank
+        assign slide_count = 1
+      endif
+    -%}
+
     <div class="coeliac-traveller__panel coeliac-traveller__hero-panel">
-      <div class="coeliac-traveller__hero-copy">
-        {%- if section.settings.eyebrow != blank -%}
-          <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
-        {%- endif -%}
-
-        {%- if section.settings.heading != blank -%}
-          <h1 class="coeliac-traveller__heading">{{ section.settings.heading }}</h1>
-        {%- endif -%}
-
-        {%- if section.settings.subheading != blank -%}
-          <div class="coeliac-traveller__body rte">
-            {{ section.settings.subheading }}
-          </div>
-        {%- endif -%}
-
-        <div class="coeliac-traveller__hero-meta">
-          {%- if section.settings.meta_one != blank -%}
-            <span class="coeliac-traveller__pill">{{ section.settings.meta_one }}</span>
-          {%- endif -%}
-          {%- if section.settings.meta_two != blank -%}
-            <span class="coeliac-traveller__pill">{{ section.settings.meta_two }}</span>
-          {%- endif -%}
-          {%- if section.settings.meta_three != blank -%}
-            <span class="coeliac-traveller__pill">{{ section.settings.meta_three }}</span>
-          {%- endif -%}
-        </div>
-
-        <div class="coeliac-traveller__actions">
-          {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
-            <a class="coeliac-traveller__button" href="{{ section.settings.button_link }}">
-              {{ section.settings.button_label }}
-            </a>
-          {%- endif -%}
-          {%- if section.settings.secondary_button_label != blank and section.settings.secondary_button_link != blank -%}
-            <a class="coeliac-traveller__button coeliac-traveller__button--secondary" href="{{ section.settings.secondary_button_link }}">
-              {{ section.settings.secondary_button_label }}
-            </a>
-          {%- endif -%}
-        </div>
-      </div>
-
-      {%- liquid
-        assign slide_count = section.blocks.size
-        if slide_count == 0 and section.settings.image != blank
-          assign slide_count = 1
-        endif
-      -%}
-
-      <div class="coeliac-traveller__hero-media">
-        <div
-          class="coeliac-traveller__hero-slider"
-          {% if slide_count > 1 %}
-            data-coeliac-traveller-slider
-          {% endif %}
-        >
-          <div class="coeliac-traveller__hero-track" {% if slide_count > 1 %}data-coeliac-traveller-track{% endif %}>
-            {%- if section.blocks.size > 0 -%}
-              {%- for block in section.blocks -%}
-                <article class="coeliac-traveller__hero-slide" {{ block.shopify_attributes }} {% if slide_count > 1 %}data-coeliac-traveller-slide{% endif %}>
-                  <div class="coeliac-traveller__hero-image">
-                    {%- if block.settings.image != blank -%}
-                      {{
-                        block.settings.image
-                        | image_url: width: 1800
-                        | image_tag:
-                          widths: '600, 900, 1200, 1500, 1800',
-                          sizes: '(min-width: 990px) 60vw, (min-width: 750px) 52vw, calc(100vw - 6rem)',
-                          alt: block.settings.image.alt | escape
-                      }}
-                    {%- endif -%}
-                  </div>
-                  {%- if block.settings.caption != blank -%}
-                    <div class="coeliac-traveller__hero-slide-caption">{{ block.settings.caption }}</div>
-                  {%- endif -%}
-                </article>
-              {%- endfor -%}
-            {%- elsif section.settings.image != blank -%}
-              <article class="coeliac-traveller__hero-slide">
+      <div
+        class="coeliac-traveller__hero-slider"
+        {% if slide_count > 1 %}
+          data-coeliac-traveller-slider
+        {% endif %}
+      >
+        <div class="coeliac-traveller__hero-track" {% if slide_count > 1 %}data-coeliac-traveller-track{% endif %}>
+          {%- if section.blocks.size > 0 -%}
+            {%- for block in section.blocks -%}
+              <article class="coeliac-traveller__hero-slide" {{ block.shopify_attributes }} {% if slide_count > 1 %}data-coeliac-traveller-slide{% endif %}>
                 <div class="coeliac-traveller__hero-image">
+                  {%- if block.settings.image != blank -%}
+                    {{
+                      block.settings.image
+                      | image_url: width: 2200
+                      | image_tag:
+                        widths: '750, 1100, 1500, 1800, 2200',
+                        sizes: '100vw',
+                        alt: block.settings.image.alt | escape
+                    }}
+                  {%- elsif section.settings.image != blank -%}
+                    {{
+                      section.settings.image
+                      | image_url: width: 2200
+                      | image_tag:
+                        widths: '750, 1100, 1500, 1800, 2200',
+                        sizes: '100vw',
+                        alt: section.settings.image.alt | escape
+                    }}
+                  {%- else -%}
+                    {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder-svg' }}
+                  {%- endif -%}
+                </div>
+                {%- if block.settings.caption != blank -%}
+                  <div class="coeliac-traveller__hero-slide-caption">{{ block.settings.caption }}</div>
+                {%- endif -%}
+              </article>
+            {%- endfor -%}
+          {%- else -%}
+            <article class="coeliac-traveller__hero-slide">
+              <div class="coeliac-traveller__hero-image">
+                {%- if section.settings.image != blank -%}
                   {{
                     section.settings.image
-                    | image_url: width: 1800
+                    | image_url: width: 2200
                     | image_tag:
-                      widths: '600, 900, 1200, 1500, 1800',
-                      sizes: '(min-width: 990px) 60vw, (min-width: 750px) 52vw, calc(100vw - 6rem)',
+                      widths: '750, 1100, 1500, 1800, 2200',
+                      sizes: '100vw',
                       alt: section.settings.image.alt | escape
                   }}
-                </div>
-              </article>
-            {%- endif -%}
-          </div>
+                {%- else -%}
+                  {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </div>
+            </article>
+          {%- endif -%}
         </div>
 
-        {%- if slide_count > 1 -%}
-          <div class="coeliac-traveller__hero-controls">
-            <div class="coeliac-traveller__hero-arrows">
-              <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Previous slide" data-coeliac-traveller-prev>
-                <span aria-hidden="true">‹</span>
-              </button>
-              <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Next slide" data-coeliac-traveller-next>
-                <span aria-hidden="true">›</span>
-              </button>
+        <div class="coeliac-traveller__hero-overlay">
+          <div class="coeliac-traveller__hero-copy">
+            {%- if section.settings.eyebrow != blank -%}
+              <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
+            {%- endif -%}
+
+            {%- if section.settings.heading != blank -%}
+              <h1 class="coeliac-traveller__heading">{{ section.settings.heading }}</h1>
+            {%- endif -%}
+
+            {%- if section.settings.subheading != blank -%}
+              <div class="coeliac-traveller__body rte">
+                {{ section.settings.subheading }}
+              </div>
+            {%- endif -%}
+
+            <div class="coeliac-traveller__hero-meta">
+              {%- if section.settings.meta_one != blank -%}
+                <span class="coeliac-traveller__pill">{{ section.settings.meta_one }}</span>
+              {%- endif -%}
+              {%- if section.settings.meta_two != blank -%}
+                <span class="coeliac-traveller__pill">{{ section.settings.meta_two }}</span>
+              {%- endif -%}
+              {%- if section.settings.meta_three != blank -%}
+                <span class="coeliac-traveller__pill">{{ section.settings.meta_three }}</span>
+              {%- endif -%}
             </div>
 
-            <div class="coeliac-traveller__hero-dots">
-              {%- for block in section.blocks -%}
-                <button
-                  class="coeliac-traveller__hero-dot{% if forloop.first %} is-active{% endif %}"
-                  type="button"
-                  aria-label="Go to slide {{ forloop.index }}"
-                  {% if forloop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}
-                  data-coeliac-traveller-dot
-                ></button>
-              {%- endfor -%}
+            <div class="coeliac-traveller__actions">
+              {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+                <a class="coeliac-traveller__button" href="{{ section.settings.button_link }}">
+                  {{ section.settings.button_label }}
+                </a>
+              {%- endif -%}
+              {%- if section.settings.secondary_button_label != blank and section.settings.secondary_button_link != blank -%}
+                <a class="coeliac-traveller__button coeliac-traveller__button--secondary" href="{{ section.settings.secondary_button_link }}">
+                  {{ section.settings.secondary_button_label }}
+                </a>
+              {%- endif -%}
             </div>
           </div>
-        {%- endif -%}
+
+          {%- if slide_count > 1 -%}
+            <div class="coeliac-traveller__hero-controls">
+              <div class="coeliac-traveller__hero-arrows">
+                <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Previous slide" data-coeliac-traveller-prev>
+                  <span aria-hidden="true">‹</span>
+                </button>
+                <button class="coeliac-traveller__hero-arrow" type="button" aria-label="Next slide" data-coeliac-traveller-next>
+                  <span aria-hidden="true">›</span>
+                </button>
+              </div>
+
+              <div class="coeliac-traveller__hero-dots">
+                {%- for block in section.blocks -%}
+                  <button
+                    class="coeliac-traveller__hero-dot{% if forloop.first %} is-active{% endif %}"
+                    type="button"
+                    aria-label="Go to slide {{ forloop.index }}"
+                    {% if forloop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}
+                    data-coeliac-traveller-dot
+                  ></button>
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- endif -%}
+        </div>
       </div>
     </div>
   </div>

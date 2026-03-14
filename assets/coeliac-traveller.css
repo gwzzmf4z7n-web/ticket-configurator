@@ -47,7 +47,7 @@
   overflow: hidden;
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-xl);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(219, 209, 240, 0.38);
   box-shadow: var(--ct-shadow);
 }
 
@@ -152,26 +152,16 @@
 }
 
 .coeliac-traveller__hero-panel {
-  display: grid;
-  gap: 3.2rem;
-  padding: 3.2rem;
-  background: rgba(255, 255, 255, 0.98);
-}
-
-.coeliac-traveller__hero-copy {
-  max-width: 42rem;
-}
-
-.coeliac-traveller__hero-media {
-  position: relative;
+  padding: 0;
+  background: rgba(219, 209, 240, 0.48);
 }
 
 .coeliac-traveller__hero-slider {
   position: relative;
   overflow: hidden;
-  border-radius: calc(var(--ct-radius-xl) - 0.8rem);
-  background: #f2eef9;
-  border: 1px solid rgba(47, 40, 64, 0.08);
+  min-height: 52rem;
+  border-radius: calc(var(--ct-radius-xl) - 0.2rem);
+  background: #d7ceee;
 }
 
 .coeliac-traveller__hero-track {
@@ -187,8 +177,15 @@
 .coeliac-traveller__hero-image {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 11;
-  background: #f2eef9;
+  min-height: 52rem;
+  background: #d7ceee;
+}
+
+.coeliac-traveller__hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(36, 29, 57, 0.56) 0%, rgba(36, 29, 57, 0.18) 42%, rgba(36, 29, 57, 0.18) 100%);
 }
 
 .coeliac-traveller__hero-image img,
@@ -199,14 +196,34 @@
   object-fit: cover;
 }
 
+.coeliac-traveller__hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.4rem;
+  pointer-events: none;
+}
+
+.coeliac-traveller__hero-copy {
+  width: min(100%, 52rem);
+  padding: 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2.8rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16px 36px rgba(29, 22, 46, 0.14);
+  pointer-events: auto;
+}
+
 .coeliac-traveller__hero-slide-caption {
   position: absolute;
-  left: 1.6rem;
+  right: 1.6rem;
   bottom: 1.6rem;
   max-width: calc(100% - 3.2rem);
   padding: 1rem 1.4rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(248, 254, 215, 0.88);
   backdrop-filter: blur(8px);
   color: var(--ct-ink);
   font-size: 1.3rem;
@@ -218,7 +235,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
-  margin-top: 1.6rem;
+  pointer-events: auto;
 }
 
 .coeliac-traveller__hero-arrows {
@@ -239,7 +256,7 @@
   width: 4.4rem;
   height: 4.4rem;
   border-radius: 50%;
-  background: rgba(248, 254, 215, 0.9);
+  background: rgba(248, 254, 215, 0.96);
   color: var(--ct-ink);
   font-size: 2rem;
   line-height: 1;
@@ -262,7 +279,7 @@
 
 .coeliac-traveller__hero-dot.is-active {
   transform: scale(1.15);
-  background: #b9abd9;
+  background: #f8fed7;
 }
 
 .coeliac-traveller__hero-meta {
@@ -279,7 +296,7 @@
   padding: 0.8rem 1.4rem;
   border: 1px solid rgba(47, 40, 64, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(248, 254, 215, 0.88);
   color: var(--ct-ink);
   font-size: 1.3rem;
   font-weight: 600;
@@ -307,13 +324,14 @@
 .coeliac-traveller__intro-card {
   padding: 2rem;
   border-radius: var(--ct-radius-lg);
-  background: rgba(248, 254, 215, 0.58);
+  background: rgba(248, 254, 215, 0.82);
 }
 
 .coeliac-traveller__feature-grid-panel,
 .coeliac-traveller__social-panel,
 .coeliac-traveller__featured-collection-panel {
   padding: 3.2rem;
+  background: rgba(219, 209, 240, 0.48);
 }
 
 .coeliac-traveller__section-header {
@@ -336,19 +354,19 @@
   padding: 2.2rem;
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-lg);
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.56);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 2) {
-  background: rgba(250, 247, 255, 0.98);
+  background: rgba(248, 254, 215, 0.5);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 3) {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.56);
 }
 
 .coeliac-traveller__feature-card:nth-child(4n + 4) {
-  background: rgba(250, 247, 255, 0.98);
+  background: rgba(248, 254, 215, 0.5);
 }
 
 .coeliac-traveller__feature-kicker {
@@ -390,7 +408,7 @@
   gap: 0.8rem;
   padding-left: 1.6rem;
   padding-right: 1.6rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.58);
   border-color: var(--ct-border);
   color: var(--ct-ink);
 }
@@ -410,7 +428,7 @@
 }
 
 .coeliac-traveller__signup-panel {
-  background: rgba(252, 252, 247, 0.98);
+  background: rgba(219, 209, 240, 0.48);
 }
 
 .coeliac-traveller__signup-layout {
@@ -421,7 +439,7 @@
 .coeliac-traveller__signup-aside {
   padding: 2rem;
   border-radius: var(--ct-radius-lg);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(47, 40, 64, 0.08);
 }
 
@@ -492,7 +510,7 @@
   padding: 2rem;
   border: 1px dashed rgba(47, 40, 64, 0.2);
   border-radius: var(--ct-radius-lg);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.56);
 }
 
 @media screen and (min-width: 750px) {
@@ -501,7 +519,6 @@
     padding-right: 3.2rem;
   }
 
-  .coeliac-traveller__hero-panel,
   .coeliac-traveller__intro-panel,
   .coeliac-traveller__feature-grid-panel,
   .coeliac-traveller__social-panel,
@@ -510,11 +527,23 @@
     padding: 4.2rem;
   }
 
-  .coeliac-traveller__hero-panel,
   .coeliac-traveller__intro-panel,
   .coeliac-traveller__signup-layout {
     grid-template-columns: minmax(28rem, 0.78fr) minmax(0, 1.22fr);
     align-items: center;
+  }
+
+  .coeliac-traveller__hero-slider,
+  .coeliac-traveller__hero-image {
+    min-height: 62rem;
+  }
+
+  .coeliac-traveller__hero-overlay {
+    padding: 3.2rem;
+  }
+
+  .coeliac-traveller__hero-copy {
+    padding: 3rem;
   }
 
   .coeliac-traveller__feature-grid {
@@ -523,10 +552,6 @@
 }
 
 @media screen and (min-width: 990px) {
-  .coeliac-traveller__hero-panel {
-    grid-template-columns: minmax(30rem, 0.72fr) minmax(0, 1.28fr);
-  }
-
   .coeliac-traveller__intro-panel {
     grid-template-columns: minmax(0, 1fr) minmax(34rem, 0.92fr);
   }
@@ -537,5 +562,9 @@
 
   .coeliac-traveller__product-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .coeliac-traveller__hero-overlay {
+    padding: 4rem;
   }
 }
