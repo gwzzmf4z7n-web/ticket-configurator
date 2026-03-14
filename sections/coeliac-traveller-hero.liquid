@@ -1,0 +1,182 @@
+{% comment %}
+  Coeliac Traveller
+{% endcomment %}
+{{ 'coeliac-traveller.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="coeliac-traveller coeliac-traveller__section coeliac-traveller__hero section-{{ section.id }}-padding">
+  <div class="page-width">
+    <div class="coeliac-traveller__panel coeliac-traveller__hero-panel">
+      <div class="coeliac-traveller__hero-copy">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h1 class="coeliac-traveller__heading">{{ section.settings.heading }}</h1>
+        {%- endif -%}
+
+        {%- if section.settings.subheading != blank -%}
+          <div class="coeliac-traveller__body rte">
+            {{ section.settings.subheading }}
+          </div>
+        {%- endif -%}
+
+        <div class="coeliac-traveller__hero-meta">
+          {%- if section.settings.meta_one != blank -%}
+            <span class="coeliac-traveller__pill">{{ section.settings.meta_one }}</span>
+          {%- endif -%}
+          {%- if section.settings.meta_two != blank -%}
+            <span class="coeliac-traveller__pill">{{ section.settings.meta_two }}</span>
+          {%- endif -%}
+          {%- if section.settings.meta_three != blank -%}
+            <span class="coeliac-traveller__pill">{{ section.settings.meta_three }}</span>
+          {%- endif -%}
+        </div>
+
+        <div class="coeliac-traveller__actions">
+          {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+            <a class="coeliac-traveller__button" href="{{ section.settings.button_link }}">
+              {{ section.settings.button_label }}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.secondary_button_label != blank and section.settings.secondary_button_link != blank -%}
+            <a class="coeliac-traveller__button coeliac-traveller__button--secondary" href="{{ section.settings.secondary_button_link }}">
+              {{ section.settings.secondary_button_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="coeliac-traveller__hero-image-wrap">
+        <div class="coeliac-traveller__hero-image">
+          {%- if section.settings.image != blank -%}
+            {{
+              section.settings.image
+              | image_url: width: 1200
+              | image_tag:
+                widths: '400, 600, 800, 1000, 1200',
+                sizes: '(min-width: 990px) 34rem, (min-width: 750px) 40vw, calc(100vw - 6rem)',
+                alt: section.settings.image.alt | escape
+            }}
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Coeliac Traveller hero",
+  "tag": "section",
+  "class": "section section-coeliac-traveller-hero",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Coeliac Traveller"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Gluten free travel with a softer, smarter guide"
+    },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Intro text",
+      "default": "<p>Share destination ideas, practical travel tips, favourite finds, and easy recommendations for coeliac travellers and gluten free families.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "meta_one",
+      "label": "Meta pill 1",
+      "default": "Travel guides"
+    },
+    {
+      "type": "text",
+      "id": "meta_two",
+      "label": "Meta pill 2",
+      "default": "Gluten free tips"
+    },
+    {
+      "type": "text",
+      "id": "meta_three",
+      "label": "Meta pill 3",
+      "default": "Products we love"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Primary button label",
+      "default": "Explore the guide"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_button_label",
+      "label": "Secondary button label",
+      "default": "Join the newsletter"
+    },
+    {
+      "type": "url",
+      "id": "secondary_button_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coeliac Traveller hero"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,197 @@
+{% comment %}
+  Coeliac Traveller
+{% endcomment %}
+{{ 'coeliac-traveller.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="coeliac-traveller coeliac-traveller__section section-{{ section.id }}-padding">
+  <div class="page-width">
+    <div class="coeliac-traveller__panel coeliac-traveller__featured-collection-panel">
+      <div class="coeliac-traveller__section-header">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="coeliac-traveller__heading coeliac-traveller__heading--medium">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.body != blank -%}
+          <div class="coeliac-traveller__body rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.collection != blank and section.settings.collection.products_count > 0 -%}
+        <div class="coeliac-traveller__product-grid">
+          {%- for product in section.settings.collection.products limit: section.settings.products_to_show -%}
+            <div>
+              {% render 'card-product',
+                card_product: product,
+                media_aspect_ratio: section.settings.image_ratio,
+                show_secondary_image: section.settings.show_secondary_image,
+                show_vendor: section.settings.show_vendor,
+                show_rating: false,
+                lazy_load: true,
+                section_id: section.id,
+                quick_add: 'none'
+              %}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.show_view_all -%}
+          <div class="coeliac-traveller__actions">
+            <a class="coeliac-traveller__button coeliac-traveller__button--secondary" href="{{ section.settings.collection.url }}">
+              {{ section.settings.view_all_label }}
+            </a>
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="coeliac-traveller__empty">
+          <strong>{{ section.settings.empty_heading }}</strong>
+          <div class="coeliac-traveller__caption rte">{{ section.settings.empty_text }}</div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CT featured products",
+  "tag": "section",
+  "class": "section section-coeliac-traveller-featured-collection",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Shop edit"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured products"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>Optional product area for trusted favourites, travel essentials, or featured MrChocolate products that fit the Coeliac Traveller brand.</p>"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4,
+      "label": "Products to show"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "default": "portrait",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to image"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Show secondary image on hover",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show view all button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "View all button label",
+      "default": "View collection"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Empty state heading",
+      "default": "Add a collection when you're ready"
+    },
+    {
+      "type": "richtext",
+      "id": "empty_text",
+      "label": "Empty state text",
+      "default": "<p>This section is ready for future featured products. Choose a collection in the theme editor to populate it.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coeliac Traveller featured collection"
+    }
+  ]
+}
+{% endschema %}

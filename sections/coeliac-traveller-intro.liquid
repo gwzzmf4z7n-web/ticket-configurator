@@ -1,0 +1,140 @@
+{% comment %}
+  Coeliac Traveller
+{% endcomment %}
+{{ 'coeliac-traveller.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="coeliac-traveller coeliac-traveller__section section-{{ section.id }}-padding">
+  <div class="page-width">
+    <div class="coeliac-traveller__panel coeliac-traveller__intro-panel">
+      <div>
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="coeliac-traveller__heading coeliac-traveller__heading--medium">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.body != blank -%}
+          <div class="coeliac-traveller__body rte">
+            {{ section.settings.body }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="coeliac-traveller__intro-media">
+        <div class="coeliac-traveller__intro-image">
+          {%- if section.settings.image != blank -%}
+            {{
+              section.settings.image
+              | image_url: width: 1200
+              | image_tag:
+                widths: '400, 600, 800, 1000, 1200',
+                sizes: '(min-width: 990px) 34rem, (min-width: 750px) 40vw, calc(100vw - 6rem)',
+                alt: section.settings.image.alt | escape
+            }}
+          {%- endif -%}
+        </div>
+
+        {%- if section.settings.highlight_heading != blank or section.settings.highlight_text != blank -%}
+          <div class="coeliac-traveller__intro-card">
+            {%- if section.settings.highlight_heading != blank -%}
+              <h3 class="coeliac-traveller__feature-title">{{ section.settings.highlight_heading }}</h3>
+            {%- endif -%}
+            {%- if section.settings.highlight_text != blank -%}
+              <div class="coeliac-traveller__caption rte">
+                {{ section.settings.highlight_text }}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Coeliac Traveller intro",
+  "tag": "section",
+  "class": "section section-coeliac-traveller-intro",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "About the brand"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "A welcoming content space for gluten free travel"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>Use this section to introduce the story behind Coeliac Traveller, explain who the content is for, and outline the kind of trusted recommendations people can expect.</p><p>It is designed as a modular editorial block so you can reuse it across future landing pages, guide pages, or campaign pages later.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "highlight_heading",
+      "label": "Highlight heading",
+      "default": "Built to grow later"
+    },
+    {
+      "type": "richtext",
+      "id": "highlight_text",
+      "label": "Highlight text",
+      "default": "<p>Later this can expand into destination guides, creator-led reviews, affiliate pages, featured products, and a distinct content brand without rebuilding the whole structure.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coeliac Traveller intro"
+    }
+  ]
+}
+{% endschema %}

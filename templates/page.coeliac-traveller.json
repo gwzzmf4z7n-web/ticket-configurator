@@ -1,0 +1,152 @@
+{
+  "sections": {
+    "coeliac_traveller_hero": {
+      "type": "coeliac-traveller-hero",
+      "settings": {
+        "eyebrow": "Coeliac Traveller",
+        "heading": "Gluten free travel with calm, useful guidance",
+        "subheading": "<p>Coeliac Traveller is a soft, editorial-style area inside MrChocolate for destination inspiration, gluten free travel recommendations, trusted products, and future creator-led content.</p>",
+        "meta_one": "Travel guides",
+        "meta_two": "GF recommendations",
+        "meta_three": "Creator content",
+        "button_label": "Start exploring",
+        "secondary_button_label": "Join updates",
+        "padding_top": 40,
+        "padding_bottom": 24
+      }
+    },
+    "coeliac_traveller_intro": {
+      "type": "coeliac-traveller-intro",
+      "settings": {
+        "eyebrow": "The story",
+        "heading": "A branded content space built to grow later",
+        "body": "<p>This page creates the first dedicated Coeliac Traveller experience inside the existing MrChocolate Shopify theme without redesigning the rest of the store.</p><p>It gives you a clean base for travel guides, blog posts, social-first content, email growth, and product recommendations while staying completely additive.</p>",
+        "highlight_heading": "Future-ready structure",
+        "highlight_text": "<p>These sections are modular so you can reuse them later on other templates, launch a larger content hub, or transition Coeliac Traveller to its own domain more easily.</p>",
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "coeliac_traveller_features": {
+      "type": "coeliac-traveller-feature-grid",
+      "blocks": {
+        "feature_1": {
+          "type": "feature",
+          "settings": {
+            "kicker": "Guides",
+            "title": "Gluten Free Guides",
+            "text": "<p>Create destination guides, airport food tips, and practical planning advice for travelling coeliac families.</p>",
+            "link_label": "Browse guides"
+          }
+        },
+        "feature_2": {
+          "type": "feature",
+          "settings": {
+            "kicker": "Advice",
+            "title": "Travel Tips",
+            "text": "<p>Build content around packing, research, safe dining questions, and how to navigate travel day with confidence.</p>",
+            "link_label": "Read tips"
+          }
+        },
+        "feature_3": {
+          "type": "feature",
+          "settings": {
+            "kicker": "Shop",
+            "title": "Products We Love",
+            "text": "<p>Feature products or collections that support the Coeliac Traveller brand and sit naturally inside the store.</p>",
+            "link_label": "See products"
+          }
+        },
+        "feature_4": {
+          "type": "feature",
+          "settings": {
+            "kicker": "Journal",
+            "title": "Latest Posts",
+            "text": "<p>Leave space for creator-style articles, recommendations, travel edits, and affiliate-friendly content pages.</p>",
+            "link_label": "View posts"
+          }
+        }
+      },
+      "block_order": ["feature_1", "feature_2", "feature_3", "feature_4"],
+      "settings": {
+        "eyebrow": "Content pillars",
+        "heading": "Start with a simple editorial framework",
+        "body": "<p>These reusable cards can later point to blogs, pages, collections, destination hubs, or standalone branded experiences.</p>",
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "coeliac_traveller_social": {
+      "type": "coeliac-traveller-social-links",
+      "blocks": {
+        "social_1": {
+          "type": "social",
+          "settings": {
+            "label": "Instagram"
+          }
+        },
+        "social_2": {
+          "type": "social",
+          "settings": {
+            "label": "TikTok"
+          }
+        },
+        "social_3": {
+          "type": "social",
+          "settings": {
+            "label": "Pinterest"
+          }
+        }
+      },
+      "block_order": ["social_1", "social_2", "social_3"],
+      "settings": {
+        "eyebrow": "Socials",
+        "heading": "Connect the content channels",
+        "body": "<p>Add your Coeliac Traveller social profiles here as branded buttons. Links can be updated later in the theme editor.</p>",
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "coeliac_traveller_signup": {
+      "type": "coeliac-traveller-signup",
+      "settings": {
+        "eyebrow": "Newsletter",
+        "heading": "Collect subscribers without changing the existing site",
+        "body": "<p>This uses Shopify's native customer form and is styled only for the Coeliac Traveller area, so the rest of MrChocolate keeps its current behaviour and appearance.</p>",
+        "email_label": "Email address",
+        "email_placeholder": "Enter your email",
+        "button_label": "Subscribe",
+        "success_message": "Thanks for subscribing to Coeliac Traveller.",
+        "note": "<p>Optional future use: lead magnets, destination alerts, launch updates, or creator-style roundups.</p>",
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "coeliac_traveller_featured_collection": {
+      "type": "coeliac-traveller-featured-collection",
+      "settings": {
+        "eyebrow": "Featured products",
+        "heading": "Optional shop section",
+        "body": "<p>Leave this in place for future product edits, gluten free recommendations, or trusted travel essentials.</p>",
+        "products_to_show": 4,
+        "image_ratio": "portrait",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_view_all": true,
+        "view_all_label": "View collection",
+        "empty_heading": "Choose a collection when you're ready",
+        "empty_text": "<p>This area is ready for a future collection or curated product edit.</p>",
+        "padding_top": 24,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": [
+    "coeliac_traveller_hero",
+    "coeliac_traveller_intro",
+    "coeliac_traveller_features",
+    "coeliac_traveller_social",
+    "coeliac_traveller_signup",
+    "coeliac_traveller_featured_collection"
+  ]
+}

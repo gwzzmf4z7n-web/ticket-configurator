@@ -1,0 +1,179 @@
+{% comment %}
+  Coeliac Traveller
+{% endcomment %}
+{{ 'coeliac-traveller.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="coeliac-traveller coeliac-traveller__section section-{{ section.id }}-padding">
+  <div class="page-width">
+    <div class="coeliac-traveller__panel coeliac-traveller__signup-panel">
+      <div class="coeliac-traveller__signup-layout">
+        <div>
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="coeliac-traveller__eyebrow">{{ section.settings.eyebrow }}</p>
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="coeliac-traveller__heading coeliac-traveller__heading--medium">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          {%- if section.settings.body != blank -%}
+            <div class="coeliac-traveller__body rte">{{ section.settings.body }}</div>
+          {%- endif -%}
+        </div>
+
+        <div class="coeliac-traveller__signup-aside">
+          {% form 'customer', class: 'coeliac-traveller__signup-form' %}
+            <input type="hidden" name="contact[tags]" value="newsletter,coeliac traveller">
+            <div class="field">
+              <label class="field__label" for="CoeliacTravellerSignup--{{ section.id }}">
+                {{ section.settings.email_label }}
+              </label>
+              <input
+                id="CoeliacTravellerSignup--{{ section.id }}"
+                type="email"
+                name="contact[email]"
+                class="field__input"
+                value="{{ form.email }}"
+                autocorrect="off"
+                autocapitalize="off"
+                autocomplete="email"
+                placeholder="{{ section.settings.email_placeholder }}"
+                {% if form.errors %}
+                  autofocus
+                  aria-invalid="true"
+                  aria-describedby="CoeliacTravellerSignupError--{{ section.id }}"
+                {% elsif form.posted_successfully? %}
+                  aria-describedby="CoeliacTravellerSignupSuccess--{{ section.id }}"
+                {% endif %}
+                required
+              >
+            </div>
+
+            <button class="coeliac-traveller__button coeliac-traveller__signup-submit" type="submit" name="commit">
+              {{ section.settings.button_label }}
+            </button>
+
+            {%- if form.errors -%}
+              <p class="coeliac-traveller__signup-message" id="CoeliacTravellerSignupError--{{ section.id }}">
+                <span class="svg-wrapper">{{ 'icon-error.svg' | inline_asset_content }}</span>
+                <span>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</span>
+              </p>
+            {%- endif -%}
+
+            {%- if form.posted_successfully? -%}
+              <p class="coeliac-traveller__signup-message" id="CoeliacTravellerSignupSuccess--{{ section.id }}" tabindex="-1" autofocus>
+                <span class="svg-wrapper">{{ 'icon-success.svg' | inline_asset_content }}</span>
+                <span>{{ section.settings.success_message }}</span>
+              </p>
+            {%- endif -%}
+          {% endform %}
+
+          {%- if section.settings.note != blank -%}
+            <div class="coeliac-traveller__caption rte" style="margin-top: 1.6rem;">
+              {{ section.settings.note }}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Coeliac Traveller signup",
+  "tag": "section",
+  "class": "section section-coeliac-traveller-signup",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Newsletter"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Stay in the loop"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>Use Shopify's native customer form to collect newsletter signups for Coeliac Traveller updates, fresh recommendations, and new travel content.</p>"
+    },
+    {
+      "type": "text",
+      "id": "email_label",
+      "label": "Email label",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "Enter your email"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Subscribe"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "Thanks for subscribing to Coeliac Traveller."
+    },
+    {
+      "type": "richtext",
+      "id": "note",
+      "label": "Small note",
+      "default": "<p>You can edit messaging here later for lead magnets, travel updates, or affiliate content disclosures.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coeliac Traveller signup"
+    }
+  ]
+}
+{% endschema %}
