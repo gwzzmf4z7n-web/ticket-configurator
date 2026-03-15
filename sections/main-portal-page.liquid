@@ -123,11 +123,11 @@
     endcapture
   endif
 
-  if page_key == 'hub'
-    if section.settings.enable_travefy_embed and travefy_itinerary_id != blank
-      assign show_travefy_embed = true
-    endif
+  if section.settings.enable_travefy_embed and travefy_itinerary_id != blank
+    assign show_travefy_embed = true
+  endif
 
+  if page_key == 'hub'
     if customer and customer.first_name != blank
       assign heading_text = 'Welcome back, ' | append: customer.first_name
     elsif customer
@@ -558,6 +558,33 @@
             </article>
           {% endfor %}
         </div>
+      {% endif %}
+
+      {% if section.settings.enable_travefy_embed %}
+        <section class="portal-section portal-section--embed">
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">{{ section.settings.travefy_eyebrow }}</p>
+              <h2 class="portal-section__title h2">{{ section.settings.travefy_heading }}</h2>
+            </div>
+            {% if section.settings.travefy_intro != blank %}
+              <div class="portal-section__copy rte">{{ section.settings.travefy_intro }}</div>
+            {% endif %}
+          </div>
+
+          {% if show_travefy_embed %}
+            <div class="portal-travefy-embed">
+              <div
+                class="travefy-itinerary"
+                data-travefy-itinerary-id="{{ travefy_itinerary_id | escape }}"
+              ></div>
+            </div>
+          {% else %}
+            <div class="portal-note rte">
+              {{ section.settings.travefy_empty_message }}
+            </div>
+          {% endif %}
+        </section>
       {% endif %}
 
       {% if trip_record == blank %}
