@@ -31,6 +31,8 @@
   assign advisor_name = blank
   assign support_email = blank
   assign salesforce_placeholder = blank
+  assign travefy_itinerary_id = blank
+  assign show_travefy_embed = false
 
   assign secret_shop_collection = section.settings.secret_shop_collection
   assign secret_shop_products_limit = section.settings.secret_shop_products_limit
@@ -66,6 +68,10 @@
     assign advisor_name = trip_record.advisor_name.value
     assign support_email = trip_record.support_email.value
     assign salesforce_placeholder = trip_record.salesforce_placeholder.value
+  endif
+
+  if customer and customer.metafields.portal.travefy_itinerary_id != blank and customer.metafields.portal.travefy_itinerary_id.value != blank
+    assign travefy_itinerary_id = customer.metafields.portal.travefy_itinerary_id.value | strip
   endif
 
   for block in section.blocks
@@ -118,6 +124,10 @@
   endif
 
   if page_key == 'hub'
+    if section.settings.enable_travefy_embed and travefy_itinerary_id != blank
+      assign show_travefy_embed = true
+    endif
+
     if customer and customer.first_name != blank
       assign heading_text = 'Welcome back, ' | append: customer.first_name
     elsif customer
@@ -334,6 +344,33 @@
                 </article>
               {% endfor %}
             </div>
+          </section>
+        {% endif %}
+
+        {% if section.settings.enable_travefy_embed %}
+          <section class="portal-section portal-section--embed">
+            <div class="portal-section__header">
+              <div>
+                <p class="portal-section__eyebrow">{{ section.settings.travefy_eyebrow }}</p>
+                <h2 class="portal-section__title h2">{{ section.settings.travefy_heading }}</h2>
+              </div>
+              {% if section.settings.travefy_intro != blank %}
+                <div class="portal-section__copy rte">{{ section.settings.travefy_intro }}</div>
+              {% endif %}
+            </div>
+
+            {% if show_travefy_embed %}
+              <div class="portal-travefy-embed">
+                <div
+                  class="travefy-itinerary"
+                  data-travefy-itinerary-id="{{ travefy_itinerary_id | escape }}"
+                ></div>
+              </div>
+            {% else %}
+              <div class="portal-note rte">
+                {{ section.settings.travefy_empty_message }}
+              </div>
+            {% endif %}
           </section>
         {% endif %}
 
@@ -656,6 +693,30 @@
   </div>
 {% endcapture %}
 
+{% if show_travefy_embed %}
+  <script>
+    (function () {
+      if (document.getElementById('travefy-itinerary-embedder')) {
+        return;
+      }
+
+      var script = document.createElement('script');
+      script.id = 'travefy-itinerary-embedder';
+      script.dataset.version = 'v0';
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = {{ section.settings.travefy_script_src | json }};
+
+      var firstScript = document.getElementsByTagName('script')[0];
+      if (firstScript && firstScript.parentNode) {
+        firstScript.parentNode.insertBefore(script, firstScript);
+      } else {
+        document.head.appendChild(script);
+      }
+    })();
+  </script>
+{% endif %}
+
 <section class="portal-area section-{{ section.id }}-padding color-{{ section.settings.color_scheme }} gradient">
   <div class="page-width">
     {% render 'portal-login-gate',
@@ -730,6 +791,46 @@
       "id": "dashboard_heading",
       "label": "Dashboard cards heading",
       "default": "Portal sections"
+    },
+    {
+      "type": "header",
+      "content": "Travefy embed"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_travefy_embed",
+      "label": "Show Travefy itinerary section",
+      "default": true
+    },
+    {
+      "type": "inline_richtext",
+      "id": "travefy_eyebrow",
+      "label": "Travefy eyebrow",
+      "default": "Live itinerary"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "travefy_heading",
+      "label": "Travefy heading",
+      "default": "Your itinerary"
+    },
+    {
+      "type": "richtext",
+      "id": "travefy_intro",
+      "label": "Travefy intro",
+      "default": "<p>This itinerary is loaded automatically from the Travefy itinerary ID saved on the logged-in customer record.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "travefy_empty_message",
+      "label": "Missing itinerary message",
+      "default": "<p>No Travefy itinerary has been linked to this customer yet.</p>"
+    },
+    {
+      "type": "text",
+      "id": "travefy_script_src",
+      "label": "Travefy embed script URL",
+      "default": "//d1h0qti89a78h.cloudfront.net/embed/itinerary.1.0.js"
     },
     {
       "type": "inline_richtext",

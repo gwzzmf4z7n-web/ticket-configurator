@@ -531,6 +531,22 @@
   gap: 1.2rem;
 }
 
+.portal-section--embed {
+  overflow: hidden;
+}
+
+.portal-travefy-embed {
+  padding: 0.8rem;
+  border-radius: 2rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  background: rgba(var(--color-background), 0.68);
+}
+
+.portal-travefy-embed .travefy-itinerary {
+  width: 100%;
+  min-height: 64rem;
+}
+
 .portal-step {
   display: grid;
   gap: 1.3rem;
