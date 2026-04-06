@@ -1,12 +1,13 @@
 .cruise-detail {
   padding-top: 3.2rem;
-  padding-bottom: 4.8rem;
+  padding-bottom: 6.4rem;
 }
 
 .cruise-detail__hero {
   display: grid;
-  gap: 2.4rem;
+  gap: 2.8rem;
   align-items: stretch;
+  margin-bottom: 1.6rem;
 }
 
 .cruise-detail__media {
@@ -14,6 +15,7 @@
   overflow: hidden;
   min-height: 28rem;
   border-radius: var(--media-radius);
+  box-shadow: 0 2.4rem 5rem rgba(var(--color-foreground), 0.12);
 }
 
 .cruise-detail__media img {
@@ -24,11 +26,15 @@
 
 .cruise-detail__content {
   display: grid;
-  gap: 1.6rem;
+  gap: 1.8rem;
   align-content: center;
-  padding: 2.4rem;
-  border-radius: var(--text-boxes-radius);
-  background: rgba(var(--color-foreground), 0.04);
+  padding: 3rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  border-radius: calc(var(--text-boxes-radius) + 0.8rem);
+  background:
+    linear-gradient(180deg, rgba(var(--color-background), 0.96), rgba(var(--color-background), 0.9)),
+    rgba(var(--color-foreground), 0.03);
+  box-shadow: 0 1.8rem 4rem rgba(var(--color-foreground), 0.07);
 }
 
 .cruise-detail__eyebrow {
@@ -46,8 +52,8 @@
 
 .cruise-detail__summary {
   margin: 0;
-  max-width: 60ch;
-  font-size: 1.7rem;
+  max-width: 58ch;
+  font-size: 1.65rem;
   line-height: 1.6;
 }
 
@@ -61,8 +67,13 @@
   margin-top: 3.2rem;
 }
 
-.cruise-detail__body .rte {
-  max-width: 75ch;
+.cruise-detail__body-card {
+  max-width: 82rem;
+  padding: 2.8rem 3rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  border-radius: calc(var(--text-boxes-radius) + 0.6rem);
+  background: rgb(var(--color-background));
+  box-shadow: 0 1.6rem 3.6rem rgba(var(--color-foreground), 0.05);
 }
 
 .cruise-detail__section {
@@ -75,29 +86,52 @@
 
 .cruise-detail__grid {
   display: grid;
-  gap: 1.6rem;
+  gap: 2rem;
 }
 
 .cruise-detail__card {
   height: 100%;
-  padding: 2rem;
-  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
-  border-radius: var(--text-boxes-radius);
+  overflow: hidden;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.1);
+  border-radius: calc(var(--text-boxes-radius) + 0.4rem);
   background: rgb(var(--color-background));
+  box-shadow: 0 1.4rem 3rem rgba(var(--color-foreground), 0.05);
+}
+
+.cruise-detail__card-media {
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.cruise-detail__card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cruise-detail__card-content {
+  display: grid;
+  gap: 1.2rem;
+  padding: 2rem;
 }
 
 .cruise-detail__card h3 {
   margin-top: 0;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0;
 }
 
-.cruise-detail__card p:last-child {
+.cruise-detail__card .rte {
+  color: rgba(var(--color-foreground), 0.82);
+}
+
+.cruise-detail__card p:last-child,
+.cruise-detail__card .rte p:last-child {
   margin-bottom: 0;
 }
 
 .cruise-detail__related-list {
   display: grid;
-  gap: 1.2rem;
+  gap: 1.6rem;
   padding: 0;
   margin: 0;
 }
@@ -108,16 +142,20 @@
 
 .cruise-detail__related-link {
   display: block;
-  padding: 1.6rem 2rem;
-  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
-  border-radius: var(--text-boxes-radius);
+  height: 100%;
+  padding: 1.8rem 2rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.1);
+  border-radius: calc(var(--text-boxes-radius) + 0.2rem);
   text-decoration: none;
   color: inherit;
   background: rgb(var(--color-background));
+  box-shadow: 0 1.2rem 2.6rem rgba(var(--color-foreground), 0.04);
+  transition: transform var(--duration-default) ease, border-color var(--duration-default) ease;
 }
 
 .cruise-detail__related-link:hover {
-  border-color: rgba(var(--color-foreground), 0.3);
+  border-color: rgba(var(--color-foreground), 0.24);
+  transform: translateY(-0.2rem);
 }
 
 .cruise-detail__related-link strong {
@@ -126,9 +164,13 @@
 }
 
 .cruise-detail__cta {
-  padding: 2.4rem;
-  border-radius: var(--text-boxes-radius);
-  background: rgba(var(--color-foreground), 0.06);
+  padding: 3rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  border-radius: calc(var(--text-boxes-radius) + 0.8rem);
+  background:
+    linear-gradient(135deg, rgba(var(--color-background), 0.98), rgba(var(--color-background), 0.92)),
+    rgba(var(--color-foreground), 0.04);
+  box-shadow: 0 1.8rem 4rem rgba(var(--color-foreground), 0.06);
 }
 
 .cruise-detail__cta h2,
@@ -142,7 +184,7 @@
 
 @media screen and (min-width: 750px) {
   .cruise-detail__hero {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
   }
 
   .cruise-detail__grid {
