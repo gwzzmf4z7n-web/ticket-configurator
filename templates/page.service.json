@@ -1,0 +1,66 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_title": true,
+        "show_content": true,
+        "padding_top": 36,
+        "padding_bottom": 16
+      }
+    },
+    "overview": {
+      "type": "rich-text",
+      "disabled": true,
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "How this service works",
+            "heading_tag": "h2",
+            "heading_size": "h2"
+          }
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Use this section for the service summary, process, or value proposition.</p>"
+          }
+        }
+      },
+      "block_order": ["heading", "text"],
+      "settings": {
+        "desktop_content_position": "left",
+        "content_alignment": "left",
+        "color_scheme": "scheme-1",
+        "full_width": false,
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "steps": {
+      "type": "multirow",
+      "disabled": true,
+      "settings": {
+        "heading_tag": "h2",
+        "heading_size": "h2",
+        "text_style": "body",
+        "button_style": "secondary",
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "faq": {
+      "type": "collapsible-content",
+      "disabled": true,
+      "settings": {
+        "heading": "Service FAQs",
+        "heading_size": "h2",
+        "padding_top": 16,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": ["main", "overview", "steps", "faq"]
+}

@@ -1,0 +1,13 @@
+{%- liquid
+  assign sanitized_url = url | default: '' | strip
+
+  if sanitized_url contains '"'
+    assign sanitized_url = sanitized_url | split: '"' | first
+  endif
+
+  if sanitized_url contains "'"
+    assign sanitized_url = sanitized_url | split: "'" | first
+  endif
+
+  echo sanitized_url | strip
+-%}

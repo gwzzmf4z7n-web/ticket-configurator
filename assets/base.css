@@ -3595,3 +3595,31 @@ details-disclosure > details {
     transform: translateX(100%) scaleX(0);
   }
 }
+
+.breadcrumbs {
+  margin-bottom: 2rem;
+}
+
+.breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  color: rgba(var(--color-foreground), 0.75);
+  font-size: 1.3rem;
+  line-height: 1.5;
+}
+
+.breadcrumbs__link {
+  text-underline-offset: 0.2rem;
+}
+
+.breadcrumbs__current {
+  color: rgb(var(--color-foreground));
+}
+
+.breadcrumbs__separator {
+  opacity: 0.5;
+}

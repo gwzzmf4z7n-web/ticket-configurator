@@ -1,6 +1,13 @@
 {{ 'section-blog-post.css' | asset_url | stylesheet_tag }}
 
 <article class="article-template">
+  {% render 'breadcrumbs',
+    current_title: article.title,
+    current_url: request.origin | append: article.url,
+    parent_title: blog.title,
+    parent_url: request.origin | append: blog.url,
+    narrow: true
+  %}
   {%- for block in section.blocks -%}
     {%- case block.type -%}
       {%- when '@app' -%}

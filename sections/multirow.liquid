@@ -45,6 +45,7 @@
 <div class="multirow section-{{ section.id }}-padding gradient color-{{ section.settings.section_color_scheme }}">
   <div class="multirow__inner page-width">
     {%- for block in section.blocks -%}
+      {%- capture button_link -%}{% render 'sanitize-url', url: block.settings.button_link %}{%- endcapture -%}
       <div
         class="image-with-text isolate{{ borders_class }}{{ corners_class }}{{ padding_class }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
         {{ block.shopify_attributes }}
@@ -80,19 +81,19 @@
                 </p>
               {%- endif -%}
               {%- if block.settings.heading -%}
-                <h2 class="image-with-text__heading {{ section.settings.heading_size }} rte">
+                <{{ section.settings.heading_tag | default: 'h2' }} class="image-with-text__heading {{ section.settings.heading_size }} rte">
                   {{ block.settings.heading }}
-                </h2>
+                </{{ section.settings.heading_tag | default: 'h2' }}>
               {%- endif -%}
               {%- if block.settings.text -%}
                 <div class="image-with-text__text rte {{ section.settings.text_style }}">{{ block.settings.text }}</div>
               {%- endif -%}
               {%- if block.settings.button_label != blank -%}
                 <a
-                  {% if block.settings.button_link == blank %}
+                  {% if button_link == blank %}
                     role="link" aria-disabled="true"
                   {% else %}
-                    href="{{ block.settings.button_link }}"
+                    href="{{ button_link }}"
                   {% endif %}
                   class="button button--{{ section.settings.button_style }}"
                 >
@@ -190,6 +191,26 @@
     {
       "type": "header",
       "content": "t:sections.multirow.settings.header_2.content"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "default": "h2",
+      "options": [
+        {
+          "value": "h2",
+          "label": "H2"
+        },
+        {
+          "value": "h3",
+          "label": "H3"
+        },
+        {
+          "value": "h4",
+          "label": "H4"
+        }
+      ]
     },
     {
       "type": "select",

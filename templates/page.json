@@ -1,1 +1,15 @@
-{"sections":{"main":{"type":"main-page","disabled":true,"settings":{"padding_top":28,"padding_bottom":28}},"multicolumn_PdtFAe":{"type":"multicolumn","blocks":{"column_LBgLkz":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/what-theme-parks-are-in-queensland.webp","title":"Village Roadshow Attractions","text":"<p>SeaWorld, Movie World, Wet & Wild<\/p>","link_label":"Book Here","link":"https:\/\/mrchocolate.experienceoz.com.au\/en\/gold-coast\/village-roadshow-three-day-pass-and-hopo-day-pass"}},"column_3f6VQD":{"type":"column","settings":{"title":"Dreamworld","text":"<p>Dreamworld packs Aussie thrills: world-class coasters, wildlife encounters, family fun, and splashy escapes on Queensland’s sunny Gold Coast for everyone.<\/p>","link_label":"Book Now","link":"https:\/\/mrchocolate.experienceoz.com.au\/en\/gold-coast\/1-day-dreamworld-ticket"}},"column_4zrgrB":{"type":"column","settings":{"title":"Luna Park (Melbourne)","text":"<p>Luna Park Melbourne dazzles St Kilda with vintage thrills, seaside charm, iconic mouth entrance, family rides, carnival games, and laughter.<\/p>","link_label":"Book Here","link":"https:\/\/mrchocolate.experienceoz.com.au\/en\/gold-coast\/1-day-dreamworld-ticket"}}},"block_order":["column_LBgLkz","column_3f6VQD","column_4zrgrB"],"name":"t:sections.multicolumn.presets.name","settings":{"title":"Australia & New Zealand Attractions","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"1","swipe_on_mobile":false,"padding_top":36,"padding_bottom":36}}},"order":["main","multicolumn_PdtFAe"]}
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_title": true,
+        "show_content": true,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": ["main"]
+}

@@ -1,0 +1,207 @@
+{{ 'section-cruise-detail.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign hero_image = page.metafields.custom.hero_image.value
+  assign eyebrow = page.metafields.custom.eyebrow.value | default: 'Disney Cruise Line'
+  assign summary = page.metafields.custom.summary.value
+  assign primary_cta_label = page.metafields.custom.primary_cta_label.value
+  assign primary_cta_link = page.metafields.custom.primary_cta_link.value
+  assign secondary_cta_label = page.metafields.custom.secondary_cta_label.value
+  assign secondary_cta_link = page.metafields.custom.secondary_cta_link.value
+  assign feature_1_title = page.metafields.custom.feature_1_title.value
+  assign feature_1_text = page.metafields.custom.feature_1_text.value
+  assign feature_2_title = page.metafields.custom.feature_2_title.value
+  assign feature_2_text = page.metafields.custom.feature_2_text.value
+  assign feature_3_title = page.metafields.custom.feature_3_title.value
+  assign feature_3_text = page.metafields.custom.feature_3_text.value
+  assign related_pages = page.metafields.custom.related_pages.value
+  assign cta_heading = page.metafields.custom.bottom_cta_heading.value
+  assign cta_text = page.metafields.custom.bottom_cta_text.value
+  assign cta_label = page.metafields.custom.bottom_cta_label.value
+  assign cta_link = page.metafields.custom.bottom_cta_link.value
+  assign current_url = request.origin | append: page.url
+  assign parent_title = blank
+  assign parent_url = blank
+
+  if section.settings.parent_page != blank and pages[section.settings.parent_page] != blank
+    assign parent_title = pages[section.settings.parent_page].title
+    assign parent_url = request.origin | append: pages[section.settings.parent_page].url
+  endif
+
+  capture sanitized_primary_cta_link
+    render 'sanitize-url', url: primary_cta_link
+  endcapture
+
+  capture sanitized_secondary_cta_link
+    render 'sanitize-url', url: secondary_cta_link
+  endcapture
+
+  capture sanitized_cta_link
+    render 'sanitize-url', url: cta_link
+  endcapture
+-%}
+
+<section class="cruise-detail page-width section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
+  {% render 'breadcrumbs',
+    current_title: page.title,
+    current_url: current_url,
+    parent_title: parent_title,
+    parent_url: parent_url
+  %}
+
+  <div class="cruise-detail__hero">
+    <div class="cruise-detail__media media">
+      {%- if hero_image != blank -%}
+        {{
+          hero_image
+          | image_url: width: 2000
+          | image_tag:
+            widths: '375, 550, 750, 1100, 1500, 1780, 2000',
+            sizes: '(min-width: 750px) 60vw, 100vw',
+            loading: 'eager',
+            fetchpriority: 'high'
+        }}
+      {%- else -%}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {%- endif -%}
+    </div>
+
+    <div class="cruise-detail__content">
+      {%- if eyebrow != blank -%}
+        <p class="cruise-detail__eyebrow">{{ eyebrow | escape }}</p>
+      {%- endif -%}
+
+      <h1 class="cruise-detail__title h0">{{ page.title | escape }}</h1>
+
+      {%- if summary != blank -%}
+        <p class="cruise-detail__summary">{{ summary | escape }}</p>
+      {%- endif -%}
+
+      {%- if sanitized_primary_cta_link != blank or sanitized_secondary_cta_link != blank -%}
+        <div class="cruise-detail__actions">
+          {%- if primary_cta_label != blank and sanitized_primary_cta_link != blank -%}
+            <a class="button" href="{{ sanitized_primary_cta_link }}">{{ primary_cta_label | escape }}</a>
+          {%- endif -%}
+          {%- if secondary_cta_label != blank and sanitized_secondary_cta_link != blank -%}
+            <a class="button button--secondary" href="{{ sanitized_secondary_cta_link }}">{{ secondary_cta_label | escape }}</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if page.content != blank -%}
+    <div class="cruise-detail__body">
+      <div class="rte">
+        {{ page.content }}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if feature_1_title != blank or feature_2_title != blank or feature_3_title != blank -%}
+    <div class="cruise-detail__section">
+      <h2 class="cruise-detail__section-title h2">{{ section.settings.highlights_heading }}</h2>
+      <div class="cruise-detail__grid">
+        {%- if feature_1_title != blank -%}
+          <article class="cruise-detail__card">
+            <h3 class="h4">{{ feature_1_title | escape }}</h3>
+            {%- if feature_1_text != blank -%}<p>{{ feature_1_text | escape }}</p>{%- endif -%}
+          </article>
+        {%- endif -%}
+        {%- if feature_2_title != blank -%}
+          <article class="cruise-detail__card">
+            <h3 class="h4">{{ feature_2_title | escape }}</h3>
+            {%- if feature_2_text != blank -%}<p>{{ feature_2_text | escape }}</p>{%- endif -%}
+          </article>
+        {%- endif -%}
+        {%- if feature_3_title != blank -%}
+          <article class="cruise-detail__card">
+            <h3 class="h4">{{ feature_3_title | escape }}</h3>
+            {%- if feature_3_text != blank -%}<p>{{ feature_3_text | escape }}</p>{%- endif -%}
+          </article>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if related_pages != blank -%}
+    <div class="cruise-detail__section">
+      <h2 class="cruise-detail__section-title h2">{{ section.settings.related_heading }}</h2>
+      <ul class="cruise-detail__related-list">
+        {%- for related_page in related_pages limit: section.settings.related_limit -%}
+          <li class="cruise-detail__related-item">
+            <a class="cruise-detail__related-link" href="{{ related_page.url }}">
+              <strong>{{ related_page.title | escape }}</strong>
+              {%- if related_page.content != blank -%}
+                <span>{{ related_page.content | strip_html | truncatewords: 18 }}</span>
+              {%- endif -%}
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  {%- if cta_heading != blank or cta_text != blank or sanitized_cta_link != blank -%}
+    <div class="cruise-detail__section">
+      <div class="cruise-detail__cta">
+        {%- if cta_heading != blank -%}
+          <h2 class="h2">{{ cta_heading | escape }}</h2>
+        {%- endif -%}
+        {%- if cta_text != blank -%}
+          <p>{{ cta_text | escape }}</p>
+        {%- endif -%}
+        {%- if cta_label != blank and sanitized_cta_link != blank -%}
+          <a class="button" href="{{ sanitized_cta_link }}">{{ cta_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Cruise detail",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "page",
+      "id": "parent_page",
+      "label": "Parent page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "highlights_heading",
+      "label": "Highlights heading",
+      "default": "Why choose this cruise"
+    },
+    {
+      "type": "text",
+      "id": "related_heading",
+      "label": "Related pages heading",
+      "default": "Compare more Disney cruises"
+    },
+    {
+      "type": "range",
+      "id": "related_limit",
+      "label": "Related pages limit",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cruise detail"
+    }
+  ]
+}
+{% endschema %}

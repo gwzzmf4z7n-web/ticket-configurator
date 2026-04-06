@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cruise-detail",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "highlights_heading": "Why choose this cruise",
+        "related_heading": "Compare more Disney cruises",
+        "related_limit": 4
+      }
+    }
+  },
+  "order": ["main"]
+}

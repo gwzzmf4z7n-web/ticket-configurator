@@ -1,0 +1,155 @@
+.cruise-detail {
+  padding-top: 3.2rem;
+  padding-bottom: 4.8rem;
+}
+
+.cruise-detail__hero {
+  display: grid;
+  gap: 2.4rem;
+  align-items: stretch;
+}
+
+.cruise-detail__media {
+  position: relative;
+  overflow: hidden;
+  min-height: 28rem;
+  border-radius: var(--media-radius);
+}
+
+.cruise-detail__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cruise-detail__content {
+  display: grid;
+  gap: 1.6rem;
+  align-content: center;
+  padding: 2.4rem;
+  border-radius: var(--text-boxes-radius);
+  background: rgba(var(--color-foreground), 0.04);
+}
+
+.cruise-detail__eyebrow {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.18rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.cruise-detail__title {
+  margin: 0;
+}
+
+.cruise-detail__summary {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 1.7rem;
+  line-height: 1.6;
+}
+
+.cruise-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.cruise-detail__body {
+  margin-top: 3.2rem;
+}
+
+.cruise-detail__body .rte {
+  max-width: 75ch;
+}
+
+.cruise-detail__section {
+  margin-top: 4rem;
+}
+
+.cruise-detail__section-title {
+  margin: 0 0 1.6rem;
+}
+
+.cruise-detail__grid {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.cruise-detail__card {
+  height: 100%;
+  padding: 2rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  border-radius: var(--text-boxes-radius);
+  background: rgb(var(--color-background));
+}
+
+.cruise-detail__card h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+}
+
+.cruise-detail__card p:last-child {
+  margin-bottom: 0;
+}
+
+.cruise-detail__related-list {
+  display: grid;
+  gap: 1.2rem;
+  padding: 0;
+  margin: 0;
+}
+
+.cruise-detail__related-item {
+  list-style: none;
+}
+
+.cruise-detail__related-link {
+  display: block;
+  padding: 1.6rem 2rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  border-radius: var(--text-boxes-radius);
+  text-decoration: none;
+  color: inherit;
+  background: rgb(var(--color-background));
+}
+
+.cruise-detail__related-link:hover {
+  border-color: rgba(var(--color-foreground), 0.3);
+}
+
+.cruise-detail__related-link strong {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.cruise-detail__cta {
+  padding: 2.4rem;
+  border-radius: var(--text-boxes-radius);
+  background: rgba(var(--color-foreground), 0.06);
+}
+
+.cruise-detail__cta h2,
+.cruise-detail__cta p {
+  margin-top: 0;
+}
+
+.cruise-detail__cta p:last-child {
+  margin-bottom: 0;
+}
+
+@media screen and (min-width: 750px) {
+  .cruise-detail__hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .cruise-detail__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cruise-detail__related-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

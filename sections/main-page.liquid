@@ -14,13 +14,37 @@
   }
 {%- endstyle -%}
 
+{%- liquid
+  assign current_url = request.origin | append: page.url
+  assign parent_title = blank
+  assign parent_url = blank
+
+  if section.settings.parent_page != blank and pages[section.settings.parent_page] != blank
+    assign parent_title = pages[section.settings.parent_page].title
+    assign parent_url = request.origin | append: pages[section.settings.parent_page].url
+  endif
+-%}
+
 <div class="page-width page-width--narrow section-{{ section.id }}-padding">
-  <h1 class="main-page-title page-title h0{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
-    {{ page.title | escape }}
-  </h1>
-  <div class="rte{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
-    {{ page.content }}
-  </div>
+  {%- if section.settings.show_breadcrumbs -%}
+    {% render 'breadcrumbs',
+      current_title: page.title,
+      current_url: current_url,
+      parent_title: parent_title,
+      parent_url: parent_url,
+      narrow: true
+    %}
+  {%- endif -%}
+  {%- if section.settings.show_title -%}
+    <h1 class="main-page-title page-title h0{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
+      {{ page.title | escape }}
+    </h1>
+  {%- endif -%}
+  {%- if section.settings.show_content and page.content != blank -%}
+    <div class="rte{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+      {{ page.content }}
+    </div>
+  {%- endif -%}
 </div>
 
 {% schema %}
@@ -29,6 +53,29 @@
   "tag": "section",
   "class": "section",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "default": true,
+      "label": "Show breadcrumbs"
+    },
+    {
+      "type": "page",
+      "id": "parent_page",
+      "label": "Parent page"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "default": true,
+      "label": "Show page title"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_content",
+      "default": true,
+      "label": "Show page content"
+    },
     {
       "type": "header",
       "content": "t:sections.all.padding.section_padding_heading"

@@ -18,6 +18,9 @@
 {%- liquid
   assign columns_mobile_int = section.settings.columns_mobile | plus: 0
   assign show_mobile_slider = false
+  capture section_button_link
+    render 'sanitize-url', url: section.settings.button_link
+  endcapture
   if section.settings.swipe_on_mobile and section.blocks.size > columns_mobile_int
     assign show_mobile_slider = true
   endif
@@ -32,11 +35,11 @@
   >
     {%- unless section.settings.title == blank -%}
       <div class="title-wrapper-with-link title-wrapper--self-padded-mobile title-wrapper--no-top-margin multicolumn__title">
-        <h2 class="title inline-richtext {{ section.settings.heading_size }}">
+        <{{ section.settings.heading_tag | default: 'h2' }} class="title inline-richtext {{ section.settings.heading_size }}">
           {{ section.settings.title }}
-        </h2>
-        {%- if section.settings.button_label != blank and show_mobile_slider -%}
-          <a href="{{ section.settings.button_link }}" class="link underlined-link large-up-hide">
+        </{{ section.settings.heading_tag | default: 'h2' }}>
+        {%- if section.settings.button_label != blank and section_button_link != blank and show_mobile_slider -%}
+          <a href="{{ section_button_link }}" class="link underlined-link large-up-hide">
             {{- section.settings.button_label | escape -}}
           </a>
         {%- endif -%}
@@ -57,6 +60,7 @@
           endfor
         -%}
         {%- for block in section.blocks -%}
+          {%- capture block_link -%}{% render 'sanitize-url', url: block.settings.link %}{%- endcapture -%}
           {%- assign empty_column = '' -%}
           {%- if block.settings.image == blank
             and block.settings.title == blank
@@ -128,10 +132,10 @@
                 {%- if block.settings.link_label != blank -%}
                   <a
                     class="link animate-arrow"
-                    {% if block.settings.link == blank %}
+                    {% if block_link == blank %}
                       role="link" aria-disabled="true"
                     {% else %}
-                      href="{{ block.settings.link }}"
+                      href="{{ block_link }}"
                     {% endif %}
                   >
                     {{- block.settings.link_label | escape -}}
@@ -177,10 +181,10 @@
       {%- if section.settings.button_label != blank -%}
         <a
           class="button button--primary"
-          {% if section.settings.button_link == blank %}
+          {% if section_button_link == blank %}
             role="link" aria-disabled="true"
           {% else %}
-            href="{{ section.settings.button_link }}"
+            href="{{ section_button_link }}"
           {% endif %}
         >
           {{ section.settings.button_label | escape }}
@@ -204,6 +208,26 @@
       "id": "title",
       "default": "t:sections.multicolumn.settings.title.default",
       "label": "t:sections.multicolumn.settings.title.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "default": "h2",
+      "options": [
+        {
+          "value": "h2",
+          "label": "H2"
+        },
+        {
+          "value": "h3",
+          "label": "H3"
+        },
+        {
+          "value": "h4",
+          "label": "H4"
+        }
+      ]
     },
     {
       "type": "select",

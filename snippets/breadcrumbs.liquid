@@ -1,0 +1,72 @@
+{%- liquid
+  assign current_title = current_title | default: '' | strip
+  assign current_url = current_url | default: '' | strip
+  assign parent_title = parent_title | default: '' | strip
+  assign parent_url = parent_url | default: '' | strip
+  assign home_title = 'general.breadcrumbs.home' | t
+  if home_title contains 'translation missing'
+    assign home_title = 'Home'
+  endif
+-%}
+
+{%- if current_title != blank -%}
+  <nav class="breadcrumbs page-width{% if narrow %} page-width--narrow{% endif %}" aria-label="Breadcrumb">
+    <ol class="breadcrumbs__list list-unstyled">
+      <li class="breadcrumbs__item">
+        <a class="breadcrumbs__link link" href="{{ routes.root_url }}">{{ home_title | escape }}</a>
+      </li>
+      {%- if parent_title != blank and parent_url != blank -%}
+        <li class="breadcrumbs__item" aria-hidden="true">
+          <span class="breadcrumbs__separator">/</span>
+        </li>
+        <li class="breadcrumbs__item">
+          <a class="breadcrumbs__link link" href="{{ parent_url }}">{{ parent_title | escape }}</a>
+        </li>
+      {%- endif -%}
+      <li class="breadcrumbs__item" aria-hidden="true">
+        <span class="breadcrumbs__separator">/</span>
+      </li>
+      <li class="breadcrumbs__item">
+        <span class="breadcrumbs__current" aria-current="page">{{ current_title | escape }}</span>
+      </li>
+    </ol>
+  </nav>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": {{ home_title | json }},
+          "item": {{ request.origin | append: routes.root_url | json }}
+        }
+        {%- if parent_title != blank and parent_url != blank -%}
+          ,
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": {{ parent_title | json }},
+            "item": {{ parent_url | json }}
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": {{ current_title | json }},
+            "item": {{ current_url | json }}
+          }
+        {%- else -%}
+          ,
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": {{ current_title | json }},
+            "item": {{ current_url | json }}
+          }
+        {%- endif -%}
+      ]
+    }
+  </script>
+{%- endif -%}
