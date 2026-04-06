@@ -1,11 +1,11 @@
-{{ 'section-cruise-detail.css' | asset_url | stylesheet_tag }}
+{{ 'section-detail-page.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
   assign summary_field = page.metafields.custom.summary
   assign hero_image = page.metafields.custom.hero_image.value
-  assign eyebrow = page.metafields.custom.eyebrow.value | default: 'Disney Cruise Line'
+  assign eyebrow = page.metafields.custom.eyebrow.value | default: section.settings.default_eyebrow
   assign summary = summary_field.value
-  assign feature_entries = page.metafields.custom.cruise_features.value | default: page.metafields.custom.features.value
+  assign feature_entries = page.metafields.custom.features.value | default: page.metafields.custom.cruise_features.value
   assign primary_cta_label = page.metafields.custom.primary_cta_label.value
   assign primary_cta_link = page.metafields.custom.primary_cta_link.value
   assign secondary_cta_label = page.metafields.custom.secondary_cta_label.value
@@ -56,7 +56,7 @@
   endcapture
 -%}
 
-<section class="cruise-detail page-width section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
+<section class="detail-page page-width section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
   {% render 'breadcrumbs',
     current_title: page.title,
     current_url: current_url,
@@ -64,8 +64,8 @@
     parent_url: parent_url
   %}
 
-  <div class="cruise-detail__hero">
-    <div class="cruise-detail__media media">
+  <div class="detail-page__hero">
+    <div class="detail-page__media media">
       {%- if hero_image != blank -%}
         {{
           hero_image
@@ -81,15 +81,15 @@
       {%- endif -%}
     </div>
 
-    <div class="cruise-detail__content">
+    <div class="detail-page__content">
       {%- if eyebrow != blank -%}
-        <p class="cruise-detail__eyebrow">{{ eyebrow | escape }}</p>
+        <p class="detail-page__eyebrow">{{ eyebrow | escape }}</p>
       {%- endif -%}
 
-      <h1 class="cruise-detail__title h0">{{ page.title | escape }}</h1>
+      <h1 class="detail-page__title h0">{{ page.title | escape }}</h1>
 
       {%- if summary != blank -%}
-        <div class="cruise-detail__summary rte">
+        <div class="detail-page__summary rte">
           {%- if summary_field.type == 'rich_text_field' -%}
             {{ summary_field | metafield_tag }}
           {%- else -%}
@@ -99,7 +99,7 @@
       {%- endif -%}
 
       {%- if sanitized_primary_cta_link != blank or sanitized_secondary_cta_link != blank -%}
-        <div class="cruise-detail__actions">
+        <div class="detail-page__actions">
           {%- if primary_cta_label != blank and sanitized_primary_cta_link != blank -%}
             <a class="button" href="{{ sanitized_primary_cta_link }}">{{ primary_cta_label | escape }}</a>
           {%- endif -%}
@@ -112,17 +112,17 @@
   </div>
 
   {%- if page.content != blank -%}
-    <div class="cruise-detail__body">
-      <div class="cruise-detail__body-card rte">
+    <div class="detail-page__body">
+      <div class="detail-page__body-card rte">
         {{ page.content }}
       </div>
     </div>
   {%- endif -%}
 
   {%- if feature_entries != blank or fallback_feature_count > 0 -%}
-    <div class="cruise-detail__section">
-      <h2 class="cruise-detail__section-title h2">{{ section.settings.highlights_heading }}</h2>
-      <div class="cruise-detail__grid">
+    <div class="detail-page__section">
+      <h2 class="detail-page__section-title h2">{{ section.settings.highlights_heading }}</h2>
+      <div class="detail-page__grid">
         {%- if feature_entries != blank -%}
           {%- for feature in feature_entries -%}
             {%- liquid
@@ -139,9 +139,9 @@
                 render 'sanitize-url', url: raw_feature_link
               endcapture
             -%}
-            <article class="cruise-detail__card">
+            <article class="detail-page__card">
               {%- if feature_image != blank -%}
-                <div class="cruise-detail__card-media media">
+                <div class="detail-page__card-media media">
                   {{
                     feature_image
                     | image_url: width: 1200
@@ -152,7 +152,7 @@
                   }}
                 </div>
               {%- endif -%}
-              <div class="cruise-detail__card-content">
+              <div class="detail-page__card-content">
                 {%- if feature_title != blank -%}
                   <h3 class="h4">{{ feature_title | escape }}</h3>
                 {%- endif -%}
@@ -176,24 +176,24 @@
           {%- endfor -%}
         {%- else -%}
           {%- if feature_1_title != blank -%}
-            <article class="cruise-detail__card">
-              <div class="cruise-detail__card-content">
+            <article class="detail-page__card">
+              <div class="detail-page__card-content">
                 <h3 class="h4">{{ feature_1_title | escape }}</h3>
                 {%- if feature_1_text != blank -%}<div class="rte">{{ feature_1_text | newline_to_br }}</div>{%- endif -%}
               </div>
             </article>
           {%- endif -%}
           {%- if feature_2_title != blank -%}
-            <article class="cruise-detail__card">
-              <div class="cruise-detail__card-content">
+            <article class="detail-page__card">
+              <div class="detail-page__card-content">
                 <h3 class="h4">{{ feature_2_title | escape }}</h3>
                 {%- if feature_2_text != blank -%}<div class="rte">{{ feature_2_text | newline_to_br }}</div>{%- endif -%}
               </div>
             </article>
           {%- endif -%}
           {%- if feature_3_title != blank -%}
-            <article class="cruise-detail__card">
-              <div class="cruise-detail__card-content">
+            <article class="detail-page__card">
+              <div class="detail-page__card-content">
                 <h3 class="h4">{{ feature_3_title | escape }}</h3>
                 {%- if feature_3_text != blank -%}<div class="rte">{{ feature_3_text | newline_to_br }}</div>{%- endif -%}
               </div>
@@ -205,13 +205,13 @@
   {%- endif -%}
 
   {%- if related_pages != blank or related_menu.links != blank -%}
-    <div class="cruise-detail__section">
-      <h2 class="cruise-detail__section-title h2">{{ section.settings.related_heading }}</h2>
-      <ul class="cruise-detail__related-list">
+    <div class="detail-page__section">
+      <h2 class="detail-page__section-title h2">{{ section.settings.related_heading }}</h2>
+      <ul class="detail-page__related-list">
         {%- if related_pages != blank -%}
           {%- for related_page in related_pages limit: section.settings.related_limit -%}
-            <li class="cruise-detail__related-item">
-              <a class="cruise-detail__related-link" href="{{ related_page.url }}">
+            <li class="detail-page__related-item">
+              <a class="detail-page__related-link" href="{{ related_page.url }}">
                 <strong>{{ related_page.title | escape }}</strong>
                 {%- if related_page.content != blank -%}
                   <span>{{ related_page.content | strip_html | truncatewords: 18 }}</span>
@@ -223,8 +223,8 @@
           {%- assign related_count = 0 -%}
           {%- for related_link in related_menu.links -%}
             {%- if related_link.url != page.url and related_count < section.settings.related_limit -%}
-              <li class="cruise-detail__related-item">
-                <a class="cruise-detail__related-link" href="{{ related_link.url }}">
+              <li class="detail-page__related-item">
+                <a class="detail-page__related-link" href="{{ related_link.url }}">
                   <strong>{{ related_link.title | escape }}</strong>
                 </a>
               </li>
@@ -237,8 +237,8 @@
   {%- endif -%}
 
   {%- if cta_heading != blank or cta_text != blank or sanitized_cta_link != blank -%}
-    <div class="cruise-detail__section">
-      <div class="cruise-detail__cta">
+    <div class="detail-page__section">
+      <div class="detail-page__cta">
         {%- if cta_heading != blank -%}
           <h2 class="h2">{{ cta_heading | escape }}</h2>
         {%- endif -%}
@@ -261,7 +261,7 @@
 
 {% schema %}
 {
-  "name": "Cruise detail",
+  "name": "Detail page",
   "tag": "section",
   "class": "section",
   "settings": [
@@ -269,6 +269,12 @@
       "type": "page",
       "id": "parent_page",
       "label": "Parent page"
+    },
+    {
+      "type": "text",
+      "id": "default_eyebrow",
+      "label": "Default eyebrow",
+      "default": "Overview"
     },
     {
       "type": "color_scheme",
@@ -280,13 +286,13 @@
       "type": "text",
       "id": "highlights_heading",
       "label": "Highlights heading",
-      "default": "Why choose this cruise"
+      "default": "Highlights"
     },
     {
       "type": "text",
       "id": "related_heading",
       "label": "Related pages heading",
-      "default": "Compare more Disney cruises"
+      "default": "Related pages"
     },
     {
       "type": "link_list",
@@ -305,7 +311,7 @@
   ],
   "presets": [
     {
-      "name": "Cruise detail"
+      "name": "Detail page"
     }
   ]
 }

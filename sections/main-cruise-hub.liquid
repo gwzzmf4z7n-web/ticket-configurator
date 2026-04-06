@@ -1,0 +1,220 @@
+{{ 'section-cruise-hub.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign summary_field = page.metafields.custom.summary
+  assign summary = summary_field.value
+  assign hero_image = page.metafields.custom.hero_image.value
+  assign eyebrow = page.metafields.custom.eyebrow.value | default: 'Disney Cruise Line'
+  assign ship_pages = page.metafields.custom.ship_pages.value | default: page.metafields.custom.related_pages.value
+  assign primary_cta_label = page.metafields.custom.primary_cta_label.value
+  assign primary_cta_link = page.metafields.custom.primary_cta_link.value
+  assign secondary_cta_label = page.metafields.custom.secondary_cta_label.value
+  assign secondary_cta_link = page.metafields.custom.secondary_cta_link.value
+  assign cta_heading = page.metafields.custom.bottom_cta_heading.value
+  assign cta_text_field = page.metafields.custom.bottom_cta_text
+  assign cta_text = cta_text_field.value
+  assign cta_label = page.metafields.custom.bottom_cta_label.value
+  assign cta_link = page.metafields.custom.bottom_cta_link.value
+  assign current_url = request.origin | append: page.url
+  assign parent_title = blank
+  assign parent_url = blank
+  assign fleet_menu = linklists[section.settings.fleet_menu]
+
+  if section.settings.parent_page != blank and pages[section.settings.parent_page] != blank
+    assign parent_title = pages[section.settings.parent_page].title
+    assign parent_url = request.origin | append: pages[section.settings.parent_page].url
+  endif
+
+  capture sanitized_primary_cta_link
+    render 'sanitize-url', url: primary_cta_link
+  endcapture
+
+  capture sanitized_secondary_cta_link
+    render 'sanitize-url', url: secondary_cta_link
+  endcapture
+
+  capture sanitized_cta_link
+    render 'sanitize-url', url: cta_link
+  endcapture
+-%}
+
+<section class="cruise-hub page-width section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
+  {% render 'breadcrumbs',
+    current_title: page.title,
+    current_url: current_url,
+    parent_title: parent_title,
+    parent_url: parent_url
+  %}
+
+  <div class="cruise-hub__hero">
+    <div class="cruise-hub__hero-copy">
+      {%- if eyebrow != blank -%}
+        <p class="cruise-hub__eyebrow">{{ eyebrow | escape }}</p>
+      {%- endif -%}
+      <h1 class="cruise-hub__title h0">{{ page.title | escape }}</h1>
+      {%- if summary != blank -%}
+        <div class="cruise-hub__summary rte">
+          {%- if summary_field.type == 'rich_text_field' -%}
+            {{ summary_field | metafield_tag }}
+          {%- else -%}
+            {{ summary | newline_to_br }}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      {%- if sanitized_primary_cta_link != blank or sanitized_secondary_cta_link != blank -%}
+        <div class="cruise-hub__actions">
+          {%- if primary_cta_label != blank and sanitized_primary_cta_link != blank -%}
+            <a class="button" href="{{ sanitized_primary_cta_link }}">{{ primary_cta_label | escape }}</a>
+          {%- endif -%}
+          {%- if secondary_cta_label != blank and sanitized_secondary_cta_link != blank -%}
+            <a class="button button--secondary" href="{{ sanitized_secondary_cta_link }}">{{ secondary_cta_label | escape }}</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="cruise-hub__hero-media media">
+      {%- if hero_image != blank -%}
+        {{
+          hero_image
+          | image_url: width: 2200
+          | image_tag:
+            widths: '375, 550, 750, 1100, 1500, 1780, 2200',
+            sizes: '(min-width: 750px) 55vw, 100vw',
+            loading: 'eager',
+            fetchpriority: 'high'
+        }}
+      {%- else -%}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if page.content != blank -%}
+    <div class="cruise-hub__section">
+      <div class="cruise-hub__intro">
+        <div class="rte">{{ page.content }}</div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if ship_pages != blank or fleet_menu.links != blank -%}
+    <div class="cruise-hub__section">
+      <h2 class="cruise-hub__section-title h1">{{ section.settings.fleet_heading }}</h2>
+      <div class="cruise-hub__ships">
+        {%- if ship_pages != blank -%}
+          {%- for ship_page in ship_pages limit: section.settings.fleet_limit -%}
+            <article class="cruise-hub__ship-card">
+              <a class="cruise-hub__ship-link" href="{{ ship_page.url }}">
+                <div class="cruise-hub__ship-media media">
+                  {%- if ship_page.metafields.custom.hero_image.value != blank -%}
+                    {{
+                      ship_page.metafields.custom.hero_image.value
+                      | image_url: width: 1200
+                      | image_tag:
+                        widths: '320, 480, 720, 960, 1200',
+                        sizes: '(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw',
+                        loading: 'lazy'
+                    }}
+                  {%- else -%}
+                    {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+                  {%- endif -%}
+                </div>
+                <div class="cruise-hub__ship-body">
+                  <h3 class="h3">{{ ship_page.title | escape }}</h3>
+                  {%- if ship_page.metafields.custom.summary.value != blank -%}
+                    <p>{{ ship_page.metafields.custom.summary.value | strip_html | truncatewords: 20 }}</p>
+                  {%- elsif ship_page.content != blank -%}
+                    <p>{{ ship_page.content | strip_html | truncatewords: 20 }}</p>
+                  {%- endif -%}
+                </div>
+              </a>
+            </article>
+          {%- endfor -%}
+        {%- else -%}
+          {%- assign fleet_count = 0 -%}
+          {%- for ship_link in fleet_menu.links -%}
+            {%- if fleet_count < section.settings.fleet_limit -%}
+              <article class="cruise-hub__ship-card">
+                <a class="cruise-hub__ship-link" href="{{ ship_link.url }}">
+                  <div class="cruise-hub__ship-body">
+                    <h3 class="h3">{{ ship_link.title | escape }}</h3>
+                  </div>
+                </a>
+              </article>
+              {%- assign fleet_count = fleet_count | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if cta_heading != blank or cta_text != blank or sanitized_cta_link != blank -%}
+    <div class="cruise-hub__section">
+      <div class="cruise-hub__cta">
+        {%- if cta_heading != blank -%}
+          <h2 class="h2">{{ cta_heading | escape }}</h2>
+        {%- endif -%}
+        {%- if cta_text != blank -%}
+          <div class="rte">
+            {%- if cta_text_field.type == 'rich_text_field' -%}
+              {{ cta_text_field | metafield_tag }}
+            {%- else -%}
+              {{ cta_text | newline_to_br }}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        {%- if cta_label != blank and sanitized_cta_link != blank -%}
+          <a class="button" href="{{ sanitized_cta_link }}">{{ cta_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Cruise hub",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "page",
+      "id": "parent_page",
+      "label": "Parent page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "fleet_heading",
+      "label": "Fleet heading",
+      "default": "Explore the Disney Cruise Line fleet"
+    },
+    {
+      "type": "link_list",
+      "id": "fleet_menu",
+      "label": "Fleet menu fallback"
+    },
+    {
+      "type": "range",
+      "id": "fleet_limit",
+      "label": "Fleet limit",
+      "min": 4,
+      "max": 16,
+      "step": 1,
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cruise hub"
+    }
+  ]
+}
+{% endschema %}

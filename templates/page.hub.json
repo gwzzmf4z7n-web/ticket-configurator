@@ -4,7 +4,7 @@
       "type": "main-hub-page",
       "settings": {
         "color_scheme": "scheme-1",
-        "children_heading": "Choose a destination",
+        "children_heading": "Explore more",
         "children_limit": 8
       }
     }

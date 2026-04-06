@@ -4,9 +4,8 @@
       "type": "main-detail-page",
       "settings": {
         "color_scheme": "scheme-1",
-        "default_eyebrow": "Disney Cruise Line",
-        "highlights_heading": "Why choose this cruise",
-        "related_heading": "Compare more Disney cruises",
+        "highlights_heading": "Highlights",
+        "related_heading": "Related pages",
         "related_limit": 4
       }
     }

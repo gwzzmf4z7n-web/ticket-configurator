@@ -4,7 +4,8 @@
       "type": "main-hub-page",
       "settings": {
         "color_scheme": "scheme-1",
-        "children_heading": "Choose a destination",
+        "default_eyebrow": "Disney Cruise Line",
+        "children_heading": "Explore the Disney Cruise Line fleet",
         "children_limit": 8
       }
     }
