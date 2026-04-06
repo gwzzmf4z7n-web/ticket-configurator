@@ -16,13 +16,11 @@
   assign cta_label = page.metafields.custom.bottom_cta_label.value
   assign cta_link = page.metafields.custom.bottom_cta_link.value
   assign current_url = request.origin | append: page.url
-  assign parent_title = blank
-  assign parent_url = blank
+  assign parent_page_object = blank
   assign child_menu = linklists[section.settings.child_menu]
 
   if section.settings.parent_page != blank and pages[section.settings.parent_page] != blank
-    assign parent_title = pages[section.settings.parent_page].title
-    assign parent_url = request.origin | append: pages[section.settings.parent_page].url
+    assign parent_page_object = pages[section.settings.parent_page]
   endif
 
   capture sanitized_primary_cta_link
@@ -40,10 +38,10 @@
 
 <section class="hub-page page-width section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
   {% render 'breadcrumbs',
+    page_object: page,
+    parent_page: parent_page_object,
     current_title: page.title,
     current_url: current_url,
-    parent_title: parent_title,
-    parent_url: parent_url
   %}
 
   <div class="hub-page__hero">

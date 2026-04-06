@@ -3,9 +3,34 @@
   assign current_url = current_url | default: '' | strip
   assign parent_title = parent_title | default: '' | strip
   assign parent_url = parent_url | default: '' | strip
+  assign breadcrumb_position = 2
+  assign breadcrumb_parent_1 = blank
+  assign breadcrumb_parent_2 = blank
+  assign breadcrumb_parent_3 = blank
+  assign breadcrumb_parent_4 = blank
+  assign breadcrumb_parent_5 = blank
   assign home_title = 'general.breadcrumbs.home' | t
   if home_title contains 'translation missing'
     assign home_title = 'Home'
+  endif
+
+  if page_object != blank
+    assign breadcrumb_parent_1 = parent_page
+    if breadcrumb_parent_1 == blank and page_object.metafields.custom.parent_page.value != blank
+      assign breadcrumb_parent_1 = page_object.metafields.custom.parent_page.value
+    endif
+    if breadcrumb_parent_1 != blank and breadcrumb_parent_1.metafields.custom.parent_page.value != blank
+      assign breadcrumb_parent_2 = breadcrumb_parent_1.metafields.custom.parent_page.value
+    endif
+    if breadcrumb_parent_2 != blank and breadcrumb_parent_2.metafields.custom.parent_page.value != blank
+      assign breadcrumb_parent_3 = breadcrumb_parent_2.metafields.custom.parent_page.value
+    endif
+    if breadcrumb_parent_3 != blank and breadcrumb_parent_3.metafields.custom.parent_page.value != blank
+      assign breadcrumb_parent_4 = breadcrumb_parent_3.metafields.custom.parent_page.value
+    endif
+    if breadcrumb_parent_4 != blank and breadcrumb_parent_4.metafields.custom.parent_page.value != blank
+      assign breadcrumb_parent_5 = breadcrumb_parent_4.metafields.custom.parent_page.value
+    endif
   endif
 -%}
 
@@ -15,7 +40,18 @@
       <li class="breadcrumbs__item">
         <a class="breadcrumbs__link link" href="{{ routes.root_url }}">{{ home_title | escape }}</a>
       </li>
-      {%- if parent_title != blank and parent_url != blank -%}
+      {%- if page_object != blank -%}
+        {%- for ancestor_page in breadcrumb_parent_5, breadcrumb_parent_4, breadcrumb_parent_3, breadcrumb_parent_2, breadcrumb_parent_1 -%}
+          {%- if ancestor_page != blank -%}
+            <li class="breadcrumbs__item" aria-hidden="true">
+              <span class="breadcrumbs__separator">/</span>
+            </li>
+            <li class="breadcrumbs__item">
+              <a class="breadcrumbs__link link" href="{{ ancestor_page.url }}">{{ ancestor_page.title | escape }}</a>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- elsif parent_title != blank and parent_url != blank -%}
         <li class="breadcrumbs__item" aria-hidden="true">
           <span class="breadcrumbs__separator">/</span>
         </li>
@@ -43,7 +79,27 @@
           "name": {{ home_title | json }},
           "item": {{ request.origin | append: routes.root_url | json }}
         }
-        {%- if parent_title != blank and parent_url != blank -%}
+        {%- if page_object != blank -%}
+          {%- for ancestor_page in breadcrumb_parent_5, breadcrumb_parent_4, breadcrumb_parent_3, breadcrumb_parent_2, breadcrumb_parent_1 -%}
+            {%- if ancestor_page != blank -%}
+              ,
+              {
+                "@type": "ListItem",
+                "position": {{ breadcrumb_position }},
+                "name": {{ ancestor_page.title | json }},
+                "item": {{ request.origin | append: ancestor_page.url | json }}
+              }
+              {%- assign breadcrumb_position = breadcrumb_position | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+          ,
+          {
+            "@type": "ListItem",
+            "position": {{ breadcrumb_position }},
+            "name": {{ current_title | json }},
+            "item": {{ current_url | json }}
+          }
+        {%- elsif parent_title != blank and parent_url != blank -%}
           ,
           {
             "@type": "ListItem",

@@ -16,22 +16,20 @@
 
 {%- liquid
   assign current_url = request.origin | append: page.url
-  assign parent_title = blank
-  assign parent_url = blank
+  assign parent_page_object = blank
 
   if section.settings.parent_page != blank and pages[section.settings.parent_page] != blank
-    assign parent_title = pages[section.settings.parent_page].title
-    assign parent_url = request.origin | append: pages[section.settings.parent_page].url
+    assign parent_page_object = pages[section.settings.parent_page]
   endif
 -%}
 
 <div class="page-width page-width--narrow section-{{ section.id }}-padding">
   {%- if section.settings.show_breadcrumbs -%}
     {% render 'breadcrumbs',
+      page_object: page,
+      parent_page: parent_page_object,
       current_title: page.title,
       current_url: current_url,
-      parent_title: parent_title,
-      parent_url: parent_url,
       narrow: true
     %}
   {%- endif -%}
