@@ -121,9 +121,17 @@
                 <div class="hub-page__item-body">
                   <h3 class="h3">{{ child_page.title | escape }}</h3>
                   {%- if child_page.metafields.custom.summary.value != blank -%}
-                    <p>{{ child_page.metafields.custom.summary.value | strip_html | truncatewords: 20 }}</p>
+                    <div class="hub-page__item-summary rte">
+                      {%- if child_page.metafields.custom.summary.type == 'rich_text_field' -%}
+                        {{ child_page.metafields.custom.summary | metafield_tag }}
+                      {%- else -%}
+                        <p>{{ child_page.metafields.custom.summary.value | strip_html | truncatewords: 20 }}</p>
+                      {%- endif -%}
+                    </div>
                   {%- elsif child_page.content != blank -%}
-                    <p>{{ child_page.content | strip_html | truncatewords: 20 }}</p>
+                    <div class="hub-page__item-summary rte">
+                      <p>{{ child_page.content | strip_html | truncatewords: 20 }}</p>
+                    </div>
                   {%- endif -%}
                 </div>
               </a>
