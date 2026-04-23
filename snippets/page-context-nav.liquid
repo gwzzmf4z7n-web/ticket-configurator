@@ -1,0 +1,185 @@
+{%- liquid
+  assign nav_page = page_object | default: page
+  assign nav_mode = mode | default: 'detail'
+  assign resolved_parent = parent_page
+  assign resolved_children = child_pages
+  assign resolved_related = related_pages
+  assign fallback_menu = blank
+  assign primary_limit_value = primary_limit | default: 8
+  assign secondary_limit_value = secondary_limit | default: 4
+  assign back_prefix_text = back_prefix | default: 'Back to'
+  assign primary_heading_text = primary_heading
+  assign secondary_heading_text = secondary_heading
+  assign primary_page_count = 0
+  assign secondary_page_count = 0
+  assign fallback_count = 0
+
+  if resolved_parent == blank and nav_page != blank and nav_page.metafields.custom.parent_page.value != blank
+    assign resolved_parent = nav_page.metafields.custom.parent_page.value
+  endif
+
+  if resolved_children == blank and nav_page != blank
+    assign resolved_children = nav_page.metafields.custom.child_pages.value
+    if resolved_children == blank
+      assign resolved_children = nav_page.metafields.custom.ship_pages.value
+    endif
+  endif
+
+  if resolved_related == blank and nav_page != blank
+    assign resolved_related = nav_page.metafields.custom.related_pages.value
+  endif
+
+  if menu_handle != blank
+    assign fallback_menu = linklists[menu_handle]
+  endif
+
+  if nav_mode == 'hub'
+    if primary_heading_text == blank
+      assign primary_heading_text = 'Explore this section'
+    endif
+  else
+    if primary_heading_text == blank
+      assign primary_heading_text = 'More in this section'
+    endif
+    if secondary_heading_text == blank
+      assign secondary_heading_text = 'Related guides'
+    endif
+  endif
+
+  if nav_mode == 'hub'
+    if resolved_children != blank
+      for child_page in resolved_children
+        if child_page.url != nav_page.url
+          assign primary_page_count = primary_page_count | plus: 1
+        endif
+      endfor
+    endif
+  elsif resolved_parent != blank
+    assign sibling_pages = resolved_parent.metafields.custom.child_pages.value
+    if sibling_pages == blank
+      assign sibling_pages = resolved_parent.metafields.custom.ship_pages.value
+    endif
+    if sibling_pages == blank
+      assign sibling_pages = resolved_parent.metafields.custom.related_pages.value
+    endif
+
+    if sibling_pages != blank
+      for sibling_page in sibling_pages
+        if sibling_page.url != nav_page.url
+          assign primary_page_count = primary_page_count | plus: 1
+        endif
+      endfor
+    endif
+  endif
+
+  if resolved_related != blank
+    for related_page in resolved_related
+      if related_page.url != nav_page.url
+        assign secondary_page_count = secondary_page_count | plus: 1
+      endif
+    endfor
+  endif
+
+  if fallback_menu != blank and fallback_menu.links != blank
+    for fallback_link in fallback_menu.links
+      if fallback_link.url != nav_page.url
+        assign fallback_count = fallback_count | plus: 1
+      endif
+    endfor
+  endif
+
+  assign has_back_link = false
+  assign has_primary_group = false
+  assign has_secondary_group = false
+
+  if resolved_parent != blank
+    assign has_back_link = true
+  endif
+
+  if primary_page_count > 0 or fallback_count > 0
+    assign has_primary_group = true
+  endif
+
+  if nav_mode != 'hub' and secondary_page_count > 0
+    assign has_secondary_group = true
+  endif
+-%}
+
+{%- if has_back_link or has_primary_group or has_secondary_group -%}
+  <aside class="page-context-nav page-context-nav--{{ nav_mode }}" aria-label="Page navigation">
+    {%- if has_back_link -%}
+      <a class="page-context-nav__back" href="{{ resolved_parent.url }}">
+        <span class="page-context-nav__back-label">{{ back_prefix_text | escape }}</span>
+        <strong>{{ resolved_parent.title | escape }}</strong>
+      </a>
+    {%- endif -%}
+
+    {%- if has_primary_group -%}
+      <div class="page-context-nav__group">
+        <h2 class="page-context-nav__heading h4">{{ primary_heading_text | escape }}</h2>
+        <div class="page-context-nav__rail" role="list">
+          {%- if primary_page_count > 0 -%}
+            {%- assign rendered_primary = 0 -%}
+            {%- if nav_mode == 'hub' -%}
+              {%- for child_page in resolved_children -%}
+                {%- if child_page.url != nav_page.url and rendered_primary < primary_limit_value -%}
+                  <a class="page-context-nav__card" href="{{ child_page.url }}" role="listitem">
+                    <span class="page-context-nav__card-title">{{ child_page.title | escape }}</span>
+                    {%- if child_page.metafields.custom.summary.value != blank -%}
+                      <span class="page-context-nav__card-copy">{{ child_page.metafields.custom.summary.value | strip_html | truncatewords: 14 }}</span>
+                    {%- endif -%}
+                  </a>
+                  {%- assign rendered_primary = rendered_primary | plus: 1 -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- else -%}
+              {%- for sibling_page in sibling_pages -%}
+                {%- if sibling_page.url != nav_page.url and rendered_primary < primary_limit_value -%}
+                  <a class="page-context-nav__card" href="{{ sibling_page.url }}" role="listitem">
+                    <span class="page-context-nav__card-title">{{ sibling_page.title | escape }}</span>
+                    {%- if sibling_page.metafields.custom.summary.value != blank -%}
+                      <span class="page-context-nav__card-copy">{{ sibling_page.metafields.custom.summary.value | strip_html | truncatewords: 14 }}</span>
+                    {%- endif -%}
+                  </a>
+                  {%- assign rendered_primary = rendered_primary | plus: 1 -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- else -%}
+            {%- assign rendered_fallback = 0 -%}
+            {%- for fallback_link in fallback_menu.links -%}
+              {%- if fallback_link.url != nav_page.url and rendered_fallback < primary_limit_value -%}
+                <a class="page-context-nav__card" href="{{ fallback_link.url }}" role="listitem">
+                  <span class="page-context-nav__card-title">{{ fallback_link.title | escape }}</span>
+                </a>
+                {%- assign rendered_fallback = rendered_fallback | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if has_secondary_group -%}
+      <div class="page-context-nav__group">
+        <h2 class="page-context-nav__heading h4">{{ secondary_heading_text | escape }}</h2>
+        <div class="page-context-nav__rail" role="list">
+          {%- assign rendered_secondary = 0 -%}
+          {%- for related_page in resolved_related -%}
+            {%- if related_page.url != nav_page.url and rendered_secondary < secondary_limit_value -%}
+              <a class="page-context-nav__card page-context-nav__card--secondary" href="{{ related_page.url }}" role="listitem">
+                <span class="page-context-nav__card-title">{{ related_page.title | escape }}</span>
+                {%- if related_page.metafields.custom.summary.value != blank -%}
+                  <span class="page-context-nav__card-copy">{{ related_page.metafields.custom.summary.value | strip_html | truncatewords: 14 }}</span>
+                {%- elsif related_page.content != blank -%}
+                  <span class="page-context-nav__card-copy">{{ related_page.content | strip_html | truncatewords: 14 }}</span>
+                {%- endif -%}
+              </a>
+              {%- assign rendered_secondary = rendered_secondary | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </aside>
+{%- endif -%}

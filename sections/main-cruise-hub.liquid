@@ -1,4 +1,5 @@
 {{ 'section-cruise-hub.css' | asset_url | stylesheet_tag }}
+{{ 'section-page-context-nav.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
   assign summary_field = page.metafields.custom.summary
@@ -89,6 +90,17 @@
       {%- endif -%}
     </div>
   </div>
+
+  {% render 'page-context-nav',
+    page_object: page,
+    mode: 'hub',
+    parent_page: pages[section.settings.parent_page],
+    child_pages: ship_pages,
+    menu_handle: section.settings.fleet_menu,
+    back_prefix: section.settings.context_back_prefix,
+    primary_heading: section.settings.context_fleet_heading,
+    primary_limit: section.settings.context_fleet_limit
+  %}
 
   {%- if page.content != blank -%}
     <div class="cruise-hub__section">
@@ -197,9 +209,34 @@
       "default": "Explore the Disney Cruise Line fleet"
     },
     {
+      "type": "header",
+      "content": "Context navigation"
+    },
+    {
+      "type": "text",
+      "id": "context_back_prefix",
+      "label": "Back link prefix",
+      "default": "Back to"
+    },
+    {
+      "type": "text",
+      "id": "context_fleet_heading",
+      "label": "Context fleet heading",
+      "default": "Explore the fleet"
+    },
+    {
       "type": "link_list",
       "id": "fleet_menu",
       "label": "Fleet menu fallback"
+    },
+    {
+      "type": "range",
+      "id": "context_fleet_limit",
+      "label": "Context fleet limit",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "default": 6
     },
     {
       "type": "range",

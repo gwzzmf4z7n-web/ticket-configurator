@@ -1,4 +1,5 @@
 {{ 'section-cruise-detail.css' | asset_url | stylesheet_tag }}
+{{ 'section-page-context-nav.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
   assign summary_field = page.metafields.custom.summary
@@ -110,6 +111,19 @@
       {%- endif -%}
     </div>
   </div>
+
+  {% render 'page-context-nav',
+    page_object: page,
+    mode: 'detail',
+    parent_page: pages[section.settings.parent_page],
+    related_pages: related_pages,
+    menu_handle: section.settings.related_menu,
+    back_prefix: section.settings.context_back_prefix,
+    primary_heading: section.settings.context_section_heading,
+    secondary_heading: section.settings.context_related_heading,
+    primary_limit: section.settings.context_section_limit,
+    secondary_limit: section.settings.context_related_limit
+  %}
 
   {%- if page.content != blank -%}
     <div class="cruise-detail__body">
@@ -281,6 +295,46 @@
       "id": "highlights_heading",
       "label": "Highlights heading",
       "default": "Why choose this cruise"
+    },
+    {
+      "type": "header",
+      "content": "Context navigation"
+    },
+    {
+      "type": "text",
+      "id": "context_back_prefix",
+      "label": "Back link prefix",
+      "default": "Back to"
+    },
+    {
+      "type": "text",
+      "id": "context_section_heading",
+      "label": "Section links heading",
+      "default": "More ships in this section"
+    },
+    {
+      "type": "text",
+      "id": "context_related_heading",
+      "label": "Context related heading",
+      "default": "Related planning guides"
+    },
+    {
+      "type": "range",
+      "id": "context_section_limit",
+      "label": "Section links limit",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "context_related_limit",
+      "label": "Context related limit",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
     },
     {
       "type": "text",

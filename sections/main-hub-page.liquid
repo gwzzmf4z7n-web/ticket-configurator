@@ -1,4 +1,5 @@
 {{ 'section-hub-page.css' | asset_url | stylesheet_tag }}
+{{ 'section-page-context-nav.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
   assign summary_field = page.metafields.custom.summary
@@ -87,6 +88,17 @@
       {%- endif -%}
     </div>
   </div>
+
+  {% render 'page-context-nav',
+    page_object: page,
+    mode: 'hub',
+    parent_page: parent_page_object,
+    child_pages: child_pages,
+    menu_handle: section.settings.child_menu,
+    back_prefix: section.settings.context_back_prefix,
+    primary_heading: section.settings.context_children_heading,
+    primary_limit: section.settings.context_children_limit
+  %}
 
   {%- if page.content != blank -%}
     <div class="hub-page__section">
@@ -209,9 +221,34 @@
       "default": "Explore more"
     },
     {
+      "type": "header",
+      "content": "Context navigation"
+    },
+    {
+      "type": "text",
+      "id": "context_back_prefix",
+      "label": "Back link prefix",
+      "default": "Back to"
+    },
+    {
+      "type": "text",
+      "id": "context_children_heading",
+      "label": "Context children heading",
+      "default": "Explore this section"
+    },
+    {
       "type": "link_list",
       "id": "child_menu",
       "label": "Children menu fallback"
+    },
+    {
+      "type": "range",
+      "id": "context_children_limit",
+      "label": "Context children limit",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "default": 6
     },
     {
       "type": "range",
