@@ -7,7 +7,11 @@
 
 <nav class="header__inline-menu">
   <ul class="list-menu list-menu--inline" role="list">
-    {%- for link in section.settings.menu.links -%}
+    {%- liquid
+      assign visible_limit = section.settings.desktop_primary_link_limit | default: 7
+      assign total_links = section.settings.menu.links.size
+    -%}
+    {%- for link in section.settings.menu.links limit: visible_limit -%}
       <li>
         {%- if link.links != blank -%}
           <header-menu>
@@ -99,5 +103,72 @@
         {%- endif -%}
       </li>
     {%- endfor -%}
+    {%- if total_links > visible_limit -%}
+      <li>
+        <header-menu>
+          <details id="Details-HeaderMenu-More">
+            <summary
+              id="HeaderMenu-more"
+              class="header__menu-item list-menu__item link focus-inset"
+            >
+              <span>More</span>
+              {{- 'icon-caret.svg' | inline_asset_content -}}
+            </summary>
+            <ul
+              id="HeaderMenu-MenuList-more"
+              class="header__submenu list-menu list-menu--disclosure color-{{ section.settings.menu_color_scheme }} gradient caption-large motion-reduce global-settings-popup"
+              role="list"
+              tabindex="-1"
+            >
+              {%- for link in section.settings.menu.links offset: visible_limit -%}
+                <li>
+                  {%- if link.links == blank -%}
+                    <a
+                      id="HeaderMenu-more-{{ link.handle }}"
+                      href="{{ link.url }}"
+                      class="header__menu-item list-menu__item link link--text focus-inset caption-large{% if link.current %} list-menu__item--active{% endif %}"
+                      {% if link.current %}
+                        aria-current="page"
+                      {% endif %}
+                    >
+                      {{ link.title | escape }}
+                    </a>
+                  {%- else -%}
+                    <details id="Details-HeaderSubMenu-more-{{ link.handle }}">
+                      <summary
+                        id="HeaderMenu-more-{{ link.handle }}"
+                        class="header__menu-item link link--text list-menu__item focus-inset caption-large"
+                      >
+                        <span>{{ link.title | escape }}</span>
+                        {{- 'icon-caret.svg' | inline_asset_content -}}
+                      </summary>
+                      <ul
+                        id="HeaderMenu-SubMenuList-more-{{ link.handle }}"
+                        class="header__submenu list-menu motion-reduce"
+                      >
+                        {%- for childlink in link.links -%}
+                          <li>
+                            <a
+                              id="HeaderMenu-more-{{ link.handle }}-{{ childlink.handle }}"
+                              href="{{ childlink.url }}"
+                              class="header__menu-item list-menu__item link link--text focus-inset caption-large{% if childlink.current %} list-menu__item--active{% endif %}"
+                              {% if childlink.current %}
+                                aria-current="page"
+                              {% endif %}
+                            >
+                              {{ childlink.title | escape }}
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    </details>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </details>
+        </header-menu>
+      </li>
+    {%- endif -%}
   </ul>
 </nav>
