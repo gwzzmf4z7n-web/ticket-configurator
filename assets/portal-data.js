@@ -47,6 +47,15 @@ function setLink(root, selector, email, fallbackText) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function updateRewardStatuses(root, creditBalance) {
   if (creditBalance == null) {
     return;
@@ -100,6 +109,74 @@ function renderHousehold(root, household) {
   section.hidden = false;
 }
 
+function renderTrips(root, trips, advisor) {
+  const section = root.querySelector("[data-portal-trips-section]");
+  const list = root.querySelector("[data-portal-trips-list]");
+  if (!section || !list || !Array.isArray(trips) || !trips.length) {
+    return null;
+  }
+
+  list.innerHTML = trips
+    .map((trip) => {
+      const pills = [
+        trip.datesLabel,
+        trip.travellerStatus,
+        trip.bookingStatus,
+        trip.bookingReference ? `Ref ${trip.bookingReference}` : null,
+      ]
+        .filter(Boolean)
+        .map((label) => `<span class="portal-pill">${escapeHtml(label)}</span>`)
+        .join("");
+
+      const meta = [trip.supplierOperator, trip.tripType]
+        .filter(Boolean)
+        .map((value) => escapeHtml(value))
+        .join(" · ");
+
+      return `
+        <article class="portal-dashboard-card">
+          <div class="portal-dashboard-card__top">
+            <span class="portal-dashboard-card__icon"></span>
+            ${trip.numberOfTravellers ? `<span class="portal-dashboard-card__status">${escapeHtml(`${trip.numberOfTravellers} travellers`)}</span>` : ""}
+          </div>
+          <p class="portal-dashboard-card__eyebrow">Trip</p>
+          <h3 class="portal-dashboard-card__title h4">${escapeHtml(trip.title || "Upcoming trip")}</h3>
+          <div class="portal-dashboard-card__copy">
+            ${meta ? `<p>${meta}</p>` : ""}
+            ${pills ? `<div class="portal-hero-card__pills">${pills}</div>` : ""}
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  const primaryTrip = trips[0];
+  const liveTrip = root.querySelector("[data-portal-live-trip]");
+  if (primaryTrip && liveTrip) {
+    setText(root, "[data-portal-live-trip-title]", primaryTrip.title);
+    setText(root, "[data-portal-live-trip-summary]", primaryTrip.supplierOperator || primaryTrip.tripType);
+    setText(root, "[data-portal-live-trip-dates]", primaryTrip.datesLabel);
+    setText(
+      root,
+      "[data-portal-live-trip-status]",
+      primaryTrip.bookingStatus || primaryTrip.travellerStatus,
+    );
+    setLink(
+      root,
+      "[data-portal-live-trip-support]",
+      advisor?.email,
+      advisor?.name,
+    );
+    liveTrip.hidden = false;
+    root.querySelectorAll("[data-portal-fallback-trip]").forEach((node) => {
+      node.hidden = true;
+    });
+  }
+
+  section.hidden = false;
+  return primaryTrip;
+}
+
 async function loadPortalData(root) {
   const baseUrl = root.dataset.portalProxyUrl;
   if (!baseUrl) {
@@ -142,13 +219,24 @@ async function loadPortalData(root) {
       loading.hidden = true;
     }
 
+    const primaryTripFromCollection = renderTrips(root, payload.trips, payload.advisor);
+
     const liveTrip = root.querySelector("[data-portal-live-trip]");
-    if (payload.trip && (payload.trip.title || payload.trip.summary || payload.trip.bookingStatus)) {
+    if (
+      !primaryTripFromCollection &&
+      payload.trip &&
+      (payload.trip.title || payload.trip.summary || payload.trip.bookingStatus)
+    ) {
       setText(root, "[data-portal-live-trip-title]", payload.trip.title);
       setText(root, "[data-portal-live-trip-summary]", payload.trip.summary);
       setText(root, "[data-portal-live-trip-dates]", payload.trip.datesLabel);
       setText(root, "[data-portal-live-trip-status]", payload.trip.bookingStatus);
-      setLink(root, "[data-portal-live-trip-support]", payload.trip.supportEmail, payload.trip.advisorName);
+      setLink(
+        root,
+        "[data-portal-live-trip-support]",
+        payload.advisor?.email || payload.trip.supportEmail,
+        payload.advisor?.name || payload.trip.advisorName,
+      );
 
       if (liveTrip) {
         liveTrip.hidden = false;
@@ -173,6 +261,10 @@ async function loadPortalData(root) {
       if (payload.commerce.discountPercent != null) {
         setText(root, "[data-portal-discount-percent]", `${payload.commerce.discountPercent}%`);
       }
+    }
+
+    if (payload.advisor) {
+      setLink(root, "[data-portal-live-trip-support]", payload.advisor.email, payload.advisor.name);
     }
 
     renderHousehold(root, payload.household);
