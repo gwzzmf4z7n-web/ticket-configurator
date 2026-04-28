@@ -1,4 +1,5 @@
 {{ 'section-portal.css' | asset_url | stylesheet_tag }}
+{{ 'portal-data.js' | asset_url | script_tag }}
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -137,7 +138,11 @@
 -%}
 
 {% capture protected_content %}
-  <div class="portal-shell">
+  <div
+    class="portal-shell"
+    data-portal-root
+    data-portal-proxy-url="{{ section.settings.portal_data_proxy_path | escape }}"
+  >
     {% render 'portal-nav', current_handle: current_handle %}
 
     <header class="portal-hero">
@@ -163,6 +168,11 @@
 
     {% if page_key == 'hub' %}
       <div class="portal-dashboard">
+        <div class="portal-note rte" data-portal-loading hidden>
+          <p>Loading your latest client information.</p>
+        </div>
+        <div class="portal-note rte" data-portal-error hidden></div>
+
         {% if quick_action_count > 0 %}
           <section class="portal-quick-actions" aria-label="Quick actions">
             {% for block in section.blocks %}
@@ -188,8 +198,34 @@
           </section>
         {% endif %}
 
+        <section class="portal-hero-card portal-hero-card--trip" data-portal-live-trip hidden>
+          <div class="portal-hero-card__main">
+            <div class="portal-hero-card__icon">
+              {% render 'portal-icon', icon: 'plane' %}
+            </div>
+            <p class="portal-hero-card__eyebrow">Upcoming trip</p>
+            <h2 class="portal-hero-card__title h1" data-portal-live-trip-title>Your trip</h2>
+            <div class="portal-hero-card__copy rte">
+              <p data-portal-live-trip-summary>Your Salesforce trip summary will appear here.</p>
+            </div>
+            <div class="portal-hero-card__pills">
+              <span class="portal-pill" data-portal-live-trip-dates hidden></span>
+              <span class="portal-pill portal-pill--accent" data-portal-live-trip-status hidden></span>
+            </div>
+          </div>
+          <div class="portal-hero-card__aside">
+            <div class="portal-hero-stat">
+              <span class="portal-hero-stat__icon">{% render 'portal-icon', icon: 'star' %}</span>
+              <div>
+                <p class="portal-hero-stat__label">Support</p>
+                <p class="portal-hero-stat__value" data-portal-live-trip-support>Concierge team</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {% if has_live_trip %}
-          <section class="portal-hero-card portal-hero-card--trip">
+          <section class="portal-hero-card portal-hero-card--trip" data-portal-fallback-trip>
             <div class="portal-hero-card__main">
               <div class="portal-hero-card__icon">
                 {% render 'portal-icon', icon: 'plane' %}
@@ -256,7 +292,7 @@
             </div>
           </section>
         {% else %}
-          <section class="portal-empty-state" role="status">
+          <section class="portal-empty-state" role="status" data-portal-fallback-trip>
             <div class="portal-empty-state__art">
               <span class="portal-empty-state__art-ring"></span>
               <span class="portal-empty-state__art-icon">{% render 'portal-icon', icon: 'suitcase' %}</span>
@@ -306,6 +342,17 @@
             </div>
           </section>
         {% endif %}
+
+        <section class="portal-section" data-portal-household-section hidden>
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">Household</p>
+              <h2 class="portal-section__title h2">Connected travellers</h2>
+            </div>
+            <p class="portal-section__copy" data-portal-household-name></p>
+          </div>
+          <div class="portal-dashboard-grid" data-portal-household-members></div>
+        </section>
 
         {% if dashboard_card_count > 0 %}
           <section class="portal-section">
@@ -599,12 +646,12 @@
       <div class="portal-grid portal-grid--stats">
         <article class="portal-stat">
           <p class="portal-stat__label">Available credits</p>
-          <p class="portal-stat__value">{{ credit_balance }}</p>
-          <p class="portal-stat__meta">{{ credit_balance_cents | money_without_trailing_zeros }} equivalent</p>
+          <p class="portal-stat__value" data-portal-credit-balance>{{ credit_balance }}</p>
+          <p class="portal-stat__meta" data-portal-credit-value>{{ credit_balance_cents | money_without_trailing_zeros }} equivalent</p>
         </article>
         <article class="portal-stat">
           <p class="portal-stat__label">Member discount</p>
-          <p class="portal-stat__value">
+          <p class="portal-stat__value" data-portal-discount-percent>
             {% if discount_percent != blank %}
               {{ discount_percent }}%
             {% else %}
@@ -641,7 +688,7 @@
                 {% assign credit_cost_cents = product.price %}
                 {% assign credit_cost = product.price | divided_by: 10 %}
               {% endif %}
-              <article class="portal-shop-card">
+              <article class="portal-shop-card" data-portal-reward-card data-credit-cost="{{ credit_cost }}">
                 <a class="portal-shop-card__media" href="{{ product.url }}">
                   {% if product.featured_image != blank %}
                     <img
@@ -685,11 +732,11 @@
                   </div>
                   <div class="portal-shop-card__footer">
                     {% if credit_cost > 0 and credit_balance >= credit_cost %}
-                      <span class="portal-shop-card__status portal-shop-card__status--available">Enough credits available</span>
+                      <span class="portal-shop-card__status portal-shop-card__status--available" data-portal-reward-status>Enough credits available</span>
                     {% elsif credit_cost > 0 %}
-                      <span class="portal-shop-card__status">Additional credits required</span>
+                      <span class="portal-shop-card__status" data-portal-reward-status>Additional credits required</span>
                     {% else %}
-                      <span class="portal-shop-card__status">Check product price</span>
+                      <span class="portal-shop-card__status" data-portal-reward-status>Check product price</span>
                     {% endif %}
                     <a class="button button--secondary portal-button portal-button--secondary" href="{{ product.url }}">View reward</a>
                   </div>
@@ -802,6 +849,13 @@
       "id": "show_page_content",
       "label": "Show page body content below portal modules",
       "default": false
+    },
+    {
+      "type": "text",
+      "id": "portal_data_proxy_path",
+      "label": "Portal data proxy path",
+      "default": "/apps/salesforce-link/portal",
+      "info": "App proxy URL used to load live Salesforce portal data for the logged-in customer."
     },
     {
       "type": "header",
