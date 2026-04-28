@@ -142,6 +142,7 @@
     class="portal-shell"
     data-portal-root
     data-portal-proxy-url="{{ section.settings.portal_data_proxy_path | escape }}"
+    data-portal-customer-id="{% if customer %}{{ customer.id }}{% endif %}"
   >
     {% render 'portal-nav', current_handle: current_handle %}
 

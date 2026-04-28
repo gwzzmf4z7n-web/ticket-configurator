@@ -101,9 +101,14 @@ function renderHousehold(root, household) {
 }
 
 async function loadPortalData(root) {
-  const url = root.dataset.portalProxyUrl;
-  if (!url) {
+  const baseUrl = root.dataset.portalProxyUrl;
+  if (!baseUrl) {
     return;
+  }
+
+  const url = new URL(baseUrl, window.location.origin);
+  if (root.dataset.portalCustomerId) {
+    url.searchParams.set("customer_id", root.dataset.portalCustomerId);
   }
 
   const loading = root.querySelector("[data-portal-loading]");
@@ -114,14 +119,21 @@ async function loadPortalData(root) {
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(url.toString(), {
       credentials: "same-origin",
       headers: {
         Accept: "application/json",
       },
     });
 
-    const payload = await response.json();
+    const text = await response.text();
+    let payload = {};
+    try {
+      payload = text ? JSON.parse(text) : {};
+    } catch (parseError) {
+      throw new Error(text.includes("<!doctype") ? "Proxy returned HTML instead of JSON" : "Portal response was not valid JSON");
+    }
+
     if (!response.ok) {
       throw new Error(payload.error || "Unable to load portal data");
     }
