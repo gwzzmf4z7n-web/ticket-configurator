@@ -56,6 +56,37 @@ function setInputValue(root, selector, value) {
   node.value = value || "";
 }
 
+function formatErrorMessage(payload, fallbackMessage) {
+  if (Array.isArray(payload?.details) && payload.details.length) {
+    const first = payload.details[0];
+    if (typeof first?.message === "string" && first.message) {
+      return first.message;
+    }
+  }
+
+  if (typeof payload?.details === "string" && payload.details) {
+    return payload.details;
+  }
+
+  if (typeof payload?.details?.message === "string" && payload.details.message) {
+    return payload.details.message;
+  }
+
+  if (typeof payload?.details?.error_description === "string" && payload.details.error_description) {
+    return payload.details.error_description;
+  }
+
+  if (payload?.details && typeof payload.details === "object") {
+    try {
+      return JSON.stringify(payload.details);
+    } catch (error) {
+      // fall through to the generic error message
+    }
+  }
+
+  return payload?.error || fallbackMessage;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -287,7 +318,7 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
 
     const payload = await response.json();
     if (!response.ok || !payload.ok) {
-      throw new Error(payload.error || "Unable to save your details");
+      throw new Error(formatErrorMessage(payload, "Unable to save your details"));
     }
 
     populateProfileForm(root, payload.customer);
