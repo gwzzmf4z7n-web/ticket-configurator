@@ -47,6 +47,15 @@ function setLink(root, selector, email, fallbackText) {
   }
 }
 
+function setInputValue(root, selector, value) {
+  const node = root.querySelector(selector);
+  if (!node) {
+    return;
+  }
+
+  node.value = value || "";
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -116,6 +125,7 @@ function renderTrips(root, trips, advisor) {
     return null;
   }
 
+  const tripPageUrl = root.dataset.portalTripPageUrl || "/pages/your-trip";
   list.innerHTML = trips
     .map((trip) => {
       const pills = [
@@ -144,6 +154,11 @@ function renderTrips(root, trips, advisor) {
           <div class="portal-dashboard-card__copy">
             ${meta ? `<p>${meta}</p>` : ""}
             ${pills ? `<div class="portal-hero-card__pills">${pills}</div>` : ""}
+          </div>
+          <div class="portal-dashboard-card__actions">
+            <a class="portal-text-link" href="${escapeHtml(`${tripPageUrl}?tripTravellerId=${encodeURIComponent(trip.tripTravellerId)}`)}">
+              View trip
+            </a>
           </div>
         </article>
       `;
@@ -175,6 +190,121 @@ function renderTrips(root, trips, advisor) {
 
   section.hidden = false;
   return primaryTrip;
+}
+
+function renderTripPage(root, trips, advisor) {
+  const section = root.querySelector("[data-portal-trip-page-live]");
+  if (!section || !Array.isArray(trips) || !trips.length) {
+    return;
+  }
+
+  const selectedId = new URLSearchParams(window.location.search).get("tripTravellerId");
+  const selectedTrip = trips.find((trip) => trip.tripTravellerId === selectedId) || trips[0];
+  if (!selectedTrip) {
+    return;
+  }
+
+  setText(root, "[data-portal-trip-page-title]", selectedTrip.title);
+  setText(root, "[data-portal-trip-page-dates]", selectedTrip.datesLabel);
+  setText(
+    root,
+    "[data-portal-trip-page-booking-status]",
+    selectedTrip.bookingStatus || selectedTrip.travellerStatus,
+  );
+  setLink(root, "[data-portal-trip-page-support]", advisor?.email, advisor?.name);
+  setText(root, "[data-portal-trip-page-supplier]", selectedTrip.supplierOperator);
+  setText(root, "[data-portal-trip-page-type]", selectedTrip.tripType);
+  setText(root, "[data-portal-trip-page-reference]", selectedTrip.bookingReference);
+  setText(
+    root,
+    "[data-portal-trip-page-travellers]",
+    selectedTrip.numberOfTravellers != null ? String(selectedTrip.numberOfTravellers) : "",
+  );
+
+  section.hidden = false;
+  root.querySelectorAll("[data-portal-trip-page-fallback]").forEach((node) => {
+    node.hidden = true;
+  });
+}
+
+function populateProfileForm(root, customer) {
+  if (!customer) {
+    return;
+  }
+
+  const address = customer.address || {};
+  setInputValue(root, "[data-portal-profile-first-name]", customer.firstName);
+  setInputValue(root, "[data-portal-profile-last-name]", customer.lastName);
+  setInputValue(root, "[data-portal-profile-email]", customer.email);
+  setInputValue(root, "[data-portal-profile-phone]", customer.phone);
+  setInputValue(root, "[data-portal-profile-address1]", address.address1);
+  setInputValue(root, "[data-portal-profile-address2]", address.address2);
+  setInputValue(root, "[data-portal-profile-city]", address.city);
+  setInputValue(root, "[data-portal-profile-state]", address.state);
+  setInputValue(root, "[data-portal-profile-postal]", address.postalCode);
+  setInputValue(root, "[data-portal-profile-country]", address.country);
+}
+
+async function submitProfileForm(root, form, proxyBaseUrl) {
+  const status = root.querySelector("[data-portal-profile-status]");
+  const submitButton = form.querySelector("button[type='submit']");
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+  if (status) {
+    status.hidden = false;
+    status.textContent = "Saving your details.";
+  }
+
+  const url = new URL(proxyBaseUrl.replace(/\/portal$/, "/profile"), window.location.origin);
+  if (root.dataset.portalCustomerId) {
+    url.searchParams.set("customer_id", root.dataset.portalCustomerId);
+  }
+
+  const body = {
+    firstName: form.querySelector("[data-portal-profile-first-name]")?.value || "",
+    lastName: form.querySelector("[data-portal-profile-last-name]")?.value || "",
+    email: form.querySelector("[data-portal-profile-email]")?.value || "",
+    phone: form.querySelector("[data-portal-profile-phone]")?.value || "",
+    address1: form.querySelector("[data-portal-profile-address1]")?.value || "",
+    address2: form.querySelector("[data-portal-profile-address2]")?.value || "",
+    city: form.querySelector("[data-portal-profile-city]")?.value || "",
+    state: form.querySelector("[data-portal-profile-state]")?.value || "",
+    postalCode: form.querySelector("[data-portal-profile-postal]")?.value || "",
+    country: form.querySelector("[data-portal-profile-country]")?.value || "",
+  };
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || "Unable to save your details");
+    }
+
+    populateProfileForm(root, payload.customer);
+    if (status) {
+      status.textContent = payload.warning
+        ? `Saved to Salesforce. Shopify mirror warning: ${payload.warning}`
+        : "Your details were updated.";
+    }
+  } catch (error) {
+    if (status) {
+      status.textContent = error.message;
+    }
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
+  }
 }
 
 async function loadPortalData(root) {
@@ -267,7 +397,18 @@ async function loadPortalData(root) {
       setLink(root, "[data-portal-live-trip-support]", payload.advisor.email, payload.advisor.name);
     }
 
+    populateProfileForm(root, payload.customer);
+    renderTripPage(root, payload.trips, payload.advisor);
     renderHousehold(root, payload.household);
+
+    const profileForm = root.querySelector("[data-portal-profile-form]");
+    if (profileForm && !profileForm.dataset.portalBound) {
+      profileForm.dataset.portalBound = "true";
+      profileForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await submitProfileForm(root, profileForm, baseUrl);
+      });
+    }
   } catch (loadError) {
     if (loading) {
       loading.hidden = true;

@@ -275,6 +275,45 @@
   padding: 1.4rem 1.5rem;
 }
 
+.portal-profile-form {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.portal-profile-form__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.portal-profile-form label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  color: rgba(var(--color-foreground), 0.72);
+}
+
+.portal-profile-form input {
+  min-height: 4.8rem;
+  border-radius: 1.4rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.14);
+  background: rgba(var(--color-background), 0.96);
+  padding: 1.2rem 1.4rem;
+  color: rgb(var(--color-foreground));
+}
+
+.portal-profile-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.portal-profile-form__status {
+  margin: 0;
+  color: rgba(var(--color-foreground), 0.76);
+}
+
 .portal-quick-action__content {
   display: grid;
   gap: 0.3rem;
@@ -727,6 +766,10 @@
   .portal-past-trips,
   .portal-shop__grid,
   .portal-grid--panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portal-profile-form__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

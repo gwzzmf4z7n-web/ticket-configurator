@@ -143,6 +143,7 @@
     data-portal-root
     data-portal-proxy-url="{{ section.settings.portal_data_proxy_path | escape }}"
     data-portal-customer-id="{% if customer %}{{ customer.id }}{% endif %}"
+    data-portal-trip-page-url="{{ pages['your-trip'].url | default: '/pages/your-trip' }}"
   >
     {% render 'portal-nav', current_handle: current_handle %}
 
@@ -344,6 +345,34 @@
           </section>
         {% endif %}
 
+        <section class="portal-section">
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">Profile</p>
+              <h2 class="portal-section__title h2">Update your details</h2>
+            </div>
+            <p class="portal-section__copy">Changes saved here update Salesforce directly and mirror to Shopify when possible.</p>
+          </div>
+          <form class="portal-profile-form" data-portal-profile-form>
+            <div class="portal-profile-form__grid">
+              <label><span>First name</span><input type="text" data-portal-profile-first-name></label>
+              <label><span>Last name</span><input type="text" data-portal-profile-last-name></label>
+              <label><span>Email</span><input type="email" data-portal-profile-email></label>
+              <label><span>Phone</span><input type="tel" data-portal-profile-phone></label>
+              <label><span>Address line 1</span><input type="text" data-portal-profile-address1></label>
+              <label><span>Address line 2</span><input type="text" data-portal-profile-address2></label>
+              <label><span>City</span><input type="text" data-portal-profile-city></label>
+              <label><span>State</span><input type="text" data-portal-profile-state></label>
+              <label><span>Postal code</span><input type="text" data-portal-profile-postal></label>
+              <label><span>Country</span><input type="text" data-portal-profile-country></label>
+            </div>
+            <div class="portal-profile-form__actions">
+              <button class="button portal-button" type="submit">Save details</button>
+              <p class="portal-profile-form__status" data-portal-profile-status hidden></p>
+            </div>
+          </form>
+        </section>
+
         <section class="portal-section" data-portal-trips-section hidden>
           <div class="portal-section__header">
             <div>
@@ -540,8 +569,46 @@
     {% endif %}
 
     {% if page_key == 'trip' %}
-      {% if trip_record != blank %}
+      <section class="portal-section" data-portal-trip-page-live hidden>
+        <div class="portal-section__header">
+          <div>
+            <p class="portal-section__eyebrow">Live trip</p>
+            <h2 class="portal-section__title h2" data-portal-trip-page-title>Your trip</h2>
+          </div>
+          <p class="portal-section__copy" data-portal-trip-page-dates></p>
+        </div>
         <div class="portal-grid portal-grid--stats">
+          <article class="portal-stat">
+            <p class="portal-stat__label">Booking status</p>
+            <p class="portal-stat__value h2" data-portal-trip-page-booking-status></p>
+          </article>
+          <article class="portal-stat">
+            <p class="portal-stat__label">Supplier</p>
+            <p class="portal-stat__value h2" data-portal-trip-page-supplier></p>
+          </article>
+          <article class="portal-stat">
+            <p class="portal-stat__label">Support</p>
+            <p class="portal-stat__value h5" data-portal-trip-page-support></p>
+          </article>
+        </div>
+        <div class="portal-dashboard-grid">
+          <article class="portal-dashboard-card">
+            <p class="portal-dashboard-card__eyebrow">Trip type</p>
+            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-type></h3>
+          </article>
+          <article class="portal-dashboard-card">
+            <p class="portal-dashboard-card__eyebrow">Booking reference</p>
+            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-reference></h3>
+          </article>
+          <article class="portal-dashboard-card">
+            <p class="portal-dashboard-card__eyebrow">Travellers</p>
+            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-travellers></h3>
+          </article>
+        </div>
+      </section>
+
+      {% if trip_record != blank %}
+        <div class="portal-grid portal-grid--stats" data-portal-trip-page-fallback>
           <article class="portal-stat">
             <p class="portal-stat__label">Trip title</p>
             <p class="portal-stat__value h2">{{ trip_title | default: 'Your trip' }}</p>
@@ -579,7 +646,7 @@
       {% endif %}
 
       {% if info_panel_count > 0 %}
-        <div class="portal-grid portal-grid--panels">
+        <div class="portal-grid portal-grid--panels" data-portal-trip-page-fallback>
           {% for block in section.blocks %}
             {% if block.type != 'info_panel' %}
               {% continue %}
@@ -647,7 +714,7 @@
       {% endif %}
 
       {% if trip_record == blank %}
-        <div class="portal-note rte">
+        <div class="portal-note rte" data-portal-trip-page-fallback>
           <p>No trip record is assigned to this customer yet.</p>
           <p>Add a future metafield or metaobject later and this page can populate without changing the template.</p>
         </div>
