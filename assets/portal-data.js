@@ -127,6 +127,45 @@ function updateRewardStatuses(root, creditBalance) {
   });
 }
 
+async function fetchCartState() {
+  const response = await fetch("/cart.js", {
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load cart state");
+  }
+
+  return response.json();
+}
+
+function getReservedPortalCredits(cart) {
+  const items = Array.isArray(cart?.items) ? cart.items : [];
+
+  return items.reduce((sum, item) => {
+    const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+    const credits = Number(properties._portal_reward_credits || 0);
+    const quantity = Number(item.quantity || 0);
+    return sum + credits * quantity;
+  }, 0);
+}
+
+function updateCreditAvailability(root, totalCreditBalance, reservedCredits) {
+  if (totalCreditBalance == null) {
+    return;
+  }
+
+  const availableCredits = Math.max(Number(totalCreditBalance) - Number(reservedCredits || 0), 0);
+  root.dataset.portalTotalCredits = String(totalCreditBalance);
+  root.dataset.portalReservedCredits = String(reservedCredits || 0);
+  setText(root, "[data-portal-credit-balance]", String(availableCredits));
+  setText(root, "[data-portal-credit-value]", formatMoney(availableCredits * 10));
+  updateRewardStatuses(root, availableCredits);
+}
+
 function showPortalMessage(root, selector, message) {
   const node = root.querySelector(selector);
   if (!node) {
@@ -368,7 +407,7 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
   }
 }
 
-async function addRewardVariantToCart(variantId) {
+async function addRewardVariantToCart(variantId, creditCost, discountCode) {
   const response = await fetch("/cart/add.js", {
     method: "POST",
     credentials: "same-origin",
@@ -381,6 +420,10 @@ async function addRewardVariantToCart(variantId) {
         {
           id: Number(variantId),
           quantity: 1,
+          properties: {
+            _portal_reward_credits: String(creditCost),
+            _portal_reward_discount_code: discountCode || "",
+          },
         },
       ],
     }),
@@ -418,6 +461,15 @@ async function redeemReward(root, card, button, baseUrl) {
   }
 
   try {
+    const totalCredits = Number(root.dataset.portalTotalCredits || 0);
+    const cart = await fetchCartState();
+    const reservedCredits = getReservedPortalCredits(cart);
+    const availableCredits = Math.max(totalCredits - reservedCredits, 0);
+
+    if (availableCredits < creditCost) {
+      throw new Error("Not enough credits available once cart reservations are included");
+    }
+
     const response = await fetch(url.toString(), {
       method: "POST",
       credentials: "same-origin",
@@ -435,13 +487,13 @@ async function redeemReward(root, card, button, baseUrl) {
       throw new Error(formatErrorMessage(payload, "Unable to redeem reward"));
     }
 
-    await addRewardVariantToCart(variantId);
-
-    if (payload.commerce?.creditBalance != null) {
-      setText(root, "[data-portal-credit-balance]", String(payload.commerce.creditBalance));
-      setText(root, "[data-portal-credit-value]", formatMoney(payload.commerce.creditValueCents));
-      updateRewardStatuses(root, payload.commerce.creditBalance);
-    }
+    await addRewardVariantToCart(variantId, creditCost, payload.discount?.code);
+    const updatedCart = await fetchCartState();
+    updateCreditAvailability(
+      root,
+      payload.commerce?.creditBalance != null ? payload.commerce.creditBalance : totalCredits,
+      getReservedPortalCredits(updatedCart),
+    );
 
     if (payload.discount?.code) {
       window.location.href = `/discount/${encodeURIComponent(payload.discount.code)}?redirect=${encodeURIComponent("/checkout")}`;
@@ -534,13 +586,12 @@ async function loadPortalData(root) {
 
     if (payload.commerce) {
       if (payload.commerce.creditBalance != null) {
-        setText(root, "[data-portal-credit-balance]", String(payload.commerce.creditBalance));
-        setText(
+        const cart = await fetchCartState();
+        updateCreditAvailability(
           root,
-          "[data-portal-credit-value]",
-          formatMoney(payload.commerce.creditValueCents),
+          payload.commerce.creditBalance,
+          getReservedPortalCredits(cart),
         );
-        updateRewardStatuses(root, payload.commerce.creditBalance);
       }
 
       if (payload.commerce.discountPercent != null) {
