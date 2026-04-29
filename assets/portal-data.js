@@ -435,10 +435,17 @@ async function redeemReward(root, card, button, baseUrl) {
       throw new Error(formatErrorMessage(payload, "Unable to redeem reward"));
     }
 
+    await addRewardVariantToCart(variantId);
+
     if (payload.commerce?.creditBalance != null) {
       setText(root, "[data-portal-credit-balance]", String(payload.commerce.creditBalance));
       setText(root, "[data-portal-credit-value]", formatMoney(payload.commerce.creditValueCents));
       updateRewardStatuses(root, payload.commerce.creditBalance);
+    }
+
+    if (payload.discount?.code) {
+      window.location.href = `/discount/${encodeURIComponent(payload.discount.code)}?redirect=${encodeURIComponent("/checkout")}`;
+      return;
     }
 
     window.location.href = payload.discount?.shareableUrl || "/checkout";
