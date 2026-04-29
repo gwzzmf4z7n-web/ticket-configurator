@@ -104,19 +104,47 @@ function updateRewardStatuses(root, creditBalance) {
   root.querySelectorAll("[data-portal-reward-card]").forEach((card) => {
     const creditCost = Number(card.dataset.creditCost || 0);
     const status = card.querySelector("[data-portal-reward-status]");
+    const redeemButton = card.querySelector("[data-portal-redeem-button]");
+    const isAvailable = card.dataset.portalRewardAvailable === "true";
     if (!status || !creditCost) {
       return;
     }
 
-    if (creditBalance >= creditCost) {
+    if (creditBalance >= creditCost && isAvailable) {
       status.textContent = "Enough credits available";
       status.classList.add("portal-shop-card__status--available");
+      if (redeemButton && !redeemButton.dataset.portalBusy) {
+        redeemButton.disabled = false;
+      }
       return;
     }
 
-    status.textContent = "Additional credits required";
+    status.textContent = isAvailable ? "Additional credits required" : "Currently unavailable";
     status.classList.remove("portal-shop-card__status--available");
+    if (redeemButton && !redeemButton.dataset.portalBusy) {
+      redeemButton.disabled = true;
+    }
   });
+}
+
+function showPortalMessage(root, selector, message) {
+  const node = root.querySelector(selector);
+  if (!node) {
+    return;
+  }
+
+  node.hidden = false;
+  node.textContent = message;
+}
+
+function hidePortalMessage(root, selector) {
+  const node = root.querySelector(selector);
+  if (!node) {
+    return;
+  }
+
+  node.hidden = true;
+  node.textContent = "";
 }
 
 function renderHousehold(root, household) {
@@ -306,6 +334,8 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
   };
 
   try {
+    await addRewardVariantToCart(variantId);
+
     const response = await fetch(url.toString(), {
       method: "POST",
       credentials: "same-origin",
@@ -335,6 +365,93 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
     if (submitButton) {
       submitButton.disabled = false;
     }
+  }
+}
+
+async function addRewardVariantToCart(variantId) {
+  const response = await fetch("/cart/add.js", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      items: [
+        {
+          id: Number(variantId),
+          quantity: 1,
+        },
+      ],
+    }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(formatErrorMessage(payload, "Unable to add reward to cart"));
+  }
+
+  return payload;
+}
+
+async function redeemReward(root, card, button, baseUrl) {
+  const variantId = card.dataset.portalRewardVariantId;
+  const creditCost = Number(card.dataset.creditCost || 0);
+  if (!variantId || !creditCost) {
+    throw new Error("Reward is missing variant or credit information");
+  }
+
+  const status = card.querySelector("[data-portal-reward-status]");
+  const originalLabel = button.textContent;
+  button.dataset.portalBusy = "true";
+  button.disabled = true;
+  button.textContent = "Applying reward...";
+  hidePortalMessage(root, "[data-portal-error]");
+
+  if (status) {
+    status.textContent = "Creating checkout reward...";
+  }
+
+  const url = new URL(baseUrl.replace(/\/portal$/, "/redeem-reward"), window.location.origin);
+  if (root.dataset.portalCustomerId) {
+    url.searchParams.set("customer_id", root.dataset.portalCustomerId);
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        variantId,
+      }),
+    });
+
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) {
+      throw new Error(formatErrorMessage(payload, "Unable to redeem reward"));
+    }
+
+    if (payload.commerce?.creditBalance != null) {
+      setText(root, "[data-portal-credit-balance]", String(payload.commerce.creditBalance));
+      setText(root, "[data-portal-credit-value]", formatMoney(payload.commerce.creditValueCents));
+      updateRewardStatuses(root, payload.commerce.creditBalance);
+    }
+
+    window.location.href = payload.discount?.shareableUrl || "/checkout";
+  } catch (error) {
+    if (status) {
+      status.textContent = error.message;
+      status.classList.remove("portal-shop-card__status--available");
+    }
+    showPortalMessage(root, "[data-portal-error]", error.message);
+    button.disabled = false;
+    button.textContent = originalLabel;
+  } finally {
+    delete button.dataset.portalBusy;
   }
 }
 
@@ -440,6 +557,17 @@ async function loadPortalData(root) {
         await submitProfileForm(root, profileForm, baseUrl);
       });
     }
+
+    root.querySelectorAll("[data-portal-redeem-button]").forEach((button) => {
+      if (button.dataset.portalBound) {
+        return;
+      }
+
+      button.dataset.portalBound = "true";
+      button.addEventListener("click", async () => {
+        await redeemReward(root, button.closest("[data-portal-reward-card]"), button, baseUrl);
+      });
+    });
   } catch (loadError) {
     if (loading) {
       loading.hidden = true;

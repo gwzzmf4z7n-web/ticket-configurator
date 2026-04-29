@@ -168,13 +168,13 @@
       </div>
     </header>
 
+    <div class="portal-note rte" data-portal-loading hidden>
+      <p>Loading your latest client information.</p>
+    </div>
+    <div class="portal-note rte" data-portal-error hidden></div>
+
     {% if page_key == 'hub' %}
       <div class="portal-dashboard">
-        <div class="portal-note rte" data-portal-loading hidden>
-          <p>Loading your latest client information.</p>
-        </div>
-        <div class="portal-note rte" data-portal-error hidden></div>
-
         {% if quick_action_count > 0 %}
           <section class="portal-quick-actions" aria-label="Quick actions">
             {% for block in section.blocks %}
@@ -767,7 +767,13 @@
                 {% assign credit_cost_cents = product.price %}
                 {% assign credit_cost = product.price | divided_by: 10 %}
               {% endif %}
-              <article class="portal-shop-card" data-portal-reward-card data-credit-cost="{{ credit_cost }}">
+              <article
+                class="portal-shop-card"
+                data-portal-reward-card
+                data-credit-cost="{{ credit_cost }}"
+                data-portal-reward-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                data-portal-reward-available="{% if product.available and product.selected_or_first_available_variant != blank %}true{% else %}false{% endif %}"
+              >
                 <a class="portal-shop-card__media" href="{{ product.url }}">
                   {% if product.featured_image != blank %}
                     <img
@@ -816,6 +822,16 @@
                       <span class="portal-shop-card__status" data-portal-reward-status>Additional credits required</span>
                     {% else %}
                       <span class="portal-shop-card__status" data-portal-reward-status>Check product price</span>
+                    {% endif %}
+                    {% if product.selected_or_first_available_variant != blank and product.available and credit_cost > 0 %}
+                      <button
+                        class="button portal-button"
+                        type="button"
+                        data-portal-redeem-button
+                        {% if credit_balance < credit_cost %}disabled{% endif %}
+                      >
+                        Redeem with credits
+                      </button>
                     {% endif %}
                     <a class="button button--secondary portal-button portal-button--secondary" href="{{ product.url }}">View reward</a>
                   </div>
