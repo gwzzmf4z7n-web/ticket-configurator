@@ -148,6 +148,8 @@ async function syncRewardCart(root, baseUrl, reservedCredits) {
     url.searchParams.set("customer_id", root.dataset.portalCustomerId);
   }
 
+  const cart = await fetchCartState();
+
   const response = await fetch(url.toString(), {
     method: "POST",
     credentials: "same-origin",
@@ -157,6 +159,7 @@ async function syncRewardCart(root, baseUrl, reservedCredits) {
     },
     body: JSON.stringify({
       reservedCredits,
+      rewardProductIds: getReservedRewardProductIds(cart),
     }),
   });
 
@@ -177,6 +180,22 @@ function getReservedPortalCredits(cart) {
     const quantity = Number(item.quantity || 0);
     return sum + credits * quantity;
   }, 0);
+}
+
+function getReservedRewardProductIds(cart) {
+  const items = Array.isArray(cart?.items) ? cart.items : [];
+
+  return Array.from(
+    new Set(
+      items
+        .filter((item) => {
+          const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+          return Number(properties._portal_reward_credits || 0) > 0;
+        })
+        .map((item) => String(item.product_id || ""))
+        .filter(Boolean),
+    ),
+  );
 }
 
 function updateCreditAvailability(root, totalCreditBalance, reservedCredits) {
@@ -568,13 +587,13 @@ async function redeemReward(root, card, button, baseUrl) {
       getReservedPortalCredits(updatedCart),
     );
 
-    if (rewardPayload.discount?.code) {
-      window.location.href = `/discount/${encodeURIComponent(rewardPayload.discount.code)}?redirect=${encodeURIComponent("/cart")}`;
+    if (payload.discount?.code) {
+      window.location.href = `/discount/${encodeURIComponent(payload.discount.code)}?redirect=${encodeURIComponent("/cart")}`;
       return;
     }
 
-    if (rewardPayload.discount?.shareableUrl) {
-      window.location.href = rewardPayload.discount.shareableUrl;
+    if (payload.discount?.shareableUrl) {
+      window.location.href = payload.discount.shareableUrl;
       return;
     }
 
