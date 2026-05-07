@@ -433,7 +433,7 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
   }
 }
 
-async function addRewardVariantToCart(variantId, creditCost, discountCode) {
+async function addRewardVariantToCart(variantId, creditCost, discountCode, claimId) {
   const response = await fetch("/cart/add.js", {
     method: "POST",
     credentials: "same-origin",
@@ -447,6 +447,7 @@ async function addRewardVariantToCart(variantId, creditCost, discountCode) {
           id: Number(variantId),
           quantity: 1,
           properties: {
+            _portal_reward_claim_id: claimId,
             _portal_reward_credits: String(creditCost),
             _portal_reward_discount_code: discountCode || "",
           },
@@ -460,12 +461,46 @@ async function addRewardVariantToCart(variantId, creditCost, discountCode) {
     throw new Error(formatErrorMessage(payload, "Unable to add reward to cart"));
   }
 
-  return payload;
+  return { payload, claimId };
+}
+
+async function removeRewardVariantFromCart(claimId) {
+  const cart = await fetchCartState();
+  const matchingItem = (Array.isArray(cart?.items) ? cart.items : []).find((item) => {
+    const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+    return String(properties._portal_reward_claim_id || "") === String(claimId);
+  });
+
+  if (!matchingItem?.key) {
+    return;
+  }
+
+  const response = await fetch("/cart/change.js", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: matchingItem.key,
+      quantity: 0,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Reward could not be removed from cart after discount setup failed");
+  }
+
+  return response.json();
 }
 
 async function redeemReward(root, card, button, baseUrl) {
   const variantId = card.dataset.portalRewardVariantId;
   const creditCost = Number(card.dataset.creditCost || 0);
+  const claimId = `reward-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  let rewardAdded = false;
+
   if (!variantId || !creditCost) {
     throw new Error("Reward is missing variant or credit information");
   }
@@ -496,7 +531,35 @@ async function redeemReward(root, card, button, baseUrl) {
       throw new Error("Not enough credits available once cart reservations are included");
     }
 
-    await addRewardVariantToCart(variantId, creditCost, "");
+    const rewardResponse = await fetch(url.toString(), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        variantId,
+      }),
+    });
+
+    const rewardPayload = await rewardResponse.json();
+    if (!rewardResponse.ok || !rewardPayload.ok) {
+      throw new Error(formatErrorMessage(rewardPayload, "Unable to create reward discount"));
+    }
+
+    if (status) {
+      status.textContent = "Adding reward to cart...";
+    }
+
+    await addRewardVariantToCart(
+      variantId,
+      creditCost,
+      rewardPayload.discount?.code || "",
+      claimId,
+    );
+    rewardAdded = true;
+
     const updatedCart = await fetchCartState();
     const payload = await syncRewardCart(root, baseUrl, getReservedPortalCredits(updatedCart));
     updateCreditAvailability(
@@ -505,13 +568,32 @@ async function redeemReward(root, card, button, baseUrl) {
       getReservedPortalCredits(updatedCart),
     );
 
-    if (payload.discount?.code) {
-      window.location.href = `/discount/${encodeURIComponent(payload.discount.code)}?redirect=${encodeURIComponent("/checkout")}`;
+    if (rewardPayload.discount?.code) {
+      window.location.href = `/discount/${encodeURIComponent(rewardPayload.discount.code)}?redirect=${encodeURIComponent("/cart")}`;
       return;
     }
 
-    window.location.href = payload.discount?.shareableUrl || "/checkout";
+    if (rewardPayload.discount?.shareableUrl) {
+      window.location.href = rewardPayload.discount.shareableUrl;
+      return;
+    }
+
+    throw new Error("Reward discount was created without a usable code or URL");
   } catch (error) {
+    if (rewardAdded) {
+      try {
+        await removeRewardVariantFromCart(claimId);
+        const revertedCart = await fetchCartState();
+        updateCreditAvailability(
+          root,
+          Number(root.dataset.portalTotalCredits || 0),
+          getReservedPortalCredits(revertedCart),
+        );
+      } catch (rollbackError) {
+        console.error(rollbackError);
+      }
+    }
+
     if (status) {
       status.textContent = error.message;
       status.classList.remove("portal-shop-card__status--available");
