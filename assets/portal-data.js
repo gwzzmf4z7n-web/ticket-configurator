@@ -142,6 +142,32 @@ async function fetchCartState() {
   return response.json();
 }
 
+async function syncRewardCart(root, baseUrl, reservedCredits) {
+  const url = new URL(baseUrl.replace(/\/portal$/, "/reward-cart"), window.location.origin);
+  if (root.dataset.portalCustomerId) {
+    url.searchParams.set("customer_id", root.dataset.portalCustomerId);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      reservedCredits,
+    }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.ok) {
+    throw new Error(formatErrorMessage(payload, "Unable to sync reserved reward credits"));
+  }
+
+  return payload;
+}
+
 function getReservedPortalCredits(cart) {
   const items = Array.isArray(cart?.items) ? cart.items : [];
 
@@ -470,25 +496,9 @@ async function redeemReward(root, card, button, baseUrl) {
       throw new Error("Not enough credits available once cart reservations are included");
     }
 
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        variantId,
-      }),
-    });
-
-    const payload = await response.json();
-    if (!response.ok || !payload.ok) {
-      throw new Error(formatErrorMessage(payload, "Unable to redeem reward"));
-    }
-
-    await addRewardVariantToCart(variantId, creditCost, payload.discount?.code);
+    await addRewardVariantToCart(variantId, creditCost, "");
     const updatedCart = await fetchCartState();
+    const payload = await syncRewardCart(root, baseUrl, getReservedPortalCredits(updatedCart));
     updateCreditAvailability(
       root,
       payload.commerce?.creditBalance != null ? payload.commerce.creditBalance : totalCredits,
