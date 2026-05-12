@@ -142,13 +142,14 @@ async function fetchCartState() {
   return response.json();
 }
 
-async function syncRewardCart(root, baseUrl, reservedCredits) {
+async function syncRewardCart(root, baseUrl, reservedCredits, rewardProductIds = []) {
   const url = new URL(baseUrl.replace(/\/portal$/, "/reward-cart"), window.location.origin);
   if (root.dataset.portalCustomerId) {
     url.searchParams.set("customer_id", root.dataset.portalCustomerId);
   }
-
-  const cart = await fetchCartState();
+  const normalizedRewardProductIds = Array.from(
+    new Set((rewardProductIds || []).map((id) => String(id || "")).filter(Boolean)),
+  );
 
   const response = await fetch(url.toString(), {
     method: "POST",
@@ -159,7 +160,7 @@ async function syncRewardCart(root, baseUrl, reservedCredits) {
     },
     body: JSON.stringify({
       reservedCredits,
-      rewardProductIds: getReservedRewardProductIds(cart),
+      rewardProductIds: normalizedRewardProductIds,
     }),
   });
 
@@ -453,6 +454,7 @@ async function submitProfileForm(root, form, proxyBaseUrl) {
 }
 
 async function addRewardVariantToCart(variantId, creditCost, discountCode, claimId) {
+  const discountCents = creditCost * 10;
   const response = await fetch("/cart/add.js", {
     method: "POST",
     credentials: "same-origin",
@@ -466,8 +468,10 @@ async function addRewardVariantToCart(variantId, creditCost, discountCode, claim
           id: Number(variantId),
           quantity: 1,
           properties: {
+            _portal_reward_claimed: "true",
             _portal_reward_claim_id: claimId,
             _portal_reward_credits: String(creditCost),
+            _portal_reward_discount_cents: String(discountCents),
             _portal_reward_discount_code: discountCode || "",
           },
         },
@@ -516,11 +520,12 @@ async function removeRewardVariantFromCart(claimId) {
 
 async function redeemReward(root, card, button, baseUrl) {
   const variantId = card.dataset.portalRewardVariantId;
+  const productId = card.dataset.portalRewardProductId;
   const creditCost = Number(card.dataset.creditCost || 0);
   const claimId = `reward-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   let rewardAdded = false;
 
-  if (!variantId || !creditCost) {
+  if (!variantId || !productId || !creditCost) {
     throw new Error("Reward is missing variant or credit information");
   }
 
@@ -580,7 +585,17 @@ async function redeemReward(root, card, button, baseUrl) {
     rewardAdded = true;
 
     const updatedCart = await fetchCartState();
-    const payload = await syncRewardCart(root, baseUrl, getReservedPortalCredits(updatedCart));
+    const rewardProductIds = getReservedRewardProductIds(updatedCart);
+    if (!rewardProductIds.includes(String(productId))) {
+      rewardProductIds.push(String(productId));
+    }
+
+    const payload = await syncRewardCart(
+      root,
+      baseUrl,
+      getReservedPortalCredits(updatedCart),
+      rewardProductIds,
+    );
     updateCreditAvailability(
       root,
       payload.commerce?.creditBalance != null ? payload.commerce.creditBalance : totalCredits,

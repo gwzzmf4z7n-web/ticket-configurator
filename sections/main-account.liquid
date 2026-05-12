@@ -1,4 +1,5 @@
 {{ 'customer.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'customer.js' | asset_url }}" defer></script>
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -174,27 +175,7 @@
         </a>
       </div>
 
-      {% render 'customer-travel-dashboard',
-        customer_email: customer.email,
-        portal_brand: portal_brand,
-        portal_title: portal_title,
-        portal_status: portal_status,
-        trip_name: trip_name,
-        booking_number: booking_number,
-        trip_start_date: trip_start_date,
-        trip_end_date: trip_end_date,
-        next_important_date: next_important_date,
-        advisor_name: advisor_name,
-        portal_summary: portal_summary,
-        ticket_summary: ticket_summary,
-        hotel_summary: hotel_summary,
-        important_dates: important_dates,
-        documents_links: documents_links,
-        advisor_notes: advisor_notes,
-        support_email: support_email,
-        support_phone: support_phone,
-        portal_has_content: portal_has_content
-      %}
+      {% render 'customer-itinerary-prototype' %}
 
       {% if section.settings.show_orders %}
         <div>

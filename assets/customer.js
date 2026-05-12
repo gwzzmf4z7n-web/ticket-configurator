@@ -83,3 +83,51 @@ class CustomerAddresses {
     }
   };
 }
+
+class ClientItineraryPrototype {
+  constructor() {
+    this.root = document.querySelector('[data-itinerary-root]');
+    if (!this.root) return;
+
+    this.dayButtons = Array.from(this.root.querySelectorAll('[data-itinerary-day-button]'));
+    this.dayPanels = Array.from(this.root.querySelectorAll('[data-itinerary-day-panel]'));
+    this.feedback = this.root.querySelector('[data-itinerary-feedback]');
+
+    this._setupEventListeners();
+  }
+
+  _setupEventListeners() {
+    this.dayButtons.forEach((button) => {
+      button.addEventListener('click', () => this._selectDay(button.dataset.itineraryDayButton));
+    });
+
+    this.root.querySelectorAll('[data-itinerary-action]').forEach((button) => {
+      button.addEventListener('click', () => this._showFeedback(button.dataset.itineraryAction));
+    });
+  }
+
+  _selectDay(dayId) {
+    this.dayButtons.forEach((button) => {
+      const isActive = button.dataset.itineraryDayButton === dayId;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    this.dayPanels.forEach((panel) => {
+      const isActive = panel.dataset.itineraryDayPanel === dayId;
+      panel.classList.toggle('is-active', isActive);
+      panel.hidden = !isActive;
+    });
+  }
+
+  _showFeedback(actionLabel) {
+    if (!this.feedback) return;
+    this.feedback.hidden = false;
+    this.feedback.textContent = `${actionLabel} is a prototype action for now.`;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  new CustomerAddresses();
+  new ClientItineraryPrototype();
+});

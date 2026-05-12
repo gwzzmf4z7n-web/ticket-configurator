@@ -1,0 +1,379 @@
+{%- liquid
+  assign itinerary_client_name = customer.last_name | append: ' Family'
+  if customer.last_name == blank
+    if customer.first_name != blank
+      assign itinerary_client_name = customer.first_name
+    else
+      assign itinerary_client_name = 'Valued client'
+    endif
+  endif
+-%}
+
+<section class="client-itinerary" data-itinerary-root aria-labelledby="ClientItineraryHeading">
+  <div class="client-itinerary__hero">
+    <div class="client-itinerary__hero-image"></div>
+    <div class="client-itinerary__hero-overlay"></div>
+    <div class="client-itinerary__hero-content">
+      <div class="client-itinerary__hero-copy">
+        <p class="client-itinerary__eyebrow">Mr Chocolate's Travel client hub</p>
+        <h2 id="ClientItineraryHeading" class="client-itinerary__title h0">Singapore &amp; Disney Adventure Cruise</h2>
+        <p class="client-itinerary__intro">
+          A theme-native itinerary preview for the client hub. This is mock content for now and is visible to every logged-in customer while the live data connection is being built.
+        </p>
+        <div class="client-itinerary__meta">
+          <span class="client-itinerary__pill">{{ itinerary_client_name }}</span>
+          <span class="client-itinerary__pill">14 Apr – 23 Apr 2026</span>
+          <span class="client-itinerary__pill">Singapore</span>
+        </div>
+        <div class="client-itinerary__hero-actions">
+          <button type="button" class="button button--secondary" data-itinerary-action="Ask a question">Ask a question</button>
+          <button type="button" class="button" data-itinerary-action="Download PDF">Download PDF</button>
+        </div>
+      </div>
+      <div class="client-itinerary__status">Awaiting client approval</div>
+    </div>
+  </div>
+
+  <div class="client-itinerary__layout">
+    <div class="client-itinerary__main">
+      <section class="client-itinerary__panel">
+        <div class="client-itinerary__section-head">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Approval flow</p>
+            <h3 class="client-itinerary__section-title h2">Trip progress and next approvals</h3>
+          </div>
+          <p class="client-itinerary__section-copy">Keep the family moving from review to travel-ready without leaving the client hub.</p>
+        </div>
+
+        <div class="client-itinerary__progress-grid">
+          <article class="client-itinerary__progress-card client-itinerary__progress-card--complete">
+            <span class="client-itinerary__progress-number">1</span>
+            <h4 class="h4">Review itinerary</h4>
+            <p>Completed</p>
+          </article>
+          <article class="client-itinerary__progress-card client-itinerary__progress-card--current">
+            <span class="client-itinerary__progress-number">2</span>
+            <h4 class="h4">Approve traveller details</h4>
+            <p>Current action</p>
+          </article>
+          <article class="client-itinerary__progress-card">
+            <span class="client-itinerary__progress-number">3</span>
+            <h4 class="h4">Pay balance</h4>
+            <p>Upcoming</p>
+          </article>
+          <article class="client-itinerary__progress-card">
+            <span class="client-itinerary__progress-number">4</span>
+            <h4 class="h4">Ready to travel</h4>
+            <p>Upcoming</p>
+          </article>
+        </div>
+
+        <div class="client-itinerary__panel-footer">
+          <p>Traveller details are the current blocker before balance payment and final travel documents.</p>
+          <button type="button" class="button" data-itinerary-action="Approve itinerary">Approve itinerary</button>
+        </div>
+      </section>
+
+      <section class="client-itinerary__panel">
+        <div class="client-itinerary__section-head">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Daily plan</p>
+            <h3 class="client-itinerary__section-title h2">Day-by-day itinerary</h3>
+          </div>
+          <p class="client-itinerary__section-copy">Select a day to view the matching timeline.</p>
+        </div>
+
+        <div class="client-itinerary__day-selector" role="tablist" aria-label="Trip days">
+          <button type="button" class="client-itinerary__day-button is-active" data-itinerary-day-button="day-1" role="tab" aria-selected="true">Day 1<span>14 Apr 2026</span></button>
+          <button type="button" class="client-itinerary__day-button" data-itinerary-day-button="day-2" role="tab" aria-selected="false">Day 2<span>15 Apr 2026</span></button>
+          <button type="button" class="client-itinerary__day-button" data-itinerary-day-button="day-3" role="tab" aria-selected="false">Day 3<span>16 Apr 2026</span></button>
+          <button type="button" class="client-itinerary__day-button" data-itinerary-day-button="day-4" role="tab" aria-selected="false">Day 4<span>17 Apr 2026</span></button>
+        </div>
+
+        <div class="client-itinerary__days">
+          <section class="client-itinerary__day-panel is-active" data-itinerary-day-panel="day-1" role="tabpanel">
+            <div class="client-itinerary__day-summary">
+              <p class="client-itinerary__section-eyebrow">Day 1</p>
+              <h4 class="h3">14 Apr 2026 · Singapore</h4>
+              <p>Arrival day with airport transfer and check-in at your marina hotel.</p>
+            </div>
+            <div class="client-itinerary__timeline">
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'plane' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">6:10 AM</p>
+                      <h5 class="h4">Flight to Singapore</h5>
+                      <p class="client-itinerary__event-subtitle">QF81 · Melbourne to Singapore</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--confirmed">Confirmed</span>
+                  </div>
+                  <p>Overnight international flight with checked baggage included for all travellers.</p>
+                  <button type="button" class="button button--secondary" data-itinerary-action="View flight details">View flight details</button>
+                </div>
+              </article>
+
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'suitcase' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">3:00 PM</p>
+                      <h5 class="h4">Hotel check-in</h5>
+                      <p class="client-itinerary__event-subtitle">The Fullerton Hotel Singapore</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--confirmed">Confirmed</span>
+                  </div>
+                  <p>Two-night stay in interconnecting premier rooms with breakfast daily.</p>
+                  <button type="button" class="button button--secondary" data-itinerary-action="View hotel voucher">View hotel voucher</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="client-itinerary__day-panel" data-itinerary-day-panel="day-2" role="tabpanel" hidden>
+            <div class="client-itinerary__day-summary">
+              <p class="client-itinerary__section-eyebrow">Day 2</p>
+              <h4 class="h3">15 Apr 2026 · Singapore</h4>
+              <p>Flexible city touring day with attractions and a dinner preference to finalise.</p>
+            </div>
+            <div class="client-itinerary__timeline">
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'ticket' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">10:00 AM</p>
+                      <h5 class="h4">Gardens by the Bay tickets</h5>
+                      <p class="client-itinerary__event-subtitle">Cloud Forest + Flower Dome</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--approval">Needs approval</span>
+                  </div>
+                  <p>Reserved tickets are ready for issue once the family confirms preferred entry time.</p>
+                  <button type="button" class="button" data-itinerary-action="Approve tickets">Approve tickets</button>
+                </div>
+              </article>
+
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'star' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">7:00 PM</p>
+                      <h5 class="h4">Dinner reservation choice</h5>
+                      <p class="client-itinerary__event-subtitle">Choose between Lau Pa Sat or Ce La Vi</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--decision">Decision needed</span>
+                  </div>
+                  <p>Both options are currently held. One selection is needed before we confirm the reservation.</p>
+                  <button type="button" class="button" data-itinerary-action="Choose option">Choose option</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="client-itinerary__day-panel" data-itinerary-day-panel="day-3" role="tabpanel" hidden>
+            <div class="client-itinerary__day-summary">
+              <p class="client-itinerary__section-eyebrow">Day 3</p>
+              <h4 class="h3">16 Apr 2026 · Marina Bay Cruise Centre</h4>
+              <p>Cruise embarkation day with an important arrival window before sailing.</p>
+            </div>
+            <div class="client-itinerary__timeline">
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'map' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">11:30 AM</p>
+                      <h5 class="h4">Port arrival time</h5>
+                      <p class="client-itinerary__event-subtitle">Disney Cruise Line embarkation window</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--action">Action required</span>
+                  </div>
+                  <p>Please confirm whether you prefer private transfer pickup at 10:15 AM or 10:45 AM.</p>
+                  <button type="button" class="button" data-itinerary-action="Confirm arrival window">Confirm arrival window</button>
+                </div>
+              </article>
+
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'compass' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">4:00 PM</p>
+                      <h5 class="h4">Disney Adventure sets sail</h5>
+                      <p class="client-itinerary__event-subtitle">Singapore round-trip voyage</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--confirmed">Confirmed</span>
+                  </div>
+                  <p>Your stateroom and onboard dining rotation are now locked with Disney Cruise Line.</p>
+                  <button type="button" class="button button--secondary" data-itinerary-action="View cruise summary">View cruise summary</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="client-itinerary__day-panel" data-itinerary-day-panel="day-4" role="tabpanel" hidden>
+            <div class="client-itinerary__day-summary">
+              <p class="client-itinerary__section-eyebrow">Day 4</p>
+              <h4 class="h3">17 Apr 2026 · At sea</h4>
+              <p>First full day onboard with family entertainment and rotational dining.</p>
+            </div>
+            <div class="client-itinerary__timeline">
+              <article class="client-itinerary__event">
+                <div class="client-itinerary__event-icon">{% render 'portal-icon', icon: 'star' %}</div>
+                <div class="client-itinerary__event-body">
+                  <div class="client-itinerary__event-top">
+                    <div>
+                      <p class="client-itinerary__event-time">6:15 PM</p>
+                      <h5 class="h4">Rotational dining</h5>
+                      <p class="client-itinerary__event-subtitle">Animator's Table</p>
+                    </div>
+                    <span class="client-itinerary__badge client-itinerary__badge--confirmed">Confirmed</span>
+                  </div>
+                  <p>Your family is confirmed for first seating. Dietary requests will carry through automatically.</p>
+                  <button type="button" class="button button--secondary" data-itinerary-action="View dining details">View dining details</button>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="client-itinerary__panel">
+        <div class="client-itinerary__section-head">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Documents</p>
+            <h3 class="client-itinerary__section-title h2">Trip documents</h3>
+          </div>
+          <p class="client-itinerary__section-copy">These are prototype placeholders until live files are connected.</p>
+        </div>
+
+        <div class="client-itinerary__documents">
+          <article class="client-itinerary__document">
+            <div>
+              <p class="client-itinerary__document-title">Flight confirmation</p>
+              <p class="client-itinerary__document-meta">Flight · Ready to view</p>
+            </div>
+            <button type="button" class="button button--secondary" data-itinerary-action="View flight confirmation">View</button>
+          </article>
+          <article class="client-itinerary__document">
+            <div>
+              <p class="client-itinerary__document-title">Hotel voucher</p>
+              <p class="client-itinerary__document-meta">Hotel · Pending upload</p>
+            </div>
+            <button type="button" class="button button--secondary" data-itinerary-action="View hotel voucher status">View status</button>
+          </article>
+          <article class="client-itinerary__document">
+            <div>
+              <p class="client-itinerary__document-title">Cruise documents</p>
+              <p class="client-itinerary__document-meta">Cruise · Awaiting final issue</p>
+            </div>
+            <button type="button" class="button button--secondary" data-itinerary-action="Track cruise documents">Track issue</button>
+          </article>
+          <article class="client-itinerary__document">
+            <div>
+              <p class="client-itinerary__document-title">Ticket vouchers</p>
+              <p class="client-itinerary__document-meta">Activity · Ready to download</p>
+            </div>
+            <button type="button" class="button button--secondary" data-itinerary-action="Download ticket vouchers">Download</button>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <aside class="client-itinerary__sidebar">
+      <section class="client-itinerary__panel client-itinerary__panel--sticky">
+        <div class="client-itinerary__section-head client-itinerary__section-head--stacked">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Action centre</p>
+            <h3 class="client-itinerary__section-title h2">Client actions</h3>
+          </div>
+        </div>
+
+        <button type="button" class="button client-itinerary__sidebar-primary" data-itinerary-action="Approve traveller details">Approve traveller details</button>
+
+        <div class="client-itinerary__action-list">
+          <article class="client-itinerary__action-card">
+            <h4 class="h5">Approve traveller details</h4>
+            <p>Review names, dates of birth and passport notes.</p>
+            <button type="button" class="button button--secondary" data-itinerary-action="Review traveller details">Review details</button>
+          </article>
+          <article class="client-itinerary__action-card">
+            <h4 class="h5">Pay balance</h4>
+            <p>Final balance due 10 Mar 2026.</p>
+            <button type="button" class="button button--secondary" data-itinerary-action="Pay balance">Pay now</button>
+          </article>
+          <article class="client-itinerary__action-card">
+            <h4 class="h5">Upload documents</h4>
+            <p>Add passports or travel insurance files when ready.</p>
+            <button type="button" class="button button--secondary" data-itinerary-action="Upload documents">Upload files</button>
+          </article>
+          <article class="client-itinerary__action-card">
+            <h4 class="h5">Ask a question</h4>
+            <p>Message your travel agent about this itinerary.</p>
+            <button type="button" class="button button--secondary" data-itinerary-action="Open message centre">Open message</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="client-itinerary__panel">
+        <div class="client-itinerary__section-head client-itinerary__section-head--stacked">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Travellers</p>
+            <h3 class="client-itinerary__section-title h2">Who's travelling</h3>
+          </div>
+        </div>
+        <div class="client-itinerary__travellers">
+          <div class="client-itinerary__traveller">
+            <div>
+              <strong>Kobi</strong>
+              <p>Lead traveller</p>
+            </div>
+            <span class="client-itinerary__tag">Lead traveller</span>
+          </div>
+          <div class="client-itinerary__traveller">
+            <div>
+              <strong>Adult 2</strong>
+              <p>Adult traveller</p>
+            </div>
+          </div>
+          <div class="client-itinerary__traveller">
+            <div>
+              <strong>Child 1</strong>
+              <p>Child traveller</p>
+            </div>
+          </div>
+          <div class="client-itinerary__traveller">
+            <div>
+              <strong>Child 2</strong>
+              <p>Child traveller</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="client-itinerary__panel">
+        <div class="client-itinerary__section-head client-itinerary__section-head--stacked">
+          <div>
+            <p class="client-itinerary__section-eyebrow">Reminders</p>
+            <h3 class="client-itinerary__section-title h2">Important reminders</h3>
+          </div>
+        </div>
+        <div class="client-itinerary__reminders">
+          <article class="client-itinerary__reminder">
+            <strong>Online cruise check-in opens soon</strong>
+            <p>Complete cruise preferences and guest details before 1 Apr 2026.</p>
+          </article>
+          <article class="client-itinerary__reminder">
+            <strong>Final documents will appear once all confirmations are uploaded</strong>
+            <p>Your vouchers and sailing pack will unlock automatically in the hub.</p>
+          </article>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <p class="client-itinerary__prototype-note" data-itinerary-feedback hidden></p>
+</section>

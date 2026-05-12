@@ -771,6 +771,7 @@
                 class="portal-shop-card"
                 data-portal-reward-card
                 data-credit-cost="{{ credit_cost }}"
+                data-portal-reward-product-id="{{ product.id }}"
                 data-portal-reward-variant-id="{{ product.selected_or_first_available_variant.id }}"
                 data-portal-reward-available="{% if product.available and product.selected_or_first_available_variant != blank %}true{% else %}false{% endif %}"
               >
