@@ -1,5 +1,7 @@
 {{ 'section-portal.css' | asset_url | stylesheet_tag }}
+{{ 'customer.css' | asset_url | stylesheet_tag }}
 {{ 'portal-data.js' | asset_url | script_tag }}
+<script src="{{ 'customer.js' | asset_url }}" defer></script>
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -569,122 +571,7 @@
     {% endif %}
 
     {% if page_key == 'trip' %}
-      <section class="portal-section" data-portal-trip-page-live hidden>
-        <div class="portal-section__header">
-          <div>
-            <p class="portal-section__eyebrow">Live trip</p>
-            <h2 class="portal-section__title h2" data-portal-trip-page-title>Your trip</h2>
-          </div>
-          <p class="portal-section__copy" data-portal-trip-page-dates></p>
-        </div>
-        <div class="portal-grid portal-grid--stats">
-          <article class="portal-stat">
-            <p class="portal-stat__label">Booking status</p>
-            <p class="portal-stat__value h2" data-portal-trip-page-booking-status></p>
-          </article>
-          <article class="portal-stat">
-            <p class="portal-stat__label">Supplier</p>
-            <p class="portal-stat__value h2" data-portal-trip-page-supplier></p>
-          </article>
-          <article class="portal-stat">
-            <p class="portal-stat__label">Support</p>
-            <p class="portal-stat__value h5" data-portal-trip-page-support></p>
-          </article>
-        </div>
-        <div class="portal-dashboard-grid">
-          <article class="portal-dashboard-card">
-            <p class="portal-dashboard-card__eyebrow">Trip type</p>
-            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-type></h3>
-          </article>
-          <article class="portal-dashboard-card">
-            <p class="portal-dashboard-card__eyebrow">Booking reference</p>
-            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-reference></h3>
-          </article>
-          <article class="portal-dashboard-card">
-            <p class="portal-dashboard-card__eyebrow">Travellers</p>
-            <h3 class="portal-dashboard-card__title h4" data-portal-trip-page-travellers></h3>
-          </article>
-        </div>
-      </section>
-
-      {% if trip_record != blank %}
-        <div class="portal-grid portal-grid--stats" data-portal-trip-page-fallback>
-          <article class="portal-stat">
-            <p class="portal-stat__label">Trip title</p>
-            <p class="portal-stat__value h2">{{ trip_title | default: 'Your trip' }}</p>
-            <p class="portal-stat__meta">
-              {% if trip_start_date != blank %}
-                {{ trip_start_date | date: '%B %-d, %Y' }}
-              {% else %}
-                Add trip dates when ready.
-              {% endif %}
-            </p>
-          </article>
-          <article class="portal-stat">
-            <p class="portal-stat__label">Booking status</p>
-            <p class="portal-stat__value h2">{{ booking_status | default: 'Pending' }}</p>
-            <p class="portal-stat__meta">
-              {% if advisor_name != blank %}
-                Managed by {{ advisor_name }}
-              {% else %}
-                Assign an advisor later.
-              {% endif %}
-            </p>
-          </article>
-          <article class="portal-stat">
-            <p class="portal-stat__label">Support</p>
-            <p class="portal-stat__value h5">
-              {% if support_email != blank %}
-                <a href="mailto:{{ support_email }}">{{ support_email }}</a>
-              {% else %}
-                Contact to be added
-              {% endif %}
-            </p>
-            <p class="portal-stat__meta">Reserved for future synced trip data.</p>
-          </article>
-        </div>
-      {% endif %}
-
-      {% if info_panel_count > 0 %}
-        <div class="portal-grid portal-grid--panels" data-portal-trip-page-fallback>
-          {% for block in section.blocks %}
-            {% if block.type != 'info_panel' %}
-              {% continue %}
-            {% endif %}
-            {% assign panel_body = block.settings.body %}
-            {% assign panel_classes = 'portal-panel' %}
-            {% if block.settings.width == 'full' %}
-              {% assign panel_classes = panel_classes | append: ' portal-panel--full' %}
-            {% endif %}
-            {% if trip_record != blank %}
-              {% case block.settings.title %}
-                {% when 'Trip Overview' %}
-                  {% assign panel_body = trip_overview | default: block.settings.body %}
-                {% when 'Booking Status' %}
-                  {% capture panel_body %}
-                    <p>{{ booking_status | default: 'No booking status has been added yet.' }}</p>
-                    {% if trip_start_date != blank %}
-                      <p>Departure: {{ trip_start_date | date: '%B %-d, %Y' }}</p>
-                    {% endif %}
-                    {% if trip_end_date != blank %}
-                      <p>Return: {{ trip_end_date | date: '%B %-d, %Y' }}</p>
-                    {% endif %}
-                  {% endcapture %}
-                {% when 'Upcoming Plans' %}
-                  {% assign panel_body = upcoming_plans | default: block.settings.body %}
-                {% when 'Future Salesforce / Itinerary Integration' %}
-                  {% assign panel_body = salesforce_placeholder | default: block.settings.body %}
-              {% endcase %}
-            {% endif %}
-            <article class="{{ panel_classes }}" {{ block.shopify_attributes }}>
-              <h2 class="portal-panel__title h3">{{ block.settings.title }}</h2>
-              {% if panel_body != blank %}
-                <div class="portal-panel__body rte">{{ panel_body }}</div>
-              {% endif %}
-            </article>
-          {% endfor %}
-        </div>
-      {% endif %}
+      {% render 'customer-itinerary-prototype' %}
 
       {% if section.settings.enable_travefy_embed %}
         <section class="portal-section portal-section--embed">
@@ -713,12 +600,10 @@
         </section>
       {% endif %}
 
-      {% if trip_record == blank %}
-        <div class="portal-note rte" data-portal-trip-page-fallback>
-          <p>No trip record is assigned to this customer yet.</p>
-          <p>Add a future metafield or metaobject later and this page can populate without changing the template.</p>
-        </div>
-      {% endif %}
+      <div class="portal-note rte" data-portal-trip-page-fallback>
+        <p>This itinerary is currently using mock content inside the real portal page.</p>
+        <p>The next step is swapping this module from placeholder trip data to the customer’s live Salesforce itinerary record.</p>
+      </div>
     {% endif %}
 
     {% if page_key == 'shop' %}
