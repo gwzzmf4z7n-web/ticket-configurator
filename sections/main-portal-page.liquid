@@ -50,6 +50,11 @@
   assign next_step_count = 0
   assign past_trip_count = 0
   assign info_panel_count = 0
+  assign guest_offer_count = 0
+  assign guest_included_service_count = 0
+  assign guest_paid_service_count = 0
+  assign encoded_return_to = return_to | url_encode
+  assign login_url = routes.root_url | append: 'customer_authentication/login?return_to=' | append: encoded_return_to
 
   if customer and customer.metafields.portal.credit_balance != blank and customer.metafields.portal.credit_balance.value != blank
     assign credit_balance = customer.metafields.portal.credit_balance.value | plus: 0
@@ -91,6 +96,14 @@
         assign past_trip_count = past_trip_count | plus: 1
       when 'info_panel'
         assign info_panel_count = info_panel_count | plus: 1
+      when 'guest_offer'
+        assign guest_offer_count = guest_offer_count | plus: 1
+      when 'guest_service'
+        if block.settings.service_scope == 'included'
+          assign guest_included_service_count = guest_included_service_count | plus: 1
+        else
+          assign guest_paid_service_count = guest_paid_service_count | plus: 1
+        endif
     endcase
   endfor
 
@@ -138,6 +151,168 @@
     endif
   endif
 -%}
+
+{% capture guest_content %}
+  <div class="portal-shell portal-shell--guest">
+    {% render 'portal-nav', current_handle: current_handle, nav_mode: 'hidden' %}
+
+    <header class="portal-hero portal-hero--guest">
+      {% if section.settings.guest_eyebrow != blank %}
+        <p class="portal-hero__eyebrow">{{ section.settings.guest_eyebrow }}</p>
+      {% endif %}
+      <div class="portal-hero__layout">
+        <div class="portal-hero__main">
+          <h1 class="portal-hero__heading h0">{{ section.settings.guest_heading }}</h1>
+          {% if section.settings.guest_intro != blank %}
+            <div class="portal-hero__intro rte">{{ section.settings.guest_intro }}</div>
+          {% endif %}
+          <div class="portal-hero__actions">
+            {% if section.settings.guest_primary_label != blank and section.settings.guest_primary_link != blank %}
+              <a class="button portal-button" href="{{ section.settings.guest_primary_link }}">{{ section.settings.guest_primary_label }}</a>
+            {% endif %}
+            {% if section.settings.guest_secondary_label != blank and section.settings.guest_secondary_link != blank %}
+              <a class="button button--secondary portal-button portal-button--secondary" href="{{ section.settings.guest_secondary_link }}">{{ section.settings.guest_secondary_label }}</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="portal-hero__badge">
+          <span class="portal-hero__badge-icon">{% render 'portal-icon', icon: 'sparkle' %}</span>
+          <div>
+            <p class="portal-hero__badge-label">{{ section.settings.guest_badge_label }}</p>
+            <p class="portal-hero__badge-copy">{{ section.settings.guest_badge_copy }}</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="portal-dashboard portal-dashboard--guest">
+      {% if guest_offer_count > 0 %}
+        <section class="portal-section">
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">Consultation options</p>
+              <h2 class="portal-section__title h2">{{ section.settings.guest_pricing_heading }}</h2>
+            </div>
+            {% if section.settings.guest_pricing_intro != blank %}
+              <div class="portal-section__copy rte">{{ section.settings.guest_pricing_intro }}</div>
+            {% endif %}
+          </div>
+          <div class="portal-guest-offers">
+            {% for block in section.blocks %}
+              {% if block.type != 'guest_offer' %}
+                {% continue %}
+              {% endif %}
+              <article class="portal-guest-offer" {{ block.shopify_attributes }}>
+                <div class="portal-guest-offer__top">
+                  {% if block.settings.badge != blank %}
+                    <p class="portal-guest-offer__badge">{{ block.settings.badge }}</p>
+                  {% endif %}
+                  {% if block.settings.price != blank %}
+                    <p class="portal-guest-offer__price">{{ block.settings.price }}</p>
+                  {% endif %}
+                </div>
+                <h3 class="portal-guest-offer__title h3">{{ block.settings.title }}</h3>
+                {% if block.settings.description != blank %}
+                  <div class="portal-guest-offer__copy rte">{{ block.settings.description }}</div>
+                {% endif %}
+                {% if block.settings.includes != blank %}
+                  <div class="portal-guest-offer__includes rte">{{ block.settings.includes }}</div>
+                {% endif %}
+                {% if block.settings.link != blank and block.settings.link_label != blank %}
+                  <div class="portal-guest-offer__actions">
+                    <a class="button portal-button" href="{{ block.settings.link }}">{{ block.settings.link_label }}</a>
+                  </div>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+
+      {% if guest_included_service_count > 0 or guest_paid_service_count > 0 %}
+        <section class="portal-section">
+          <div class="portal-section__header">
+            <div>
+              <p class="portal-section__eyebrow">What is covered</p>
+              <h2 class="portal-section__title h2">{{ section.settings.guest_services_heading }}</h2>
+            </div>
+            {% if section.settings.guest_services_intro != blank %}
+              <div class="portal-section__copy rte">{{ section.settings.guest_services_intro }}</div>
+            {% endif %}
+          </div>
+
+          <div class="portal-guest-services">
+            {% if guest_included_service_count > 0 %}
+              <article class="portal-panel portal-panel--included">
+                <div class="portal-panel__header">
+                  <span class="portal-panel__icon">{% render 'portal-icon', icon: 'sparkle' %}</span>
+                  <div>
+                    <p class="portal-panel__eyebrow">Included</p>
+                    <h3 class="portal-panel__title h4">{{ section.settings.guest_included_heading }}</h3>
+                  </div>
+                </div>
+                <div class="portal-guest-service-list">
+                  {% for block in section.blocks %}
+                    {% if block.type != 'guest_service' or block.settings.service_scope != 'included' %}
+                      {% continue %}
+                    {% endif %}
+                    <article class="portal-guest-service" {{ block.shopify_attributes }}>
+                      <h4 class="portal-guest-service__title h5">{{ block.settings.title }}</h4>
+                      {% if block.settings.description != blank %}
+                        <div class="portal-guest-service__copy rte">{{ block.settings.description }}</div>
+                      {% endif %}
+                    </article>
+                  {% endfor %}
+                </div>
+              </article>
+            {% endif %}
+
+            {% if guest_paid_service_count > 0 %}
+              <article class="portal-panel portal-panel--paid">
+                <div class="portal-panel__header">
+                  <span class="portal-panel__icon">{% render 'portal-icon', icon: 'card' %}</span>
+                  <div>
+                    <p class="portal-panel__eyebrow">Paid services</p>
+                    <h3 class="portal-panel__title h4">{{ section.settings.guest_paid_heading }}</h3>
+                  </div>
+                </div>
+                <div class="portal-guest-service-list">
+                  {% for block in section.blocks %}
+                    {% if block.type != 'guest_service' or block.settings.service_scope != 'paid' %}
+                      {% continue %}
+                    {% endif %}
+                    <article class="portal-guest-service" {{ block.shopify_attributes }}>
+                      <h4 class="portal-guest-service__title h5">{{ block.settings.title }}</h4>
+                      {% if block.settings.description != blank %}
+                        <div class="portal-guest-service__copy rte">{{ block.settings.description }}</div>
+                      {% endif %}
+                    </article>
+                  {% endfor %}
+                </div>
+              </article>
+            {% endif %}
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="portal-login-gate portal-login-gate--guest" role="status">
+        <h2 class="portal-login-gate__title h2">{{ section.settings.logged_out_title }}</h2>
+        <div class="portal-login-gate__body rte">
+          {{ section.settings.logged_out_message }}
+          {% if section.settings.guest_member_note != blank %}
+            <div class="portal-guest-member-note rte">{{ section.settings.guest_member_note }}</div>
+          {% endif %}
+        </div>
+        <div class="portal-login-gate__actions">
+          <a class="button portal-button" href="{{ login_url }}">{{ section.settings.login_button_label }}</a>
+          {% if section.settings.guest_contact_label != blank and section.settings.guest_contact_link != blank %}
+            <a class="button button--secondary portal-button portal-button--secondary" href="{{ section.settings.guest_contact_link }}">{{ section.settings.guest_contact_label }}</a>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+{% endcapture %}
 
 {% capture protected_content %}
   <div
@@ -774,13 +949,17 @@
 
 <section class="portal-area section-{{ section.id }}-padding color-{{ section.settings.color_scheme }} gradient">
   <div class="page-width">
-    {% render 'portal-login-gate',
-      title: section.settings.logged_out_title,
-      message: section.settings.logged_out_message,
-      button_label: section.settings.login_button_label,
-      return_to: return_to,
-      gated_content: protected_content
-    %}
+    {% if page_key == 'hub' and customer == blank %}
+      {{ guest_content }}
+    {% else %}
+      {% render 'portal-login-gate',
+        title: section.settings.logged_out_title,
+        message: section.settings.logged_out_message,
+        button_label: section.settings.login_button_label,
+        return_to: return_to,
+        gated_content: protected_content
+      %}
+    {% endif %}
   </div>
 </section>
 
@@ -1043,6 +1222,94 @@
     },
     {
       "type": "inline_richtext",
+      "id": "guest_eyebrow",
+      "label": "Guest eyebrow",
+      "default": "MrChocolate client hub"
+    },
+    {
+      "type": "text",
+      "id": "guest_heading",
+      "label": "Guest heading",
+      "default": "Choose the planning support that fits your trip"
+    },
+    {
+      "type": "richtext",
+      "id": "guest_intro",
+      "label": "Guest intro",
+      "default": "<p>This public side of the client hub explains how your planning support works before login. Use it to show consultation options, what is already included, and which services are available as add-ons.</p>"
+    },
+    {
+      "type": "text",
+      "id": "guest_badge_label",
+      "label": "Guest badge label",
+      "default": "Before you book"
+    },
+    {
+      "type": "text",
+      "id": "guest_badge_copy",
+      "label": "Guest badge copy",
+      "default": "Set expectations clearly, let visitors self-select the right level of support, then carry them into the logged-in experience later."
+    },
+    {
+      "type": "text",
+      "id": "guest_primary_label",
+      "label": "Guest primary button label",
+      "default": "Book a consult"
+    },
+    {
+      "type": "url",
+      "id": "guest_primary_link",
+      "label": "Guest primary button link"
+    },
+    {
+      "type": "text",
+      "id": "guest_secondary_label",
+      "label": "Guest secondary button label",
+      "default": "Request a quote"
+    },
+    {
+      "type": "url",
+      "id": "guest_secondary_link",
+      "label": "Guest secondary button link"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "guest_pricing_heading",
+      "label": "Guest pricing heading",
+      "default": "Consults and planning options"
+    },
+    {
+      "type": "richtext",
+      "id": "guest_pricing_intro",
+      "label": "Guest pricing intro",
+      "default": "<p>Use these cards to explain the price point, the kind of support each option includes, and where a client should click to proceed.</p>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "guest_services_heading",
+      "label": "Guest services heading",
+      "default": "Included vs paid services"
+    },
+    {
+      "type": "richtext",
+      "id": "guest_services_intro",
+      "label": "Guest services intro",
+      "default": "<p>Make the line between complimentary support and additional paid work obvious so clients know exactly what to expect.</p>"
+    },
+    {
+      "type": "text",
+      "id": "guest_included_heading",
+      "label": "Included services heading",
+      "default": "Included with your booking"
+    },
+    {
+      "type": "text",
+      "id": "guest_paid_heading",
+      "label": "Paid services heading",
+      "default": "Available as paid add-ons"
+    },
+    {
+      "type": "inline_richtext",
       "id": "logged_out_title",
       "label": "Logged out heading",
       "default": "Please log in to access your portal"
@@ -1054,10 +1321,27 @@
       "default": "<p>You need to be logged in with your Shopify customer account to view this private area.</p>"
     },
     {
+      "type": "richtext",
+      "id": "guest_member_note",
+      "label": "Guest member note",
+      "default": "<p>Already working with us? Once your trip is underway, this same hub becomes your login-protected space for itineraries, forms, tickets, and payments.</p>"
+    },
+    {
       "type": "text",
       "id": "login_button_label",
       "label": "Login button label",
       "default": "Log in"
+    },
+    {
+      "type": "text",
+      "id": "guest_contact_label",
+      "label": "Guest contact button label",
+      "default": "Contact us"
+    },
+    {
+      "type": "url",
+      "id": "guest_contact_link",
+      "label": "Guest contact button link"
     },
     {
       "type": "color_scheme",
@@ -1143,6 +1427,52 @@
         },
         { "type": "url", "id": "link", "label": "Link" },
         { "type": "text", "id": "link_label", "label": "Link label", "default": "Open" }
+      ]
+    },
+    {
+      "type": "guest_offer",
+      "name": "Guest offer",
+      "settings": [
+        { "type": "text", "id": "badge", "label": "Badge", "default": "Most popular" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Planning consult" },
+        { "type": "text", "id": "price", "label": "Price", "default": "$99" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Use this space for a short explanation of who this offer is for and what problem it solves.</p>"
+        },
+        {
+          "type": "richtext",
+          "id": "includes",
+          "label": "Includes",
+          "default": "<p>List the core inclusions here, such as consultation time, follow-up notes, or planning recommendations.</p>"
+        },
+        { "type": "url", "id": "link", "label": "Button link" },
+        { "type": "text", "id": "link_label", "label": "Button label", "default": "Book now" }
+      ]
+    },
+    {
+      "type": "guest_service",
+      "name": "Guest service",
+      "settings": [
+        {
+          "type": "select",
+          "id": "service_scope",
+          "label": "Service scope",
+          "default": "included",
+          "options": [
+            { "value": "included", "label": "Included" },
+            { "value": "paid", "label": "Paid add-on" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Service title" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Clarify what is covered and when this service applies.</p>"
+        }
       ]
     },
     {

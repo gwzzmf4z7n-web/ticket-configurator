@@ -83,6 +83,90 @@
             "link": "/pages/secret-shop"
           }
         },
+        "guest_offer_quote": {
+          "type": "guest_offer",
+          "settings": {
+            "badge": "Complimentary",
+            "title": "Quote review",
+            "price": "$0",
+            "description": "<p>A simple starting point for travellers who want to explore their options before committing to deeper planning support.</p>",
+            "includes": "<p>Best for straightforward bookings, general guidance, and the first conversation about where you want to go.</p>",
+            "link": "/pages/request-a-quote",
+            "link_label": "Request a quote"
+          }
+        },
+        "guest_offer_consult": {
+          "type": "guest_offer",
+          "settings": {
+            "badge": "Most popular",
+            "title": "Planning consult",
+            "price": "$99",
+            "description": "<p>A paid strategy session for clients who want focused destination advice, clear next steps, and expert input before booking.</p>",
+            "includes": "<p>Use this card to outline consult duration, follow-up notes, and exactly what planning support is covered in the fee.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Book a consult"
+          }
+        },
+        "guest_offer_bespoke": {
+          "type": "guest_offer",
+          "settings": {
+            "badge": "Custom support",
+            "title": "Bespoke itinerary design",
+            "price": "Custom quote",
+            "description": "<p>For clients who need a more hands-on planning service, layered recommendations, or a tailored itinerary build.</p>",
+            "includes": "<p>Perfect for complex trips, concierge-style planning, and premium add-on work that sits beyond the standard booking scope.</p>",
+            "link": "/pages/contact-us",
+            "link_label": "Discuss your trip"
+          }
+        },
+        "guest_service_intro_call": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "included",
+            "title": "Initial trip conversation",
+            "description": "<p>Use this area to explain the discovery call, destination chat, or early-stage guidance that is already part of your process.</p>"
+          }
+        },
+        "guest_service_booking_support": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "included",
+            "title": "Standard booking support",
+            "description": "<p>Clarify the services included once a client books with you, such as supplier coordination, reminders, or general trip administration.</p>"
+          }
+        },
+        "guest_service_client_hub": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "included",
+            "title": "Access to the logged-in hub",
+            "description": "<p>Show that booked clients move into a private dashboard for itineraries, forms, tickets, and payment-related information.</p>"
+          }
+        },
+        "guest_service_paid_consults": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "paid",
+            "title": "Consultation sessions",
+            "description": "<p>Use this card for paid phone or video consults where clients are paying for dedicated planning time and specialist advice.</p>"
+          }
+        },
+        "guest_service_paid_itineraries": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "paid",
+            "title": "Detailed itinerary design",
+            "description": "<p>Spell out the itinerary work that falls outside your included booking service, especially when research or curation is more complex.</p>"
+          }
+        },
+        "guest_service_paid_changes": {
+          "type": "guest_service",
+          "settings": {
+            "service_scope": "paid",
+            "title": "Additional planning requests",
+            "description": "<p>Reserve this for add-on work like extra revisions, layered destination research, or concierge-style extras that need separate pricing.</p>"
+          }
+        },
         "upcoming_trip": {
           "type": "dashboard_card",
           "settings": {
@@ -228,6 +312,15 @@
         "quick_link_forms",
         "quick_link_payments",
         "quick_link_shop",
+        "guest_offer_quote",
+        "guest_offer_consult",
+        "guest_offer_bespoke",
+        "guest_service_intro_call",
+        "guest_service_booking_support",
+        "guest_service_client_hub",
+        "guest_service_paid_consults",
+        "guest_service_paid_itineraries",
+        "guest_service_paid_changes",
         "upcoming_trip",
         "tickets",
         "forms",
@@ -280,9 +373,27 @@
         "cta_body": "<p>Keep one clear growth action at the bottom of the hub so customers can move from account management back into planning.</p>",
         "cta_button_label": "Plan Your Next Adventure",
         "cta_button_link": "/pages/themepark-destinations",
-        "logged_out_title": "Please log in to access your client hub",
-        "logged_out_message": "<p>You need to log in with your Shopify customer account before you can view the MrChocolate client portal.</p>",
+        "guest_eyebrow": "MrChocolate client hub",
+        "guest_heading": "Choose the planning support that fits your trip",
+        "guest_intro": "<p>This side of the client hub is for new and prospective clients. It sets out how consultations work, what support is included, and which planning services are available as paid add-ons before the private portal experience begins.</p>",
+        "guest_badge_label": "Guest experience",
+        "guest_badge_copy": "Start with transparent pricing and service scope now, then connect travellers into the logged-in hub once they book.",
+        "guest_primary_label": "Book a consult",
+        "guest_primary_link": "/pages/contact-us",
+        "guest_secondary_label": "Request a quote",
+        "guest_secondary_link": "/pages/request-a-quote",
+        "guest_pricing_heading": "Consults and planning options",
+        "guest_pricing_intro": "<p>Position these cards as the clearest way for a client to understand how they can work with you and what level of support they are choosing.</p>",
+        "guest_services_heading": "Included vs paid services",
+        "guest_services_intro": "<p>Use this section to remove ambiguity. Clients should be able to quickly see what comes with your normal booking support and what sits under a separate planning fee.</p>",
+        "guest_included_heading": "Included with your booking",
+        "guest_paid_heading": "Available as paid add-ons",
+        "logged_out_title": "Already a client? Log in to your private hub",
+        "logged_out_message": "<p>Returning clients can log in here to access their itinerary, forms, ticket information, and payment touchpoints.</p>",
+        "guest_member_note": "<p>This keeps the public-facing pricing conversation and the private client experience connected inside one hub.</p>",
         "login_button_label": "Log in",
+        "guest_contact_label": "Contact us",
+        "guest_contact_link": "/pages/contact-us",
         "color_scheme": "scheme-1",
         "padding_top": 48,
         "padding_bottom": 48

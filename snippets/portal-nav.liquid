@@ -2,6 +2,7 @@
   assign hub_page = pages['client-hub']
   assign trip_page = pages['your-trip']
   assign shop_page = pages['secret-shop']
+  assign nav_mode = nav_mode | default: 'full'
 
   assign hub_url = '/pages/client-hub'
   if hub_page != blank
@@ -20,26 +21,30 @@
 -%}
 
 <nav class="portal-nav" aria-label="Customer portal">
-  <div class="portal-nav__links">
-    <a
-      class="portal-nav__link{% if current_handle == 'client-hub' %} portal-nav__link--active{% endif %}"
-      href="{{ hub_url }}"
-    >
-      Client Hub
-    </a>
-    <a
-      class="portal-nav__link{% if current_handle == 'your-trip' %} portal-nav__link--active{% endif %}"
-      href="{{ trip_url }}"
-    >
-      Your Trip
-    </a>
-    <a
-      class="portal-nav__link{% if current_handle == 'secret-shop' %} portal-nav__link--active{% endif %}"
-      href="{{ shop_url }}"
-    >
-      Secret Shop
-    </a>
-  </div>
+  {%- if nav_mode != 'hidden' -%}
+    <div class="portal-nav__links">
+      <a
+        class="portal-nav__link{% if current_handle == 'client-hub' %} portal-nav__link--active{% endif %}"
+        href="{{ hub_url }}"
+      >
+        Client Hub
+      </a>
+      {%- if nav_mode == 'full' -%}
+        <a
+          class="portal-nav__link{% if current_handle == 'your-trip' %} portal-nav__link--active{% endif %}"
+          href="{{ trip_url }}"
+        >
+          Your Trip
+        </a>
+        <a
+          class="portal-nav__link{% if current_handle == 'secret-shop' %} portal-nav__link--active{% endif %}"
+          href="{{ shop_url }}"
+        >
+          Secret Shop
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
 
   {%- if customer -%}
     <div class="portal-nav__logout">

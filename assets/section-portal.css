@@ -7,6 +7,11 @@
   min-height: 4.8rem;
 }
 
+.portal-area .portal-button::before,
+.portal-area .portal-button::after {
+  display: none;
+}
+
 .portal-shell {
   position: relative;
   overflow: hidden;
@@ -147,6 +152,14 @@
   color: rgba(var(--color-foreground), 0.8);
 }
 
+.portal-hero__actions,
+.portal-login-gate__actions,
+.portal-guest-offer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .portal-hero__badge {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -229,6 +242,10 @@
   gap: 1.8rem;
 }
 
+.portal-dashboard--guest {
+  gap: 2rem;
+}
+
 .portal-section,
 .portal-login-gate,
 .portal-note,
@@ -262,9 +279,119 @@
 .portal-step-list,
 .portal-past-trips,
 .portal-shop__grid,
-.portal-grid {
+.portal-grid,
+.portal-guest-offers,
+.portal-guest-services,
+.portal-guest-service-list {
   display: grid;
   gap: 1.2rem;
+}
+
+.portal-guest-offer {
+  display: grid;
+  gap: 1.4rem;
+  min-height: 100%;
+  padding: 1.8rem;
+  border-radius: 2.4rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(var(--color-button), 0.12), transparent 34%),
+    rgba(var(--color-background), 0.84);
+}
+
+.portal-guest-offer__top,
+.portal-panel__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portal-guest-offer__badge,
+.portal-panel__eyebrow {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.16rem;
+  text-transform: uppercase;
+  color: rgba(var(--color-foreground), 0.58);
+}
+
+.portal-guest-offer__price,
+.portal-guest-service__title {
+  margin: 0;
+}
+
+.portal-guest-offer__price {
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  line-height: 1;
+  font-weight: 700;
+  color: rgb(var(--color-button));
+}
+
+.portal-guest-offer__title,
+.portal-panel__title {
+  margin: 0;
+}
+
+.portal-guest-offer__copy,
+.portal-guest-offer__includes,
+.portal-guest-service__copy,
+.portal-guest-member-note {
+  color: rgba(var(--color-foreground), 0.76);
+}
+
+.portal-guest-offer__includes {
+  padding-top: 1.4rem;
+  border-top: 0.1rem solid rgba(var(--color-foreground), 0.08);
+}
+
+.portal-panel {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.portal-panel__header {
+  padding-bottom: 1.2rem;
+  border-bottom: 0.1rem solid rgba(var(--color-foreground), 0.08);
+}
+
+.portal-panel__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 1.6rem;
+  background: rgba(var(--color-button), 0.1);
+  color: rgb(var(--color-button));
+}
+
+.portal-panel__icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.portal-panel--included {
+  background:
+    radial-gradient(circle at top left, rgba(var(--color-button), 0.12), transparent 32%),
+    rgba(var(--color-background), 0.84);
+}
+
+.portal-panel--paid {
+  background:
+    radial-gradient(circle at top right, rgba(var(--color-foreground), 0.06), transparent 36%),
+    rgba(var(--color-background), 0.84);
+}
+
+.portal-guest-service {
+  padding: 1.4rem;
+  border-radius: 1.8rem;
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  background: rgba(var(--color-background), 0.7);
+}
+
+.portal-guest-member-note {
+  margin-top: 1.2rem;
 }
 
 .portal-quick-action {
@@ -758,14 +885,16 @@
 
   .portal-quick-actions,
   .portal-link-grid,
-  .portal-grid--stats {
+  .portal-grid--stats,
+  .portal-guest-services {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .portal-dashboard-grid,
   .portal-past-trips,
   .portal-shop__grid,
-  .portal-grid--panels {
+  .portal-grid--panels,
+  .portal-guest-offers {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -792,7 +921,8 @@
   }
 
   .portal-past-trips,
-  .portal-shop__grid {
+  .portal-shop__grid,
+  .portal-guest-offers {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
