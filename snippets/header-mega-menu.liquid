@@ -52,7 +52,7 @@
                       </a>
                       {%- if childlink.links != blank -%}
                         <ul class="list-unstyled" role="list">
-                          {%- for grandchildlink in childlink.links -%}
+                          {%- for grandchildlink in childlink.links limit: 6 -%}
                             <li>
                               <a
                                 id="HeaderMenu-{{ link.handle }}-{{ childlink.handle }}-{{ grandchildlink.handle }}"
@@ -66,6 +66,20 @@
                               </a>
                             </li>
                           {%- endfor -%}
+                          {%- if childlink.links.size > 6 -%}
+                            <li>
+                              <a
+                                id="HeaderMenu-{{ link.handle }}-{{ childlink.handle }}-view-all"
+                                href="{{ childlink.url }}"
+                                class="mega-menu__link mega-menu__link--view-all link{% if childlink.current %} mega-menu__link--active{% endif %}"
+                                {% if childlink.current %}
+                                  aria-current="page"
+                                {% endif %}
+                              >
+                                View all {{ childlink.title | escape }} destinations &rarr;
+                              </a>
+                            </li>
+                          {%- endif -%}
                         </ul>
                       {%- endif -%}
                     </li>

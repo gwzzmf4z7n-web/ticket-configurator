@@ -168,7 +168,14 @@
           {% endif %}
           <div class="portal-hero__actions">
             {% if section.settings.guest_primary_label != blank and section.settings.guest_primary_link != blank %}
-              <a class="button portal-button" href="{{ section.settings.guest_primary_link }}">{{ section.settings.guest_primary_label }}</a>
+              <a
+                class="button portal-button mt-book-service"
+                href="{{ section.settings.guest_primary_link }}"
+                data-mt-service="consultation"
+                data-mt-redirect="checkout"
+              >
+                {{ section.settings.guest_primary_label }}
+              </a>
             {% endif %}
             {% if section.settings.guest_secondary_label != blank and section.settings.guest_secondary_link != blank %}
               <a class="button button--secondary portal-button portal-button--secondary" href="{{ section.settings.guest_secondary_link }}">{{ section.settings.guest_secondary_label }}</a>

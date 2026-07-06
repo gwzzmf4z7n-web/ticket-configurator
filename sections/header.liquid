@@ -119,6 +119,21 @@
   {%- liquid
     assign social_links = false
     assign localization_forms = false
+    assign header_cta_fallback_url = '/pages/contact-us'
+    assign header_shop_cta_fallback_url = 'https://magicaltickets.com.au'
+
+    if pages['request-a-quote'] != blank
+      assign header_cta_fallback_url = pages['request-a-quote'].url
+    elsif pages['Request-a-Quote'] != blank
+      assign header_cta_fallback_url = pages['Request-a-Quote'].url
+    elsif pages['contact-us'] != blank
+      assign header_cta_fallback_url = pages['contact-us'].url
+    elsif pages['Contact-Us'] != blank
+      assign header_cta_fallback_url = pages['Contact-Us'].url
+    endif
+
+    assign header_cta_url = section.settings.header_cta_link | default: header_cta_fallback_url
+    assign header_shop_cta_url = section.settings.header_shop_cta_link | default: header_shop_cta_fallback_url
 
     if settings.social_twitter_link != blank or settings.social_facebook_link != blank or settings.social_pinterest_link != blank or settings.social_instagram_link != blank or settings.social_youtube_link != blank or settings.social_vimeo_link != blank or settings.social_tiktok_link != blank or settings.social_tumblr_link != blank or settings.social_snapchat_link != blank
       assign social_links = true
@@ -210,6 +225,12 @@
     {%- endif -%}
 
     <div class="header__icons{% if section.settings.enable_country_selector or section.settings.enable_language_selector %} header__icons--localization header-localization{% endif %}">
+      <a href="{{ header_shop_cta_url }}" class="header__cta-button header__cta-button--secondary small-hide medium-hide">
+        {{ section.settings.header_shop_cta_label }}
+      </a>
+      <a href="{{ header_cta_url }}" class="header__cta-button small-hide medium-hide" target="_blank" rel="noopener noreferrer">
+        {{ section.settings.header_cta_label }}
+      </a>
       <div class="desktop-localization-wrapper">
         {%- if section.settings.enable_country_selector and localization.available_countries.size > 1 -%}
           <localization-form class="small-hide medium-hide" data-prevent-hide>
@@ -608,6 +629,28 @@
       "default": true,
       "label": "t:sections.header.settings.enable_customer_avatar.label",
       "info": "t:sections.header.settings.enable_customer_avatar.info"
+    },
+    {
+      "type": "text",
+      "id": "header_cta_label",
+      "label": "Header CTA label",
+      "default": "Request a Quote"
+    },
+    {
+      "type": "url",
+      "id": "header_cta_link",
+      "label": "Header CTA link"
+    },
+    {
+      "type": "text",
+      "id": "header_shop_cta_label",
+      "label": "Header shop CTA label",
+      "default": "Shop Magical Tickets"
+    },
+    {
+      "type": "url",
+      "id": "header_shop_cta_link",
+      "label": "Header shop CTA link"
     },
     {
       "type": "header",
