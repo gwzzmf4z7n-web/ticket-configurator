@@ -1,0 +1,13 @@
+{% doc %}
+  Shows appointment reservation details and links for choosing another time.
+{% enddoc %}
+{% for item in cart.items %}
+  {% if item.properties._appointment_hold != blank %}
+    <div data-appointment-hold="{{ item.properties._appointment_hold | escape }}" class="appointment-cart-status">
+      <strong>{{ item.product.title | escape }}</strong><br>
+      {{ item.properties['Appointment date'] | escape }} · {{ item.properties['Appointment time'] | escape }}<br>
+      Appointment holds last 15 minutes. Quantity must stay at one for each appointment.<br>
+      <a href="{{ item.url }}">Choose another appointment</a> · <a href="{{ item.url_to_remove }}">Remove</a>
+    </div>
+  {% endif %}
+{% endfor %}

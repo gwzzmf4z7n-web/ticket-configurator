@@ -1,0 +1,12 @@
+.appointment-product { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4rem; padding-top: 4rem; padding-bottom: 4rem; }
+.appointment-product__image { width: 100%; height: auto; border-radius: 12px; }
+.appointment-product__booking { padding: 2.4rem; border: 1px solid #d9e0dc; border-radius: 16px; background: #f8faf8; align-self: start; }
+.appointment-product form { display: grid; gap: 1rem; }
+.appointment-product select { width: 100%; padding: 1.2rem; border: 1px solid #879b91; border-radius: 6px; background: white; font: inherit; }
+.appointment-product label { font-weight: 600; }
+.appointment-product [role="status"] { margin: 0; }
+.appointment-product [data-error="true"], .appointment-cart-status[data-error="true"] { color: #a12622; }
+.appointment-cart-status { padding: 1rem; margin: 1rem 0; border: 1px solid #c6d4cc; background: #f5f9f6; border-radius: 6px; font-size: 1.4rem; }
+.appointment-cart-status:empty { display: none; }
+html.has-appointment-cart .additional-checkout-buttons, html.has-appointment-cart .cart__dynamic-checkout-buttons { display: none !important; }
+@media (max-width: 749px) { .appointment-product { grid-template-columns: 1fr; gap: 2rem; } .appointment-product__booking { padding: 1.6rem; } }

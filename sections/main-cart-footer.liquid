@@ -38,6 +38,13 @@
       {%- endif -%}
 
       <div class="cart__blocks">
+        {% render 'appointment-cart-holds' %}
+        {% assign has_appointment = false %}
+        {% for item in cart.items %}
+          {% if item.properties._appointment_hold != blank %}
+            {% assign has_appointment = true %}
+          {% endif %}
+        {% endfor %}
         {% for block in section.blocks %}
           {%- case block.type -%}
             {%- when '@app' -%}
@@ -119,7 +126,7 @@
                 </button>
               </div>
 
-              {%- if additional_checkout_buttons -%}
+              {%- if additional_checkout_buttons and has_appointment == false -%}
                 <div class="cart__dynamic-checkout-buttons additional-checkout-buttons">
                   {{ content_for_additional_checkout_buttons }}
                 </div>

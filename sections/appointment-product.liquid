@@ -1,0 +1,41 @@
+{{ 'appointment-booking.css' | asset_url | stylesheet_tag }}
+<appointment-product class="appointment-product page-width" data-proxy="{{ section.settings.proxy_path | escape }}">
+  <div class="appointment-product__details">
+    {% if product.featured_image %}
+      {{ product.featured_image | image_url: width: 1000 | image_tag: loading: 'lazy', class: 'appointment-product__image' }}
+    {% endif %}
+    <h1>{{ product.title | escape }}</h1>
+    <div class="rte">{{ product.description }}</div>
+  </div>
+  <div class="appointment-product__booking">
+    <h2>Book your appointment</h2>
+    <p>Choose your consultation and a time that suits you. All times are Melbourne time.</p>
+    <form data-booking-form>
+      <label for="AppointmentVariant-{{ section.id }}">Consultation option</label>
+      <select id="AppointmentVariant-{{ section.id }}" name="variantId" required>
+        {% for variant in product.variants %}
+          <option value="{{ variant.id }}" {% if variant == product.selected_or_first_available_variant %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}>
+            {{ variant.title | escape }} — {{ variant.price | money_with_currency }}{% unless variant.available %} (unavailable){% endunless %}
+          </option>
+        {% endfor %}
+      </select>
+      <p data-duration></p>
+      <label for="AppointmentAgent-{{ section.id }}">Your agent</label>
+      <select id="AppointmentAgent-{{ section.id }}" name="agentId" required disabled><option value="">Loading agents…</option></select>
+      <label for="AppointmentDate-{{ section.id }}">Date</label>
+      <select id="AppointmentDate-{{ section.id }}" name="bookingDate" required disabled><option value="">Choose an agent first</option></select>
+      <label for="AppointmentTime-{{ section.id }}">Time</label>
+      <select id="AppointmentTime-{{ section.id }}" name="startTime" required disabled><option value="">Choose a date first</option></select>
+      <p>Your time is held for 15 minutes when you add it to your cart. Your appointment is confirmed after payment.</p>
+      <button type="submit" class="button button--primary" disabled>Hold appointment and add to cart</button>
+      <p data-booking-status role="status" aria-live="polite"></p>
+    </form>
+    <noscript>Please enable JavaScript to check availability and reserve your appointment.</noscript>
+  </div>
+</appointment-product>
+{% schema %}
+{
+  "name": "Appointment product",
+  "settings": [{ "type": "text", "id": "proxy_path", "label": "Booking app path", "default": "/apps/appointments", "info": "Must match the Destination Hub app proxy path." }]
+}
+{% endschema %}
